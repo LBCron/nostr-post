@@ -9,6 +9,7 @@
  * Dispatches 'np-value-changed' with { detail: { value: string[] } }.
  */
 
+import { startActivity } from '@nostr-post/plugins/activity';
 import type { PostField } from '@nostr-post/plugins/types';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -153,6 +154,8 @@ export class NpMediaInput extends LitElement {
     this._uploading = `${m.preparing(file.name)}${count}`;
     this._uploadDetail = '';
     this._uploadProgress = 0;
+    // Shown here, not in <np-activity>; the composer waits for it before publishing
+    const activity = startActivity(m.uploading(file.name), { blocksPublish: true, hidden: true });
     try {
       const quality = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
       const upload = await compressImage(file, quality);
@@ -163,9 +166,11 @@ export class NpMediaInput extends LitElement {
         this._uploadProgress = Math.round(fraction * 100);
       });
       this._addUrl(url);
+      activity.done();
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       this._uploadError = `${m.uploadFailed(file.name)}: ${reason}`;
+      activity.fail(this._uploadError);
     }
   }
 

@@ -25,11 +25,13 @@ import { composerStyle } from './composerStyle';
 import {
   invalidFieldLabels,
   type NostrPostSubmitDetail,
+  publishedNotice,
   publishWithHooks,
   renderPublishSummaries,
   renderSubmitArea,
   type ValidationResult,
   validateAndCoordinate,
+  waitForUploads,
 } from './composerSubmit';
 import './composerElement';
 import { ensurePluginsForManifest } from './pluginAutoLoad';
@@ -340,6 +342,7 @@ export class NostrPostComposer extends NostrPostElement {
     this.isSubmitting = true;
 
     try {
+      await waitForUploads(this._m, (step) => (this._submitStep = step));
       const outcome = this._coordinate(manifest, this._formData, pubkey);
 
       if ('validationError' in outcome) {
@@ -350,15 +353,11 @@ export class NostrPostComposer extends NostrPostElement {
       const { bundle, addressableDTag } = outcome;
 
       if (this.autoPublish) {
-        const { events: signedEvents, afterPublishErrors } = await this._publish(manifest, pubkey);
-        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', signedEvents);
-        this.successMessage =
-          signedEvents.length > 0
-            ? `Published to ${signedEvents.length} event(s)!`
-            : this._m.doneWithoutPost;
-        if (afterPublishErrors.length > 0) {
-          this.showError(this._m.afterPublishFailed(afterPublishErrors.map((e) => e.message)));
-        }
+        const published = await this._publish(manifest, pubkey);
+        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
+        const notice = publishedNotice(published, this._m);
+        this.successMessage = notice.success;
+        if (notice.error) this.showError(notice.error);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)
         this.dispatchCustomEvent<NostrPostSubmitDetail>('nostr-post-submit', {
@@ -367,7 +366,7 @@ export class NostrPostComposer extends NostrPostElement {
           formData: { ...this._formData },
           manifest,
         });
-        this.successMessage = 'Post created successfully!';
+        this.successMessage = this._m.created;
       }
 
       this._formData = {};

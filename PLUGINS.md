@@ -306,6 +306,10 @@ activity.done('photo.jpg added'); // or activity.fail('HTTP 500')
 ```
 
 Finished activities disappear after a few seconds; failed ones stay until the user closes them.
+Options (`startActivity(label, { … })`): `detail`; `blocksPublish`, for work that adds to the form
+(an upload whose link goes into the text): the composer waits for it before publishing and stops
+when it failed; `warnOnLeave`: the browser asks before the user leaves while it runs; `hidden`: not
+listed, when your component shows the progress itself.
 The media plugin reports its text-field uploads this way, and `<np-activity>` shows events still
 being sent to relays (the signer's `RELAYS_PENDING_EVENT`).
 

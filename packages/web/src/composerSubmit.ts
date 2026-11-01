@@ -13,6 +13,7 @@ import {
   type NostrPostManifest,
   STANDARD_KIND1_POST_MANIFEST,
 } from '@nostr-post/core/types';
+import { publishBlockers, waitForPublishBlockers } from '@nostr-post/plugins/activity';
 import { publishSummaries, runAfterPublish, runPublishHooks } from '@nostr-post/plugins/publish';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import { html, type TemplateResult } from 'lit';
@@ -252,6 +253,21 @@ export const signAndPublishBundle = async (
   return signedEvents;
 };
 
+/**
+ * Wait for running uploads that add to the form (activities with `blocksPublish`, e.g. a photo
+ * whose link goes into the text), so the post has them. Throws when one of them failed; a
+ * failed upload no longer blocks, so publishing again posts without it.
+ */
+export const waitForUploads = async (
+  messages: ComposerMessages,
+  onStep: (step: string) => void
+): Promise<void> => {
+  if (publishBlockers().length === 0) return;
+  onStep(messages.stepUploads);
+  const failed = await waitForPublishBlockers();
+  if (failed.length > 0) throw new Error(messages.uploadsFailed(failed.map((a) => a.label)));
+};
+
 /** Rejects with `message` when `promise` hasn't settled after `ms` */
 export const withTimeout = <T>(promise: Promise<T>, ms: number, message: string): Promise<T> =>
   new Promise<T>((resolve, reject) => {
@@ -324,6 +340,17 @@ export const publishWithHooks = async (
   });
   return { events, afterPublishErrors };
 };
+
+/** What the composer says after publishing: success, and after-publish steps that failed */
+export const publishedNotice = (
+  published: PublishWithHooksResult,
+  m: ComposerMessages
+): { success: string; error?: string } => ({
+  success: published.events.length ? m.published(published.events.length) : m.doneWithoutPost,
+  error: published.afterPublishErrors.length
+    ? m.afterPublishFailed(published.afterPublishErrors.map((e) => e.message))
+    : undefined,
+});
 
 /** Labels of the fields with a validation error, in manifest order */
 export const invalidFieldLabels = (

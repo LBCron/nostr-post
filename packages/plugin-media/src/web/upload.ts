@@ -136,7 +136,8 @@ export async function uploadIntoContent(
   const maxSize = config.maxSize ?? DEFAULT_MAX_SIZE;
   const m = mediaMessages();
   for (const file of files) {
-    const activity = startActivity(m.preparing(file.name));
+    // The link goes into the text when it's done: the composer waits for it before publishing
+    const activity = startActivity(m.preparing(file.name), { blocksPublish: true });
     try {
       const upload = await compressImage(file, uploadQuality(config));
       if (upload.size > maxSize) throw new Error(m.tooLarge(Math.round(maxSize / (1024 * 1024))));

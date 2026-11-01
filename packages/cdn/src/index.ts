@@ -204,6 +204,9 @@ export {
   getActivities,
   subscribeActivities,
   dismissActivity,
+  type ActivityOptions,
+  publishBlockers,
+  waitForPublishBlockers,
 } from '@nostr-post/plugins/activity';
 export {
   type ActivityMessages,

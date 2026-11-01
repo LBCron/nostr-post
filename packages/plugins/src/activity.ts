@@ -17,6 +17,19 @@ export interface Activity {
   /** 0–1 when it's known how far along it is */
   readonly progress?: number;
   readonly state: ActivityState;
+  /** Adds to the form being written (an upload): the composer waits for it before publishing */
+  readonly blocksPublish?: boolean;
+  /** Leaving the page would lose it (events not yet on every relay): UIs warn */
+  readonly warnOnLeave?: boolean;
+  /** Not listed by <np-activity>: the component that started it shows it itself */
+  readonly hidden?: boolean;
+}
+
+export interface ActivityOptions {
+  detail?: string;
+  blocksPublish?: boolean;
+  warnOnLeave?: boolean;
+  hidden?: boolean;
 }
 
 export interface ActivityHandle {
@@ -53,9 +66,9 @@ export function dismissActivity(id: number): void {
 }
 
 /** Start reporting an activity; update and finish it through the returned handle */
-export function startActivity(label: string, detail?: string): ActivityHandle {
+export function startActivity(label: string, options: ActivityOptions = {}): ActivityHandle {
   const id = nextId++;
-  setActivities([...activities, { id, label, detail, state: 'running' }]);
+  setActivities([...activities, { id, label, ...options, state: 'running' }]);
   return {
     id,
     update: (patch) => patchActivity(id, patch),
@@ -84,4 +97,28 @@ export function subscribeActivities(listener: Listener): () => void {
   return () => {
     listeners.delete(listener);
   };
+}
+
+/** Running activities the composer waits for before publishing (`blocksPublish`) */
+export function publishBlockers(): readonly Activity[] {
+  return activities.filter((a) => a.blocksPublish && a.state === 'running');
+}
+
+/**
+ * Resolves when the publish blockers running now have finished, with the ones that failed
+ * (dismissed ones count as finished)
+ */
+export function waitForPublishBlockers(): Promise<readonly Activity[]> {
+  const waiting = new Set(publishBlockers().map((a) => a.id));
+  return new Promise((resolve) => {
+    let stop: (() => void) | undefined;
+    const check = (list: readonly Activity[]): void => {
+      const mine = list.filter((a) => waiting.has(a.id));
+      if (mine.some((a) => a.state === 'running')) return;
+      stop?.();
+      resolve(mine.filter((a) => a.state === 'failed'));
+    };
+    stop = subscribeActivities(check);
+    check(activities);
+  });
 }

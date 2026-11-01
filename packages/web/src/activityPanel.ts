@@ -5,7 +5,8 @@
  * Shows the activities of `@nostr-post/plugins/activity`; relay sends (the signer's
  * RELAYS_PENDING_EVENT) become one activity. Importing this module adds an <np-activity> to
  * the page when the first activity starts, unless the app placed one (e.g. inside its
- * `dark` container).
+ * `dark` container). While an activity with `warnOnLeave` runs (relay sends), the browser asks
+ * before the user leaves the page.
  */
 
 import {
@@ -147,11 +148,12 @@ export class NpActivity extends LitElement {
   }
 
   override render() {
-    if (this._activities.length === 0) return nothing;
+    const shown = this._activities.filter((activity) => !activity.hidden);
+    if (shown.length === 0) return nothing;
     const m = activityMessages(this.messages);
     return html`
       <div role="status" aria-live="polite" aria-label=${m.region} style="display: contents">
-        ${this._activities.map((activity) => renderActivity(activity, m))}
+        ${shown.map((activity) => renderActivity(activity, m))}
       </div>
     `;
   }
@@ -192,7 +194,7 @@ const onRelaysPending = (e: CustomEvent<RelaysPendingDetail>): void => {
   const { pending, sent, failed } = e.detail;
   const m = activityMessages();
   if (pending > 0) {
-    relayActivity ??= startActivity(m.sendingToRelays);
+    relayActivity ??= startActivity(m.sendingToRelays, { warnOnLeave: true });
     relayActivity.update({
       detail: m.relaysLeft(pending),
       progress: (sent + failed) / (sent + failed + pending),
@@ -205,18 +207,34 @@ const onRelaysPending = (e: CustomEvent<RelaysPendingDetail>): void => {
   relayActivity = undefined;
 };
 
-/** Add an <np-activity> to the page when something runs and the app placed none */
+/** Add an <np-activity> to the page when something shown runs and the app placed none */
 const mountWhenNeeded = (activities: readonly Activity[]): void => {
-  if (activities.length === 0 || document.querySelector('np-activity')) return;
+  if (!activities.some((a) => !a.hidden) || document.querySelector('np-activity')) return;
   const panel = document.createElement('np-activity');
   // The app's dark theme: a `dark` class somewhere on the page
   if (document.querySelector('.dark')) panel.classList.add('dark');
   document.body.append(panel);
 };
 
+// The browser asks before leaving while work would be lost (events not yet on every relay)
+const confirmLeave = (e: BeforeUnloadEvent): void => {
+  e.preventDefault();
+  e.returnValue = ''; // Older Safari and Chrome ask only when it's set
+};
+let warningOnLeave = false;
+
+const updateLeaveWarning = (activities: readonly Activity[]): void => {
+  const warn = activities.some((a) => a.warnOnLeave && a.state === 'running');
+  if (warn === warningOnLeave) return;
+  warningOnLeave = warn;
+  if (warn) window.addEventListener('beforeunload', confirmLeave);
+  else window.removeEventListener('beforeunload', confirmLeave);
+};
+
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   window.addEventListener(RELAYS_PENDING_EVENT, onRelaysPending);
   subscribeActivities(mountWhenNeeded);
+  subscribeActivities(updateLeaveWarning);
 }
 
 declare global {

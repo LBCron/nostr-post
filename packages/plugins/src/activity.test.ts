@@ -3,8 +3,10 @@ import {
   DONE_VISIBLE_MS,
   dismissActivity,
   getActivities,
+  publishBlockers,
   startActivity,
   subscribeActivities,
+  waitForPublishBlockers,
 } from './activity';
 
 afterEach(() => {
@@ -44,5 +46,27 @@ describe('activities', () => {
     ]);
     vi.advanceTimersByTime(DONE_VISIBLE_MS);
     expect(getActivities().map((a) => a.id)).toEqual([bad.id]);
+  });
+
+  it('waits for publish blockers, with the ones that failed', async () => {
+    const ok = startActivity('Uploading a.jpg', { blocksPublish: true });
+    const bad = startActivity('Uploading b.jpg', { blocksPublish: true });
+    startActivity('Sending to relays…');
+    expect(publishBlockers().map((a) => a.id)).toEqual([ok.id, bad.id]);
+    let settled: readonly { label: string }[] | undefined;
+    void waitForPublishBlockers().then((failed) => {
+      settled = failed;
+    });
+    ok.done();
+    await Promise.resolve();
+    expect(settled).toBeUndefined();
+    bad.fail('HTTP 500');
+    await Promise.resolve();
+    expect(settled?.map((a) => a.label)).toEqual(['Uploading b.jpg']);
+  });
+
+  it('resolves at once without publish blockers', async () => {
+    startActivity('Sending to relays…');
+    await expect(waitForPublishBlockers()).resolves.toEqual([]);
   });
 });

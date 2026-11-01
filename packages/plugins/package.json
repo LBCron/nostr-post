@@ -27,6 +27,10 @@
     "./entities": {
       "types": "./dist/entities.d.ts",
       "import": "./dist/entities.js"
+    },
+    "./activity": {
+      "types": "./dist/activity.d.ts",
+      "import": "./dist/activity.js"
     }
   },
   "scripts": {

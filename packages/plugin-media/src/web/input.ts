@@ -2,191 +2,32 @@
  * @nostr-post/plugin-media - <np-media-input>
  *
  * Multi-file media upload / URL input with drag & drop, gallery, and preview.
- * Uploads files to nostr.build (free Nostr media hosting).
+ * Uploads files to nostr.build (free Nostr media hosting), photos shrunk on the device to
+ * the quality the user picks (remembered for next time).
  *
  * Accepts .value (string[]) and .field (PostField).
  * Dispatches 'np-value-changed' with { detail: { value: string[] } }.
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { isImageUrl, isVideoUrl, type MediaPluginConfig, toArray } from '../core';
-import { createNip98AuthToken, NOSTR_BUILD_UPLOAD } from './upload';
+import {
+  isImageUrl,
+  isMediaQuality,
+  isVideoUrl,
+  MEDIA_QUALITIES,
+  type MediaPluginConfig,
+  toArray,
+} from '../core';
+import { compressImage, rememberQuality } from './compress';
+import { mediaInputStyles } from './inputStyles';
+import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
+import { DEFAULT_MAX_SIZE, NOSTR_BUILD_UPLOAD, uploadQuality, uploadWithProgress } from './upload';
 
 @customElement('np-media-input')
 export class NpMediaInput extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    /* Gallery */
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .gallery-card {
-      position: relative;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      overflow: hidden;
-      width: 120px;
-      height: 90px;
-      background: #f3f4f6;
-    }
-    .gallery-card img,
-    .gallery-card video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .gallery-card .badge {
-      position: absolute;
-      bottom: 4px;
-      left: 4px;
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      padding: 0 4px;
-      border-radius: 3px;
-      font-size: 0.7rem;
-    }
-    .gallery-card .placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      color: #6b7280;
-      padding: 0.25rem;
-      word-break: break-all;
-      text-align: center;
-    }
-    .gallery-card .remove-btn {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .gallery-card .remove-btn:hover {
-      background: rgba(220, 38, 38, 0.8);
-    }
-
-    /* Drop zone */
-    .drop-zone {
-      border: 2px dashed #d1d5db;
-      border-radius: 8px;
-      padding: 1.5rem 1rem;
-      text-align: center;
-      cursor: pointer;
-      transition:
-        border-color 0.15s,
-        background 0.15s;
-    }
-    .drop-zone:hover,
-    .drop-zone.dragover {
-      border-color: #6366f1;
-      background: rgba(99, 102, 241, 0.04);
-    }
-    .drop-zone.uploading {
-      border-color: #a5b4fc;
-      opacity: 0.7;
-      pointer-events: none;
-    }
-    .drop-icon {
-      font-size: 1.75rem;
-      margin-bottom: 0.25rem;
-    }
-    .drop-text {
-      font-size: 0.875rem;
-      color: #6b7280;
-      margin: 0;
-    }
-    .drop-hint {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      margin: 0.25rem 0 0;
-    }
-    .file-input {
-      display: none;
-    }
-
-    /* URL input */
-    .url-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .separator {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .url-input {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .url-input:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-    }
-
-    /* Progress & status */
-    .progress-bar {
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: #6366f1;
-      transition: width 0.3s;
-      border-radius: 2px;
-    }
-    .upload-status {
-      font-size: 0.75rem;
-      color: #6b7280;
-      text-align: center;
-    }
-    .error {
-      font-size: 0.8125rem;
-      color: #dc2626;
-      padding: 0.5rem 0.75rem;
-      background: #fef2f2;
-      border-radius: 6px;
-      border: 1px solid #fecaca;
-    }
-    .hint {
-      font-size: 0.75rem;
-      color: #9ca3af;
-    }
-  `;
+  static override styles = mediaInputStyles;
 
   @property({ type: Array })
   value: string[] = [];
@@ -194,33 +35,48 @@ export class NpMediaInput extends LitElement {
   @property({ type: Object })
   field: PostField | null = null;
 
-  @state() private dragover = false;
-  @state() private uploading = false;
-  @state() private uploadProgress = 0;
-  @state() private uploadError = '';
-  @state() private urlInput = '';
+  @property({ type: Object })
+  messages: Partial<MediaMessages> = {};
 
-  private get config(): MediaPluginConfig {
+  @state() private _dragover = false;
+  /** What's uploading now, e.g. "Uploading a.jpg (1/3)", with the sizes */
+  @state() private _uploading = '';
+  @state() private _uploadDetail = '';
+  @state() private _uploadProgress = 0;
+  @state() private _uploadError = '';
+  @state() private _urlInput = '';
+  /** The quality picked here, until then the remembered one */
+  @state() private _quality = '';
+
+  private get _m(): MediaMessages {
+    return mediaMessages(this.messages);
+  }
+
+  private get _config(): MediaPluginConfig {
     return (this.field?.metadata as MediaPluginConfig) || {};
   }
 
-  private get accept(): string {
-    return this.config.accept?.join(',') ?? 'image/*,video/*';
+  private get _accept(): string {
+    return this._config.accept?.join(',') ?? 'image/*,video/*';
   }
 
-  private get maxSize(): number {
-    return this.config.maxSize ?? 10 * 1024 * 1024;
+  private get _maxSize(): number {
+    return this._config.maxSize ?? DEFAULT_MAX_SIZE;
   }
 
-  private get maxFiles(): number {
-    return this.config.maxFiles ?? 10;
+  private get _maxMb(): number {
+    return Math.round(this._maxSize / (1024 * 1024));
   }
 
-  private get urls(): string[] {
+  private get _maxFiles(): number {
+    return this._config.maxFiles ?? 10;
+  }
+
+  private get _urls(): string[] {
     return toArray(this.value);
   }
 
-  private emitValue(urls: string[]) {
+  private _emitValue(urls: string[]) {
     this.value = urls;
     this.dispatchEvent(
       new CustomEvent('np-value-changed', {
@@ -231,200 +87,183 @@ export class NpMediaInput extends LitElement {
     );
   }
 
-  private addUrl(url: string) {
-    if (this.urls.length >= this.maxFiles) return;
-    this.emitValue([...this.urls, url]);
+  private _addUrl(url: string) {
+    if (this._urls.length >= this._maxFiles) return;
+    this._emitValue([...this._urls, url]);
   }
 
-  private removeUrl(index: number) {
-    const next = this.urls.filter((_, i) => i !== index);
-    this.emitValue(next);
+  private _removeUrl(index: number) {
+    this._emitValue(this._urls.filter((_, i) => i !== index));
   }
 
   // --- Drag & Drop ---
 
-  private handleDragOver(e: DragEvent) {
+  private _handleDragOver(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    this.dragover = true;
+    this._dragover = true;
   }
 
-  private handleDragLeave(e: DragEvent) {
+  private _handleDragLeave(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    this.dragover = false;
+    this._dragover = false;
   }
 
-  private handleDrop(e: DragEvent) {
+  private _handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    this.dragover = false;
-    const files = e.dataTransfer?.files;
-    if (files) {
-      const remaining = this.maxFiles - this.urls.length;
-      const batch = Array.from(files).slice(0, remaining);
-      for (const file of batch) {
-        this.uploadFile(file);
-      }
-    }
+    this._dragover = false;
+    if (e.dataTransfer?.files) void this._uploadFiles(Array.from(e.dataTransfer.files));
   }
 
-  private openFilePicker() {
+  private _openFilePicker() {
     (this.shadowRoot?.querySelector('.file-input') as HTMLInputElement)?.click();
   }
 
-  private handleFileSelected(e: Event) {
+  private _handleFileSelected(e: Event) {
     const input = e.target as HTMLInputElement;
     if (input.files) {
-      const remaining = this.maxFiles - this.urls.length;
-      const batch = Array.from(input.files).slice(0, remaining);
-      for (const file of batch) {
-        this.uploadFile(file);
-      }
+      void this._uploadFiles(Array.from(input.files));
       input.value = '';
     }
   }
 
   // --- Upload ---
 
-  private async uploadFile(file: File) {
-    if (file.size > this.maxSize) {
-      this.uploadError = `File too large (max ${Math.round(this.maxSize / (1024 * 1024))}MB)`;
-      return;
+  private _pickQuality(value: string) {
+    if (!isMediaQuality(value)) return;
+    this._quality = value;
+    rememberQuality(value);
+  }
+
+  /** One after another, so each gets the whole connection and the order is kept */
+  private async _uploadFiles(files: File[]) {
+    const batch = files.slice(0, this._maxFiles - this._urls.length);
+    this._uploadError = '';
+    for (const [index, file] of batch.entries()) {
+      const count = batch.length > 1 ? ` (${index + 1}/${batch.length})` : '';
+      await this._uploadFile(file, count);
     }
+    this._uploading = '';
+  }
 
-    this.uploading = true;
-    this.uploadProgress = 0;
-    this.uploadError = '';
-
+  private async _uploadFile(file: File, count: string) {
+    const m = this._m;
+    this._uploading = `${m.preparing(file.name)}${count}`;
+    this._uploadDetail = '';
+    this._uploadProgress = 0;
     try {
-      const uploadUrl = this.config.uploadUrl ?? NOSTR_BUILD_UPLOAD;
-      const formData = new FormData();
-      formData.append('file', file);
-      const authToken = await createNip98AuthToken(uploadUrl, 'POST');
-
-      const xhr = new XMLHttpRequest();
-      const uploadPromise = new Promise<string>((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            this.uploadProgress = Math.round((e.loaded / e.total) * 100);
-          }
-        });
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const resp = JSON.parse(xhr.responseText);
-              const url = resp?.data?.[0]?.url ?? resp?.url ?? resp?.data?.url;
-              if (url) resolve(url);
-              else reject(new Error('No URL in upload response'));
-            } catch {
-              reject(new Error('Invalid upload response'));
-            }
-          } else {
-            reject(new Error(`Upload failed (HTTP ${xhr.status})`));
-          }
-        });
-        xhr.addEventListener('error', () => reject(new Error('Upload failed')));
-        xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
+      const quality = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
+      const upload = await compressImage(file, quality);
+      if (upload.size > this._maxSize) throw new Error(m.tooLarge(this._maxMb));
+      this._uploading = `${m.uploading(file.name)}${count}`;
+      this._uploadDetail = m.sizes(formatBytes(file.size), formatBytes(upload.size));
+      const url = await uploadWithProgress(upload, this._config.uploadUrl, (fraction) => {
+        this._uploadProgress = Math.round(fraction * 100);
       });
-
-      xhr.open('POST', uploadUrl);
-      if (authToken) xhr.setRequestHeader('Authorization', `Nostr ${authToken}`);
-      xhr.send(formData);
-
-      const url = await uploadPromise;
-      this.addUrl(url);
+      this._addUrl(url);
     } catch (err) {
-      this.uploadError = err instanceof Error ? err.message : 'Upload failed';
-    } finally {
-      this.uploading = false;
-      this.uploadProgress = 0;
+      const reason = err instanceof Error ? err.message : String(err);
+      this._uploadError = `${m.uploadFailed(file.name)}: ${reason}`;
     }
   }
 
   // --- URL input ---
 
-  private handleUrlKeypress(e: KeyboardEvent) {
+  private _handleUrlKeypress(e: KeyboardEvent) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      this.applyUrl();
+      this._applyUrl();
     }
   }
 
-  private applyUrl() {
-    const url = this.urlInput.trim();
+  private _applyUrl() {
+    const url = this._urlInput.trim();
     if (url) {
-      this.addUrl(url);
-      this.urlInput = '';
+      this._addUrl(url);
+      this._urlInput = '';
     }
   }
 
-  render() {
-    const showUpload = this.config.allowUpload !== false;
-    const showUrl = this.config.allowUrl !== false;
-    const canAddMore = this.urls.length < this.maxFiles;
+  override render() {
+    const m = this._m;
+    const showUpload = this._config.allowUpload !== false;
+    const showUrl = this._config.allowUrl !== false;
+    const canAddMore = this._urls.length < this._maxFiles;
 
     return html`
       <div class="container">
-        ${this.urls.length > 0 ? this.renderGallery() : nothing}
+        ${this._urls.length > 0 ? this._renderGallery() : nothing}
+        ${canAddMore && showUpload ? this._renderDropZone() : nothing}
+        ${canAddMore && showUpload && this._config.qualityChoice !== false ? this._renderQuality() : nothing}
         ${
-          canAddMore
+          canAddMore && showUpload && showUrl
+            ? html`<div class="url-row"><span class="separator">${m.or}</span></div>`
+            : nothing
+        }
+        ${
+          canAddMore && showUrl
             ? html`
-              ${showUpload ? this.renderDropZone() : nothing}
-              ${
-                showUpload && showUrl
-                  ? html`<div class="url-row">
-                    <span class="separator">or</span>
-                  </div>`
-                  : nothing
-              }
-              ${
-                showUrl
-                  ? html`
-                    <div class="url-row">
-                      <input
-                        class="url-input"
-                        type="url"
-                        placeholder="Paste a URL and press Enter"
-                        .value=${this.urlInput}
-                        @input=${(e: Event) => {
-                          this.urlInput = (e.target as HTMLInputElement).value;
-                        }}
-                        @keypress=${this.handleUrlKeypress}
-                      />
-                    </div>
-                  `
-                  : nothing
-              }
+              <div class="url-row">
+                <input
+                  class="url-input"
+                  type="url"
+                  placeholder=${m.urlPlaceholder}
+                  .value=${this._urlInput}
+                  @input=${(e: Event) => {
+                    this._urlInput = (e.target as HTMLInputElement).value;
+                  }}
+                  @keypress=${this._handleUrlKeypress}
+                />
+              </div>
             `
             : nothing
         }
         ${
-          this.uploading
+          this._uploading
             ? html`
               <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  style="width: ${this.uploadProgress}%"
-                ></div>
+                <div class="progress-fill" style="width: ${this._uploadProgress}%"></div>
               </div>
-              <div class="upload-status">
-                Uploading... ${this.uploadProgress}%
+              <div class="upload-status" role="status">
+                ${this._uploading} ${this._uploadProgress}%
+                ${this._uploadDetail ? html`· ${this._uploadDetail}` : nothing}
               </div>
             `
             : nothing
         }
-        ${this.uploadError ? html`<div class="error">${this.uploadError}</div>` : nothing}
+        ${this._uploadError ? html`<div class="error">${this._uploadError}</div>` : nothing}
 
-        <div class="hint">${this.urls.length}/${this.maxFiles} files</div>
+        <div class="hint">${m.fileCount(this._urls.length, this._maxFiles)}</div>
       </div>
     `;
   }
 
-  private renderGallery() {
+  private _renderQuality() {
+    const m = this._m;
+    const selected = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
+    return html`
+      <label class="quality">
+        ${m.quality}
+        <select
+          ?disabled=${this._uploading !== ''}
+          @change=${(e: Event) => this._pickQuality((e.target as HTMLSelectElement).value)}
+        >
+          ${MEDIA_QUALITIES.map(
+            (q) =>
+              html`<option value=${q} ?selected=${q === selected}>${m.qualityLevels[q]}</option>`
+          )}
+        </select>
+      </label>
+    `;
+  }
+
+  private _renderGallery() {
+    const m = this._m;
     return html`
       <div class="gallery">
-        ${this.urls.map(
+        ${this._urls.map(
           (url, i) => html`
             <div class="gallery-card">
               ${
@@ -442,8 +281,9 @@ export class NpMediaInput extends LitElement {
               <button
                 type="button"
                 class="remove-btn"
-                title="Remove"
-                @click=${() => this.removeUrl(i)}
+                title=${m.remove}
+                aria-label=${m.remove}
+                @click=${() => this._removeUrl(i)}
               >
                 ×
               </button>
@@ -454,27 +294,26 @@ export class NpMediaInput extends LitElement {
     `;
   }
 
-  private renderDropZone() {
+  private _renderDropZone() {
+    const m = this._m;
+    const host = new URL(this._config.uploadUrl ?? NOSTR_BUILD_UPLOAD).host;
     return html`
       <div
-        class="drop-zone ${this.dragover ? 'dragover' : ''} ${this.uploading ? 'uploading' : ''}"
-        @dragover=${this.handleDragOver}
-        @dragleave=${this.handleDragLeave}
-        @drop=${this.handleDrop}
-        @click=${this.openFilePicker}
+        class="drop-zone ${this._dragover ? 'dragover' : ''} ${this._uploading ? 'uploading' : ''}"
+        @dragover=${this._handleDragOver}
+        @dragleave=${this._handleDragLeave}
+        @drop=${this._handleDrop}
+        @click=${this._openFilePicker}
       >
         <div class="drop-icon">📷</div>
-        <p class="drop-text">Drop files here, or click to browse</p>
-        <p class="drop-hint">
-          Uploads to nostr.build (max
-          ${Math.round(this.maxSize / (1024 * 1024))}MB each)
-        </p>
+        <p class="drop-text">${m.dropFiles}</p>
+        <p class="drop-hint">${m.dropHint(host, this._maxMb)}</p>
         <input
           class="file-input"
           type="file"
-          accept=${this.accept}
+          accept=${this._accept}
           multiple
-          @change=${this.handleFileSelected}
+          @change=${this._handleFileSelected}
         />
       </div>
     `;

@@ -6,6 +6,12 @@
 
 // Components
 export { NostrPostComposer } from './composer';
+export { NpActivity } from './activityPanel';
+export {
+  type ActivityMessages,
+  DEFAULT_ACTIVITY_MESSAGES,
+  setActivityMessages,
+} from './activityMessages';
 export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
 export { NostrPostView } from './view';
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from './viewEdit';

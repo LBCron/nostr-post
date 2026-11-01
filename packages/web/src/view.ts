@@ -427,23 +427,20 @@ export class NostrPostView extends NostrPostElement {
 
         <div class="view-content">
           ${
-            content && !shouldUseManifestRendering
-              ? renderNoteContent(tokens, {
-                  nostrLinkBase: this.nostrLinkBase,
-                  profiles: this._mentionProfiles,
-                })
-              : nothing
-          }
-          ${shouldUseManifestRendering ? manifestRenderedData : nothing}
-          ${
             shouldUseManifestRendering
-              ? nothing
+              ? manifestRenderedData
               : renderTagPlugins({
                   kind,
                   manifest: this.effectiveManifest,
                   tags,
                   tokens,
                   excludeFields: this.excludeFields,
+                  content: content
+                    ? renderNoteContent(tokens, {
+                        nostrLinkBase: this.nostrLinkBase,
+                        profiles: this._mentionProfiles,
+                      })
+                    : nothing,
                 })
           } ${roleRows}
         </div>

@@ -11,14 +11,15 @@
  */
 
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { mediaPlugin } from './core';
+import { isMediaQuality, MEDIA_QUALITIES, type MediaPluginConfig, mediaPlugin } from './core';
 
 // Import web components (side-effect: defines custom elements)
 import './web/input';
 import './web/view';
 
-// Import the media paste/drop handlers
-import { handleMediaDrop, handleMediaPaste } from './web/upload';
+import { rememberQuality } from './web/compress';
+import { mediaMessages } from './web/mediaMessages';
+import { handleMediaDrop, handleMediaPaste, uploadIntoContent, uploadQuality } from './web/upload';
 
 // Register the plugin with its web component tag names + textarea event handlers
 pluginRegistry.register({
@@ -27,36 +28,48 @@ pluginRegistry.register({
   viewTagName: 'np-media-view',
   handleTextareaPaste: handleMediaPaste,
   handleTextareaDrop: handleMediaDrop,
-  getFieldActions: (field) => [
-    {
-      id: 'media-upload',
-      icon: '🖼️',
-      label: 'Add media',
-      onClick: ({ targetField, formData, onUpdateField }) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept =
-          (field.metadata?.accept as string[] | undefined)?.join(',') ?? 'image/*,video/*';
-        input.multiple = true;
-        input.onchange = async () => {
-          const files = Array.from(input.files ?? []);
-          if (!files.length) return;
-          const fakeClipboard = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-          });
-          // Use the same upload path as paste handler
-          for (const file of files) {
-            fakeClipboard.clipboardData?.items.add(file);
-          }
-          await handleMediaPaste(fakeClipboard, targetField, {
-            formData,
-            onUpdateField,
-          });
-        };
-        input.click();
+  getFieldActions: (field) => {
+    const config = (field.metadata as MediaPluginConfig | undefined) ?? {};
+    const m = mediaMessages();
+    return [
+      {
+        id: 'media-upload',
+        icon: '🖼️',
+        label: m.addMedia,
+        setting:
+          config.qualityChoice === false
+            ? undefined
+            : {
+                label: m.quality,
+                options: MEDIA_QUALITIES.map((value) => ({
+                  value,
+                  label: m.qualityLevels[value],
+                })),
+                value: uploadQuality(config),
+                onChange: (value) => {
+                  if (isMediaQuality(value)) rememberQuality(value);
+                },
+              },
+        onClick: ({ targetField, formData, getFormData, onUpdateField }) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = config.accept?.join(',') ?? 'image/*,video/*';
+          input.multiple = true;
+          input.onchange = () => {
+            const files = Array.from(input.files ?? []);
+            if (!files.length) return;
+            void uploadIntoContent(files, targetField, {
+              formData,
+              getFormData,
+              onUpdateField,
+              attachedField: field,
+            });
+          };
+          input.click();
+        },
       },
-    },
-  ],
+    ];
+  },
 });
 
 // Re-export components for direct usage
@@ -72,4 +85,13 @@ export {
   NOSTR_BUILD_UPLOAD,
   handleMediaPaste,
   handleMediaDrop,
+  uploadWithProgress,
+  uploadIntoContent,
+  type ContentUploadContext,
 } from './web/upload';
+export { compressImage, preferredQuality, rememberQuality } from './web/compress';
+export {
+  DEFAULT_MEDIA_MESSAGES,
+  type MediaMessages,
+  setMediaMessages,
+} from './web/mediaMessages';

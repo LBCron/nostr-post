@@ -10,7 +10,12 @@ import './composerCompletion';
 import { fieldDescription, fieldLabel } from '@nostr-post/core/manifest';
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import type { FieldActionContext, NostrUIPlugin } from '@nostr-post/plugins/types';
+import type {
+  FieldActionContext,
+  FieldActionSetting,
+  NostrUIPlugin,
+  TextareaEventContext,
+} from '@nostr-post/plugins/types';
 import { html, nothing, type TemplateResult } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
@@ -67,6 +72,8 @@ export interface FieldRenderContext {
   activeKinds: number[];
   /** The author, when the composer knows it (inputs that need the user's data use it) */
   pubkey?: string;
+  /** The form data as it is now, for plugin work that finishes later (an upload) */
+  getFormData: () => Record<string, unknown>;
   isReadonly: (field: PostField) => boolean;
   onFieldChange: (fieldId: string, value: unknown) => void;
   onToggleExpanded: (fieldId: string) => void;
@@ -77,6 +84,7 @@ interface BoundFieldAction {
   icon: string;
   label: string;
   run: () => void | Promise<void>;
+  setting?: FieldActionSetting;
 }
 
 function getPluginIcon(field: PostField): string {
@@ -218,35 +226,40 @@ function getTextareaEventHandlers(
   onDrop?: (e: DragEvent) => void;
 } {
   const attached = ctx.attachedByTarget.get(field.id) ?? [];
-  const pasteHandlers: NonNullable<NostrUIPlugin['handleTextareaPaste']>[] = [];
-  const dropHandlers: NonNullable<NostrUIPlugin['handleTextareaDrop']>[] = [];
+  type Bound<H> = { handler: NonNullable<H>; attachedField: PostField };
+  const pasteHandlers: Bound<NostrUIPlugin['handleTextareaPaste']>[] = [];
+  const dropHandlers: Bound<NostrUIPlugin['handleTextareaDrop']>[] = [];
 
   for (const attachedField of attached) {
     const plugin = pluginRegistry.get(attachedField.uiPlugin) as NostrUIPlugin | undefined;
-    if (plugin?.handleTextareaPaste) pasteHandlers.push(plugin.handleTextareaPaste.bind(plugin));
-    if (plugin?.handleTextareaDrop) dropHandlers.push(plugin.handleTextareaDrop.bind(plugin));
+    if (plugin?.handleTextareaPaste) {
+      pasteHandlers.push({ handler: plugin.handleTextareaPaste.bind(plugin), attachedField });
+    }
+    if (plugin?.handleTextareaDrop) {
+      dropHandlers.push({ handler: plugin.handleTextareaDrop.bind(plugin), attachedField });
+    }
   }
+  const eventContext = (attachedField: PostField): TextareaEventContext => ({
+    formData: ctx.formData,
+    getFormData: ctx.getFormData,
+    onUpdateField: ctx.onFieldChange,
+    attachedField,
+  });
 
   if (!pasteHandlers.length && !dropHandlers.length) return {};
 
   return {
     onPaste: pasteHandlers.length
       ? (e: ClipboardEvent) => {
-          for (const handler of pasteHandlers) {
-            void handler(e, field, {
-              formData: ctx.formData,
-              onUpdateField: ctx.onFieldChange,
-            });
+          for (const { handler, attachedField } of pasteHandlers) {
+            void handler(e, field, eventContext(attachedField));
           }
         }
       : undefined,
     onDrop: dropHandlers.length
       ? (e: DragEvent) => {
-          for (const handler of dropHandlers) {
-            void handler(e, field, {
-              formData: ctx.formData,
-              onUpdateField: ctx.onFieldChange,
-            });
+          for (const { handler, attachedField } of dropHandlers) {
+            void handler(e, field, eventContext(attachedField));
           }
         }
       : undefined,
@@ -270,11 +283,13 @@ function getFieldActions(field: PostField, ctx: FieldRenderContext): BoundFieldA
         id: action.id,
         icon: action.icon,
         label: action.label,
+        setting: action.setting,
         run: () => {
           const actionCtx: FieldActionContext = {
             field: attachedField,
             targetField: field,
             formData: ctx.formData,
+            getFormData: ctx.getFormData,
             onUpdateField: ctx.onFieldChange,
           };
           return action.onClick(actionCtx);
@@ -285,6 +300,23 @@ function getFieldActions(field: PostField, ctx: FieldRenderContext): BoundFieldA
 
   return actions;
 }
+
+/** A field action's choice (e.g. photo quality) as a small select next to its button */
+const renderActionSetting = (setting: FieldActionSetting): TemplateResult => html`
+  <select
+    class="field-action-setting"
+    title=${setting.label}
+    aria-label=${setting.label}
+    @change=${(e: Event) => setting.onChange((e.target as HTMLSelectElement).value)}
+  >
+    ${setting.options.map(
+      (option) =>
+        html`<option value=${option.value} ?selected=${option.value === setting.value}>
+          ${option.label}
+        </option>`
+    )}
+  </select>
+`;
 
 /** Render the toolbar row of action icons for an attached-plugins field. */
 function renderFieldToolbar(
@@ -311,6 +343,7 @@ function renderFieldToolbar(
             aria-label=${action.label}
             @click=${() => action.run()}
           >${action.icon}</button>
+          ${action.setting ? renderActionSetting(action.setting) : nothing}
         `
       )}
       ${expandableAttached.map((attachedField) => {

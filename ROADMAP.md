@@ -293,6 +293,10 @@
 - [ ] Show reviews on map
 - [ ] User profile + review history (built on the `<nostr-profile>` view above, filtered to reviews)
 - [ ] Reputation/trust scoring
+- [x] Feedback from worldtrip.guide (2026-10-31): photo quality Low / Medium / Full before upload, shrunk on the device, the choice remembered (`media` `quality`, `qualityChoice`); upload progress for the text field's Add media, paste and drop in `<np-activity>`, a corner panel of background work; the upload no longer drops text typed meanwhile (`getFormData` in field action and paste/drop contexts); `publishToRelays` returns at the first accepting relay, the rest keep sending (shown in `<np-activity>`); manifest `viewOrder` (e.g. the rating above the review text); `<np-list-save>`'s panel in the top layer, no longer cut off by the review card
+- [ ] Publishing while a text-field upload runs: the link isn't in the text yet, so the post goes out without the photo. The composer should wait for running uploads or say so
+- [ ] Leaving the page while `<np-activity>` still shows relay sends: warn (`beforeunload`), since the other relays never get the event
+- [ ] plugin-media: try the quality choice and shrinking on iOS Safari and Android Chrome (HEIC photos, large images, `createImageBitmap` orientation)
 
 ### Quality, Tooling & Docs (from DEVELOPMENT_GUIDE.md)
 

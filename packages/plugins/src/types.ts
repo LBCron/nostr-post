@@ -67,10 +67,22 @@ export interface FieldActionContext {
   field: PostField;
   /** The field this plugin is attached to (e.g. the content textarea). */
   targetField: PostField;
-  /** Current composer form data. */
+  /** Composer form data when the action was clicked. */
   formData: Record<string, unknown>;
+  /** The form data as it is now: actions that finish later (an upload) read it then */
+  getFormData?: () => Record<string, unknown>;
   /** Callback to update any field value. */
   onUpdateField: (fieldId: string, value: unknown) => void;
+}
+
+/** A choice shown next to a FieldAction's button, e.g. the media plugin's photo quality */
+export interface FieldActionSetting {
+  /** Accessible label of the choice */
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  /** The selected value */
+  value: string;
+  onChange: (value: string) => void;
 }
 
 /**
@@ -84,6 +96,19 @@ export interface FieldAction {
   /** Accessible label and tooltip text. */
   label: string;
   onClick: (ctx: FieldActionContext) => void | Promise<void>;
+  /** A choice shown next to the button as a select */
+  setting?: FieldActionSetting;
+}
+
+/** Context passed to handleTextareaPaste and handleTextareaDrop */
+export interface TextareaEventContext {
+  /** Composer form data when the event happened */
+  formData: Record<string, unknown>;
+  /** The form data as it is now: handlers that finish later (an upload) read it then */
+  getFormData?: () => Record<string, unknown>;
+  onUpdateField: (fieldId: string, value: unknown) => void;
+  /** The plugin's own field, attached to the text field (its settings) */
+  attachedField?: PostField;
 }
 
 export interface ValidationError {
@@ -312,15 +337,12 @@ export interface NostrUIPlugin {
    *
    * @param e - The ClipboardEvent from the textarea
    * @param field - The field definition (likely the content field)
-   * @param ctx - Context with formData and a callback to update fields
+   * @param ctx - The form data, a callback to update fields, and the plugin's own field
    */
   handleTextareaPaste?: (
     e: ClipboardEvent,
     field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    }
+    ctx: TextareaEventContext
   ) => Promise<void>;
 
   /**
@@ -330,16 +352,9 @@ export interface NostrUIPlugin {
    *
    * @param e - The DragEvent from the textarea
    * @param field - The field definition (likely the content field)
-   * @param ctx - Context with formData and a callback to update fields
+   * @param ctx - The form data, a callback to update fields, and the plugin's own field
    */
-  handleTextareaDrop?: (
-    e: DragEvent,
-    field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    }
-  ) => Promise<void>;
+  handleTextareaDrop?: (e: DragEvent, field: PostField, ctx: TextareaEventContext) => Promise<void>;
 
   /**
    * Web-only: Return toolbar action buttons for a field this plugin is attached to.

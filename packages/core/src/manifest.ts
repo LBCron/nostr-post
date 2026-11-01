@@ -371,6 +371,16 @@ export const getFieldsByKind = (manifest: NostrPostManifest, kind: number): Post
 };
 
 /**
+ * Field ids in the order views show them: those in `viewOrder` first (unknown ids skipped),
+ * then the other fields in manifest order.
+ */
+export const viewFieldOrder = (manifest: NostrPostManifest): string[] => {
+  const ids = manifest.fields.map((field) => field.id);
+  const listed = new Set((manifest.viewOrder ?? []).filter((id) => ids.includes(id)));
+  return [...listed, ...ids.filter((id) => !listed.has(id))];
+};
+
+/**
  * Gets all unique Nostr kinds used in the manifest.
  */
 export const getUsedKinds = (manifest: NostrPostManifest): number[] => {

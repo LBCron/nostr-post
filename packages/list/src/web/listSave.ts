@@ -21,6 +21,7 @@ import { loadMyLists, type MyListsState, NOT_LOADED, shownLists } from '../myLis
 import { BOOKMARK_LISTS, type BookmarkList, type ListKind } from '../types';
 import { DEFAULT_LIST_MESSAGES, type ListMessages } from './listMessages';
 import { renderLoadState } from './loadState';
+import { panelPosition } from './panelPosition';
 import { listStyles } from './styles';
 
 @customElement('np-list-save')
@@ -67,7 +68,42 @@ export class NpListSave extends LitElement {
       this._my = NOT_LOADED;
       if (this._open) void this._load();
     }
+    if (changed.has('_open')) {
+      const listen = this._open ? window.addEventListener : window.removeEventListener;
+      listen('scroll', this._placePanel, true);
+      listen('resize', this._placePanel);
+    }
+    if (this._open) this._placePanel();
   }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('scroll', this._placePanel, true);
+    window.removeEventListener('resize', this._placePanel);
+  }
+
+  /**
+   * Show the panel in the page's top layer next to the button, so a card or column around
+   * the button doesn't cut it off. Browsers without popovers keep it under the button.
+   */
+  _placePanel = (): void => {
+    const panel = this.renderRoot.querySelector<HTMLElement>('.panel');
+    const button = this.renderRoot.querySelector<HTMLElement>('.save-btn');
+    if (!panel || !button || typeof panel.showPopover !== 'function') return;
+    if (!panel.matches(':popover-open')) panel.showPopover();
+    const { top, left } = panelPosition(
+      button.getBoundingClientRect(),
+      panel.getBoundingClientRect(),
+      {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }
+    );
+    // Inline, over the stylesheet's placement under the button (`right: 0` in a view's header)
+    panel.style.top = `${top}px`;
+    panel.style.left = `${left}px`;
+    panel.style.right = 'auto';
+  };
 
   async _toggleOpen(): Promise<void> {
     this._open = !this._open;
@@ -147,7 +183,7 @@ export class NpListSave extends LitElement {
     const lists = this._lists;
     const titles = listTitles(lists, m);
     return html`
-      <div class="panel" role="dialog" aria-label=${m.save}>
+      <div class="panel" popover="manual" role="dialog" aria-label=${m.save}>
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
         ${lists.map(
           (list) => html`

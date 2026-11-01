@@ -11,4 +11,10 @@ export {
   isImageUrl,
   isVideoUrl,
   extractMediaUrls,
+  type MediaQuality,
+  MEDIA_QUALITIES,
+  MEDIA_QUALITY_PRESETS,
+  isMediaQuality,
+  isCompressibleImage,
+  scaledSize,
 } from './core';

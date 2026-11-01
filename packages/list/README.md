@@ -222,8 +222,10 @@ signer package forgets the pubkey when nostr-login reports a sign-in or sign-out
 | `messages`           | `Partial<ListMessages>` | Overrides for the user-facing text (`DEFAULT_LIST_MESSAGES`)    |
 | `listKind`           | `ListKind`              | Which lists (default `BOOKMARK_LISTS`); `@nostr-post/plugin-date`'s `<np-calendar-save>` is this with `CALENDAR_LISTS` |
 
-In a view's header (class `view-action`) the panel opens leftwards, since the button sits at the
-right edge. Lists load when it's first opened, since feeds show many. Typing the name of a list the user has
+The panel opens in the page's top layer (a popover) next to the button, below it or above when
+there's more room, so a card or scrolling column around the button doesn't cut it off. Browsers
+without popovers show it under the button; in a view's header (class `view-action`) it then opens
+leftwards, since the button sits at the right edge. Lists load when it's first opened, since feeds show many. Typing the name of a list the user has
 saves to that list. Fires `np-list-change` (`{ list }`) after a list was published.
 
 ### `<np-list-view>`

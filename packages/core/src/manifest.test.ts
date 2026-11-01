@@ -13,6 +13,7 @@ import {
   validateManifest,
   validateNostrTarget,
   validatePostField,
+  viewFieldOrder,
 } from './manifest';
 import {
   getActiveKinds,
@@ -1096,5 +1097,28 @@ describe('field label and description', () => {
   it('rejects a description that is not text', () => {
     const result = validatePostField({ ...field, metadata: { description: 42 as never } });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('viewFieldOrder', () => {
+  const fields = ['review', 'rating', 'photos'].map((id) => ({
+    id,
+    type: 'string' as const,
+    uiPlugin: 'text',
+    mapTo: { kind: 1, target: 'content' as const },
+  }));
+
+  it('follows the field order without viewOrder', () => {
+    expect(viewFieldOrder({ id: 'm', version: '1', fields })).toEqual([
+      'review',
+      'rating',
+      'photos',
+    ]);
+  });
+
+  it('puts listed fields first, skipping unknown ids, then the rest in field order', () => {
+    expect(
+      viewFieldOrder({ id: 'm', version: '1', fields, viewOrder: ['rating', 'gone', 'rating'] })
+    ).toEqual(['rating', 'review', 'photos']);
   });
 });

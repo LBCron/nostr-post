@@ -45,7 +45,16 @@ export const listStyles = css`
     gap: 0.375rem;
   }
 
-  /* In a view's header the button sits at the right edge: open the panel leftwards */
+  /* Shown as a popover (top layer): placed by <np-list-save> next to its button */
+  .panel[popover] {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    color: inherit;
+    max-height: calc(100vh - 1rem);
+    overflow: auto;
+  }
+    /* In a view's header the button sits at the right edge: open the panel leftwards */
   :host(.view-action) .panel {
     left: auto;
     right: 0;

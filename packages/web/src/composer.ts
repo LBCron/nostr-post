@@ -436,6 +436,7 @@ export class NostrPostComposer extends NostrPostElement {
         selectedFormatId: this.selectedPublishFormatId || undefined,
       }),
       pubkey: this.pubkey,
+      getFormData: () => this._formData,
       isReadonly: (f) => isFieldReadonly(f, this.readonlyFields),
       onFieldChange: (id, val) => this.handleFieldChange(id, val),
       onToggleExpanded: (fieldId) => {

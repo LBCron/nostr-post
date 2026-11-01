@@ -18,6 +18,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
   'geo-review': {
     id: 'geo-review-v1',
     version: '1.0.0',
+    viewOrder: ['rating', 'review'],
     fields: [
       {
         id: 'review',
@@ -752,6 +753,8 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     // Reviews themselves can be saved too (Save in the review's view)
     lists: [{ id: 'saved', label: 'Saved reviews' }],
     listType: 'venue-review',
+    // The rating above the review text in views
+    viewOrder: ['rating', 'review'],
     publishFormats: [
       {
         id: 'kind1-note',

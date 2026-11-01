@@ -166,6 +166,9 @@ export {
   setDryRun,
   SIGNING_EVENT,
   type SigningDetail,
+  RELAYS_PENDING_EVENT,
+  type RelaysPendingDetail,
+  getRelaysPending,
   isDryRun,
   getDryRunEntries,
   clearDryRunEntries,
@@ -192,6 +195,27 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from '@nostr-post/we
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from '@nostr-post/web';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from '@nostr-post/web';
 export { DEFAULT_FEED_MESSAGES, type FeedMessages } from '@nostr-post/web';
+
+// Background work (uploads, relay sends) shown by <np-activity> in a corner of the page
+export {
+  type Activity,
+  type ActivityHandle,
+  startActivity,
+  getActivities,
+  subscribeActivities,
+  dismissActivity,
+} from '@nostr-post/plugins/activity';
+export {
+  type ActivityMessages,
+  DEFAULT_ACTIVITY_MESSAGES,
+  setActivityMessages,
+} from '@nostr-post/web';
+// Media upload text (the text field's Add media, photo quality, progress)
+export {
+  DEFAULT_MEDIA_MESSAGES,
+  type MediaMessages,
+  setMediaMessages,
+} from '@nostr-post/plugin-media/web';
 
 // Wiki (NIP-54 kind:30818)
 export {

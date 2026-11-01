@@ -291,6 +291,24 @@ If your plugin auto-extracts data from another field (like hashtags from a conte
 
 The `media`, `hashtag`, and `reference` plugins all use `attachTo` for this behaviour.
 
+## Background Work
+
+Work that runs on after a click, like an upload, can show in `<np-activity>` (from
+`@nostr-post/web`, added to the page by itself) through `@nostr-post/plugins/activity`, which
+has no UI of its own:
+
+```typescript
+import { startActivity } from '@nostr-post/plugins/activity';
+
+const activity = startActivity('Uploading photo.jpg');
+activity.update({ progress: 0.4, detail: '4.2 MB → 610 KB' });
+activity.done('photo.jpg added'); // or activity.fail('HTTP 500')
+```
+
+Finished activities disappear after a few seconds; failed ones stay until the user closes them.
+The media plugin reports its text-field uploads this way, and `<np-activity>` shows events still
+being sent to relays (the signer's `RELAYS_PENDING_EVENT`).
+
 ## Overriding a Built-in Plugin
 
 Since plugins register by ID, you can replace any built-in plugin by registering a new one with the same ID **after** the original:
@@ -387,7 +405,11 @@ interface NostrUIPlugin {
   // what beforePublish will do (e.g. 'np-venue-wiki-publish'). Same contract as the input.
   publishSummaryTagName?: string;
 
-  // Web-only: toolbar action buttons rendered in the target field's toolbar when attachTo is set
+  // Web-only: toolbar action buttons rendered in the target field's toolbar when attachTo is set.
+  // FieldAction: { id, icon, label, onClick(ctx), setting? }. onClick gets { field, targetField,
+  // formData, getFormData, onUpdateField }: read getFormData() when work finishes later (an
+  // upload), the user may have typed meanwhile. `setting` ({ label, options, value, onChange })
+  // shows a select next to the button, e.g. the media plugin's photo quality.
   getFieldActions?(field: PostField): FieldAction[];
 
   // Completions while typing in the text field this field is attached to (attachTo), e.g.
@@ -403,20 +425,14 @@ interface NostrUIPlugin {
   handleTextareaPaste?(
     e: ClipboardEvent,
     field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    },
+    ctx: TextareaEventContext, // { formData, getFormData, onUpdateField, attachedField }
   ): Promise<void>;
 
   // Web-only: intercept drag-drop on textarea fields (e.g. media plugin handles file drop)
   handleTextareaDrop?(
     e: DragEvent,
     field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    },
+    ctx: TextareaEventContext, // { formData, getFormData, onUpdateField, attachedField }
   ): Promise<void>;
 }
 ```

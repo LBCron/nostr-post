@@ -157,7 +157,12 @@ The bundle re-exports utilities for advanced usage:
 **Signing & Relays**
 
 - `signEvent`, `signAndPublish`, `publishToRelay`, `publishToRelays` (`signAndPublish` without
-  relays publishes to `getPublishRelays` of the signer's pubkey)
+  relays publishes to `getPublishRelays` of the signer's pubkey). `publishToRelays` resolves as soon
+  as one relay accepted the event; the other relays keep going, and its `all` resolves with every
+  relay's answer
+- `RELAYS_PENDING_EVENT` (`'nostr-post:relays-pending'`): `window` gets it while events are still
+  being sent to relays and when the last send ends (detail `{ pending, sent, failed }`);
+  `getRelaysPending()` reads it. `<np-activity>` shows it
 - `getPublicKey`, `hasNostrSigner`, `fetchEvents`, `fetchEventsFromRelay`
 - `getUserRelays`, `getDefaultRelays`
 - `setDryRun(on)`, `isDryRun()`: test mode. Events are still signed, but publishing only logs them
@@ -178,6 +183,18 @@ The bundle re-exports utilities for advanced usage:
   lookups in one tick go out as one request, a pubkey being fetched isn't asked for twice, and
   one that wasn't found is tried again next time. `getCachedProfile(pubkey)` reads the cache.
   The view and feed use them for author and mention names
+
+**Background activity**
+
+- `<np-activity>`: uploads with their progress and relay sends still running, in a corner of the
+  page, which stays usable. Added to the page by itself when something starts; place one yourself
+  (e.g. inside your `dark` container) to choose where it lives
+- `startActivity(label, detail?)` → `{ update({ label, detail, progress }), done(label?), fail(detail) }`,
+  `getActivities()`, `subscribeActivities(listener)`, `dismissActivity(id)`: report your own
+  background work to it
+- `DEFAULT_ACTIVITY_MESSAGES`, `setActivityMessages(messages)`: its text;
+  `DEFAULT_MEDIA_MESSAGES`, `setMediaMessages(messages)`: the media upload's text (Add media, photo
+  quality, progress)
 
 **Composer text**
 

@@ -17,6 +17,13 @@ export interface MediaMessages {
   uploading: (fileName: string) => string;
   /** Shown with the upload: original and uploaded size */
   sizes: (original: string, uploaded: string) => string;
+  /** A try failed (connection lost, stalled, server error); the next follows soon */
+  interrupted: (fileName: string) => string;
+  /** …and the browser is offline: the next try starts when it's back */
+  waitingForConnection: (fileName: string) => string;
+  /** Another try: `attempt` of `attempts` */
+  retrying: (fileName: string, attempt: number, attempts: number) => string;
+  cancel: string;
   uploaded: (fileName: string) => string;
   uploadFailed: (fileName: string) => string;
   tooLarge: (maxMb: number) => string;
@@ -39,6 +46,10 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   preparing: (name) => `Preparing ${name}…`,
   uploading: (name) => `Uploading ${name}`,
   sizes: (original, uploaded) => (original === uploaded ? uploaded : `${original} → ${uploaded}`),
+  interrupted: (name) => `Upload of ${name} interrupted, trying again…`,
+  waitingForConnection: (name) => `Waiting for a connection to upload ${name}…`,
+  retrying: (name, attempt, attempts) => `Uploading ${name} (try ${attempt} of ${attempts})`,
+  cancel: 'Cancel upload',
   uploaded: (name) => `${name} added`,
   uploadFailed: (name) => `Couldn't upload ${name}`,
   tooLarge: (maxMb) => `File too large (max ${maxMb} MB)`,

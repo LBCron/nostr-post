@@ -43,4 +43,19 @@ describe('<np-activity>', async () => {
     expect(leaving()).toBe(false);
     clear();
   });
+
+  it('offers ✕ to cancel running work that can be stopped', async () => {
+    let cancelled = 0;
+    startActivity('Uploading c.jpg', { cancel: () => cancelled++ });
+    startActivity('Sending to relays…');
+    const panel = document.querySelector('np-activity') as HTMLElement & {
+      updateComplete: Promise<void>;
+    };
+    await panel.updateComplete;
+    const buttons = panel.shadowRoot?.querySelectorAll('button') ?? [];
+    expect(Array.from(buttons).map((b) => b.getAttribute('aria-label'))).toEqual(['Cancel']);
+    (buttons[0] as HTMLButtonElement).click();
+    expect(cancelled).toBe(1);
+    clear();
+  });
 });

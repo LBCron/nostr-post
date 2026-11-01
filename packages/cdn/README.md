@@ -190,16 +190,22 @@ The bundle re-exports utilities for advanced usage:
   page, which stays usable. Added to the page by itself when something starts; place one yourself
   (e.g. inside your `dark` container) to choose where it lives. While relay sends run, leaving the
   page asks first (`beforeunload`; mobile browsers may not ask)
-- `startActivity(label, { detail?, blocksPublish?, warnOnLeave?, hidden? })` →
+- `startActivity(label, { detail?, blocksPublish?, warnOnLeave?, hidden?, cancel? })` →
   `{ update({ label, detail, progress }), done(label?), fail(detail) }`, `getActivities()`,
   `subscribeActivities(listener)`, `dismissActivity(id)`: report your own background work to it.
   `blocksPublish`: the composer waits for it before publishing (an upload whose link goes into the
   form) and stops if it failed; `warnOnLeave`: the browser asks before the user leaves the page
-  while it runs (relay sends have it); `hidden`: not listed, for a component showing it itself.
+  while it runs (relay sends have it); `hidden`: not listed, for a component showing it itself;
+  `cancel`: shown as ✕ while it runs; your code aborts and calls `dismissActivity(id)`, and a
+  dismissed publish blocker no longer holds publishing.
   `publishBlockers()`, `waitForPublishBlockers()`: what the composer waits for
 - `DEFAULT_ACTIVITY_MESSAGES`, `setActivityMessages(messages)`: its text;
   `DEFAULT_MEDIA_MESSAGES`, `setMediaMessages(messages)`: the media upload's text (Add media, photo
-  quality, progress)
+  quality, progress, retries)
+- Uploads cope with a bad connection: one with no progress for 30 s is aborted, and failed
+  uploads (no connection, stalled, server error) are tried twice more, after 3 s and 10 s or
+  once the browser is back online; each try signs a new NIP-98 token, so a remote signer may ask
+  again. Running uploads can be cancelled (✕), and publishing then goes on without them
 
 **Composer text**
 

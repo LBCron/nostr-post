@@ -1,112 +1,17 @@
 /**
- * Shared upload utilities for @nostr-post/plugin-media: NIP-98 auth and upload with
- * progress, used by <np-media-input> and by the text field's upload (its "Add media"
- * button, paste and drop), which reports progress as activities.
+ * The text field's upload (its "Add media" button, paste and drop), reported as activities,
+ * and the upload settings shared with <np-media-input>. The request itself: uploadRequest.ts.
  */
 
-import { startActivity } from '@nostr-post/plugins/activity';
+import { dismissActivity, startActivity } from '@nostr-post/plugins/activity';
 import type { PostField } from '@nostr-post/plugins/types';
 import type { MediaPluginConfig, MediaQuality } from '../core';
 import { compressImage, preferredQuality } from './compress';
 import { formatBytes, mediaMessages } from './mediaMessages';
-
-export const NOSTR_BUILD_UPLOAD = 'https://nostr.build/api/v2/upload/files';
+import { uploadWithRetry } from './uploadRequest';
 
 /** Largest file uploaded, after shrinking (MediaPluginConfig.maxSize) */
 export const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
-
-/**
- * Build a NIP-98 HTTP Auth token for the given request.
- * Returns null (and logs a warning) when window.nostr is unavailable or signing fails.
- */
-export async function createNip98AuthToken(url: string, method: string): Promise<string | null> {
-  const nostr = (
-    window as unknown as {
-      nostr?: {
-        getPublicKey(): Promise<string>;
-        signEvent(e: unknown): Promise<unknown>;
-      };
-    }
-  ).nostr;
-  if (!nostr) return null;
-
-  try {
-    const pubkey = await nostr.getPublicKey();
-    const unsignedEvent = {
-      kind: 27235,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ['u', url],
-        ['method', method],
-      ],
-      content: '',
-      pubkey,
-    };
-    const signedEvent = await nostr.signEvent(unsignedEvent);
-    return btoa(JSON.stringify(signedEvent));
-  } catch (err) {
-    console.warn('NIP-98 auth failed:', err);
-    return null;
-  }
-}
-
-/** The hosted URL in an upload response (nostr.build and NIP-96-like servers) */
-const uploadedUrl = (json: unknown): string | undefined => {
-  const resp = json as
-    | { url?: string; data?: { url?: string } | Array<{ url?: string }> }
-    | undefined;
-  const data = resp?.data;
-  return (
-    (Array.isArray(data) ? data[0]?.url : undefined) ??
-    resp?.url ??
-    (Array.isArray(data) ? undefined : data?.url)
-  );
-};
-
-/**
- * Upload a single file to nostr.build (or a custom endpoint), calling `onProgress` with the
- * part sent (0–1) as it goes. Throws on failure; returns the hosted URL.
- */
-export async function uploadWithProgress(
-  file: File,
-  uploadUrl = NOSTR_BUILD_UPLOAD,
-  onProgress?: (fraction: number) => void
-): Promise<string> {
-  const body = new FormData();
-  body.append('file', file);
-  const token = await createNip98AuthToken(uploadUrl, 'POST');
-  return new Promise<string>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) onProgress?.(e.loaded / e.total);
-    });
-    xhr.addEventListener('load', () => {
-      if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error(`Upload failed (HTTP ${xhr.status})`));
-        return;
-      }
-      let url: string | undefined;
-      try {
-        url = uploadedUrl(JSON.parse(xhr.responseText));
-      } catch {
-        reject(new Error('Invalid upload response'));
-        return;
-      }
-      if (url) resolve(url);
-      else reject(new Error('No URL in upload response'));
-    });
-    xhr.addEventListener('error', () => reject(new Error('Upload failed (network error)')));
-    xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
-    xhr.open('POST', uploadUrl);
-    if (token) xhr.setRequestHeader('Authorization', `Nostr ${token}`);
-    xhr.send(body);
-  });
-}
-
-/** Upload a single file to nostr.build (or a custom endpoint); returns the hosted URL */
-export function uploadToNostrBuild(file: File, uploadUrl = NOSTR_BUILD_UPLOAD): Promise<string> {
-  return uploadWithProgress(file, uploadUrl);
-}
 
 /** What uploading into a text field needs from the composer */
 export interface ContentUploadContext {
@@ -122,10 +27,58 @@ export interface ContentUploadContext {
 export const uploadQuality = (config: MediaPluginConfig): MediaQuality =>
   config.qualityChoice === false ? (config.quality ?? 'mid') : preferredQuality(config);
 
+/** Upload one file into the text field, reported as a cancellable activity */
+async function uploadOneIntoContent(
+  file: File,
+  targetField: PostField,
+  ctx: ContentUploadContext,
+  config: MediaPluginConfig
+): Promise<void> {
+  const m = mediaMessages();
+  const maxSize = config.maxSize ?? DEFAULT_MAX_SIZE;
+  const controller = new AbortController();
+  // The link goes into the text when it's done: the composer waits for it before publishing
+  const activity = startActivity(m.preparing(file.name), {
+    blocksPublish: true,
+    cancel: () => controller.abort(),
+  });
+  try {
+    const upload = await compressImage(file, uploadQuality(config));
+    if (upload.size > maxSize) throw new Error(m.tooLarge(Math.round(maxSize / (1024 * 1024))));
+    activity.update({
+      label: m.uploading(file.name),
+      detail: m.sizes(formatBytes(file.size), formatBytes(upload.size)),
+      progress: 0,
+    });
+    const url = await uploadWithRetry(upload, {
+      uploadUrl: config.uploadUrl,
+      signal: controller.signal,
+      onProgress: (progress) => activity.update({ progress }),
+      onWait: (offline) =>
+        activity.update({
+          label: offline ? m.waitingForConnection(file.name) : m.interrupted(file.name),
+          progress: undefined,
+        }),
+      onRetry: (attempt, attempts) =>
+        activity.update({ label: m.retrying(file.name, attempt, attempts), progress: 0 }),
+    });
+    injectMediaUrlIntoContent(ctx, targetField.id, url);
+    activity.done(m.uploaded(file.name));
+  } catch (err) {
+    // Cancelled (also while being shrunk): gone, and no longer holds publishing
+    if (controller.signal.aborted) {
+      dismissActivity(activity.id);
+      return;
+    }
+    const reason = err instanceof Error ? err.message : String(err);
+    activity.fail(`${m.uploadFailed(file.name)}: ${reason}`);
+  }
+}
+
 /**
  * Upload files one after another and add each URL to the text field. Photos are shrunk to
- * the chosen quality first. Progress and failures are reported as activities
- * (`@nostr-post/plugins/activity`), so the page stays usable meanwhile.
+ * the chosen quality first. Progress, retries and failures are reported as activities
+ * (`@nostr-post/plugins/activity`), each with a cancel, so the page stays usable meanwhile.
  */
 export async function uploadIntoContent(
   files: File[],
@@ -133,29 +86,7 @@ export async function uploadIntoContent(
   ctx: ContentUploadContext
 ): Promise<void> {
   const config = (ctx.attachedField?.metadata as MediaPluginConfig | undefined) ?? {};
-  const maxSize = config.maxSize ?? DEFAULT_MAX_SIZE;
-  const m = mediaMessages();
-  for (const file of files) {
-    // The link goes into the text when it's done: the composer waits for it before publishing
-    const activity = startActivity(m.preparing(file.name), { blocksPublish: true });
-    try {
-      const upload = await compressImage(file, uploadQuality(config));
-      if (upload.size > maxSize) throw new Error(m.tooLarge(Math.round(maxSize / (1024 * 1024))));
-      activity.update({
-        label: m.uploading(file.name),
-        detail: m.sizes(formatBytes(file.size), formatBytes(upload.size)),
-        progress: 0,
-      });
-      const url = await uploadWithProgress(upload, config.uploadUrl, (progress) =>
-        activity.update({ progress })
-      );
-      injectMediaUrlIntoContent(ctx, targetField.id, url);
-      activity.done(m.uploaded(file.name));
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      activity.fail(`${m.uploadFailed(file.name)}: ${reason}`);
-    }
-  }
+  for (const file of files) await uploadOneIntoContent(file, targetField, ctx, config);
 }
 
 /**

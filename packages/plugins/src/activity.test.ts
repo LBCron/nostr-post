@@ -69,4 +69,11 @@ describe('activities', () => {
     startActivity('Sending to relays…');
     await expect(waitForPublishBlockers()).resolves.toEqual([]);
   });
+
+  it('stops waiting for a publish blocker that was cancelled (dismissed), not failed', async () => {
+    const upload = startActivity('Uploading a.jpg', { blocksPublish: true, cancel: () => {} });
+    const waiting = waitForPublishBlockers();
+    dismissActivity(upload.id);
+    await expect(waiting).resolves.toEqual([]);
+  });
 });

@@ -40,7 +40,7 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
   submit: 'Create Post',
   submitting: 'Creating...',
   loadingManifest: 'Loading Manifest...',
-  stepUploads: 'Waiting for uploads to finish…',
+  stepUploads: 'Waiting for uploads to finish… Cancel one to publish without it.',
   uploadsFailed: (labels) =>
     `Not published: ${labels.join(', ')} failed. Publish again to post without it, or add it again.`,
   stepHooks: 'Publishing linked pages…',

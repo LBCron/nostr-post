@@ -1,6 +1,12 @@
 import type { PostField } from '@nostr-post/plugins/types';
 import { describe, expect, it } from 'vitest';
-import { extractMediaUrls, isCompressibleImage, mediaPlugin, scaledSize } from './core';
+import {
+  extractMediaUrls,
+  isCompressibleImage,
+  isRetryableUpload,
+  mediaPlugin,
+  scaledSize,
+} from './core';
 
 const requireMethod = <T>(method: T | undefined, methodName: string): T => {
   if (!method) {
@@ -115,5 +121,15 @@ describe('photo quality', () => {
     expect(isCompressibleImage('image/gif')).toBe(false);
     expect(isCompressibleImage('image/svg+xml')).toBe(false);
     expect(isCompressibleImage('video/mp4')).toBe(false);
+  });
+});
+
+describe('upload retries', () => {
+  it('tries again after connection and server failures, not refusals or cancelling', () => {
+    expect(isRetryableUpload('network')).toBe(true);
+    expect(isRetryableUpload('stalled')).toBe(true);
+    expect(isRetryableUpload('server')).toBe(true);
+    expect(isRetryableUpload('rejected')).toBe(false);
+    expect(isRetryableUpload('cancelled')).toBe(false);
   });
 });

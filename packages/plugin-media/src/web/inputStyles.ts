@@ -189,6 +189,22 @@ export const mediaInputStyles = css`
     font: inherit;
   }
 
+  .cancel-btn {
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
+    font: inherit;
+    cursor: pointer;
+  }
+  :host-context(.dark) .cancel-btn {
+    border-color: #4b5563;
+    background: #374151;
+    color: #f3f4f6;
+  }
+
   :host-context(.dark) .gallery-card {
     border-color: #4b5563;
     background: #374151;

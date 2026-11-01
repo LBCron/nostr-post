@@ -23,6 +23,11 @@ export interface Activity {
   readonly warnOnLeave?: boolean;
   /** Not listed by <np-activity>: the component that started it shows it itself */
   readonly hidden?: boolean;
+  /**
+   * Stops it, offered while it runs (e.g. ✕ in <np-activity>). Its owner aborts and dismisses
+   * it; a dismissed publish blocker no longer holds publishing
+   */
+  readonly cancel?: () => void;
 }
 
 export interface ActivityOptions {
@@ -30,6 +35,7 @@ export interface ActivityOptions {
   blocksPublish?: boolean;
   warnOnLeave?: boolean;
   hidden?: boolean;
+  cancel?: () => void;
 }
 
 export interface ActivityHandle {

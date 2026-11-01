@@ -159,20 +159,24 @@ export class NpActivity extends LitElement {
   }
 }
 
+/** ✕: cancels a running activity that offers it, dismisses a finished one */
+const renderActivityButton = (activity: Activity, m: ActivityMessages) => {
+  const cancel = activity.state === 'running' ? activity.cancel : undefined;
+  if (activity.state === 'running' && !cancel) return nothing;
+  const label = cancel ? m.cancel : m.dismiss;
+  return html`<button
+    type="button"
+    class="dismiss"
+    title=${label}
+    aria-label=${label}
+    @click=${() => (cancel ? cancel() : dismissActivity(activity.id))}
+  >×</button>`;
+};
+
 const renderActivity = (activity: Activity, m: ActivityMessages) => html`
   <div class="item ${activity.state}">
     <span class="label">${activity.state === 'done' ? '✓ ' : ''}${activity.label}</span>
-    ${
-      activity.state === 'running'
-        ? nothing
-        : html`<button
-            type="button"
-            class="dismiss"
-            title=${m.dismiss}
-            aria-label=${m.dismiss}
-            @click=${() => dismissActivity(activity.id)}
-          >×</button>`
-    }
+    ${renderActivityButton(activity, m)}
     ${activity.detail ? html`<span class="detail">${activity.detail}</span>` : nothing}
     ${
       activity.state === 'running'

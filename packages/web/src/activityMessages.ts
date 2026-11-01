@@ -12,6 +12,8 @@ export interface ActivityMessages {
   /** No relay accepted the events */
   relaysFailed: string;
   dismiss: string;
+  /** ✕ on running work that can be stopped, e.g. an upload */
+  cancel: string;
   /** Accessible name of the panel */
   region: string;
 }
@@ -22,6 +24,7 @@ export const DEFAULT_ACTIVITY_MESSAGES: ActivityMessages = {
   sentToRelays: (sent, total) => `Sent to ${sent} of ${total} relays`,
   relaysFailed: 'No relay accepted it',
   dismiss: 'Dismiss',
+  cancel: 'Cancel',
   region: 'Background activity',
 };
 

@@ -62,6 +62,23 @@ export const isMediaQuality = (value: unknown): value is MediaQuality =>
 export const isCompressibleImage = (type: string): boolean =>
   /^image\/(jpeg|png|webp|heic|heif|avif)$/i.test(type);
 
+/**
+ * Why an upload failed: no connection (`network`), no progress for a while (`stalled`), the
+ * server failed (`server`, HTTP 5xx), refused it or answered nonsense (`rejected`), or the
+ * user stopped it (`cancelled`)
+ */
+export type UploadFailureKind = 'network' | 'stalled' | 'server' | 'rejected' | 'cancelled';
+
+/** An upload aborts when no progress arrives for this long (ms); once sent, twice as long */
+export const UPLOAD_STALL_MS = 30_000;
+
+/** Waits before trying a failed upload again (ms): two retries */
+export const UPLOAD_RETRY_DELAYS_MS: readonly number[] = [3_000, 10_000];
+
+/** Whether trying again may help: the connection or the server, not a refusal or the user */
+export const isRetryableUpload = (kind: UploadFailureKind): boolean =>
+  kind === 'network' || kind === 'stalled' || kind === 'server';
+
 /** Size that fits `maxSide`, keeping the aspect ratio; never larger than the original */
 export const scaledSize = (
   width: number,

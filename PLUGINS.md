@@ -309,7 +309,9 @@ Finished activities disappear after a few seconds; failed ones stay until the us
 Options (`startActivity(label, { … })`): `detail`; `blocksPublish`, for work that adds to the form
 (an upload whose link goes into the text): the composer waits for it before publishing and stops
 when it failed; `warnOnLeave`: the browser asks before the user leaves while it runs; `hidden`: not
-listed, when your component shows the progress itself.
+listed, when your component shows the progress itself; `cancel`: shown as ✕ while it runs; abort
+your work and call `dismissActivity(activity.id)` (a dismissed publish blocker no longer holds
+publishing).
 The media plugin reports its text-field uploads this way, and `<np-activity>` shows events still
 being sent to relays (the signer's `RELAYS_PENDING_EVENT`).
 

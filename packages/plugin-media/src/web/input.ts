@@ -9,7 +9,7 @@
  * Dispatches 'np-value-changed' with { detail: { value: string[] } }.
  */
 
-import { startActivity } from '@nostr-post/plugins/activity';
+import { dismissActivity, startActivity } from '@nostr-post/plugins/activity';
 import type { PostField } from '@nostr-post/plugins/types';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -24,7 +24,8 @@ import {
 import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
-import { DEFAULT_MAX_SIZE, NOSTR_BUILD_UPLOAD, uploadQuality, uploadWithProgress } from './upload';
+import { DEFAULT_MAX_SIZE, uploadQuality } from './upload';
+import { NOSTR_BUILD_UPLOAD, uploadWithRetry } from './uploadRequest';
 
 @customElement('np-media-input')
 export class NpMediaInput extends LitElement {
@@ -43,7 +44,8 @@ export class NpMediaInput extends LitElement {
   /** What's uploading now, e.g. "Uploading a.jpg (1/3)", with the sizes */
   @state() private _uploading = '';
   @state() private _uploadDetail = '';
-  @state() private _uploadProgress = 0;
+  /** Percent sent; undefined while waiting to try again */
+  @state() private _uploadProgress: number | undefined = 0;
   @state() private _uploadError = '';
   @state() private _urlInput = '';
   /** The quality picked here, until then the remembered one */
@@ -138,36 +140,62 @@ export class NpMediaInput extends LitElement {
     rememberQuality(value);
   }
 
+  /** Cancels the running batch */
+  private _abort?: AbortController;
+
   /** One after another, so each gets the whole connection and the order is kept */
   private async _uploadFiles(files: File[]) {
     const batch = files.slice(0, this._maxFiles - this._urls.length);
+    const controller = new AbortController();
+    this._abort = controller;
     this._uploadError = '';
     for (const [index, file] of batch.entries()) {
+      if (controller.signal.aborted) break;
       const count = batch.length > 1 ? ` (${index + 1}/${batch.length})` : '';
-      await this._uploadFile(file, count);
+      await this._uploadFile(file, count, controller);
     }
     this._uploading = '';
   }
 
-  private async _uploadFile(file: File, count: string) {
+  private async _uploadFile(file: File, count: string, controller: AbortController) {
     const m = this._m;
     this._uploading = `${m.preparing(file.name)}${count}`;
     this._uploadDetail = '';
     this._uploadProgress = 0;
     // Shown here, not in <np-activity>; the composer waits for it before publishing
-    const activity = startActivity(m.uploading(file.name), { blocksPublish: true, hidden: true });
+    const activity = startActivity(m.uploading(file.name), {
+      blocksPublish: true,
+      hidden: true,
+      cancel: () => controller.abort(),
+    });
     try {
       const quality = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
       const upload = await compressImage(file, quality);
       if (upload.size > this._maxSize) throw new Error(m.tooLarge(this._maxMb));
       this._uploading = `${m.uploading(file.name)}${count}`;
       this._uploadDetail = m.sizes(formatBytes(file.size), formatBytes(upload.size));
-      const url = await uploadWithProgress(upload, this._config.uploadUrl, (fraction) => {
-        this._uploadProgress = Math.round(fraction * 100);
+      const url = await uploadWithRetry(upload, {
+        uploadUrl: this._config.uploadUrl,
+        signal: controller.signal,
+        onProgress: (fraction) => {
+          this._uploadProgress = Math.round(fraction * 100);
+        },
+        onWait: (offline) => {
+          this._uploading = offline ? m.waitingForConnection(file.name) : m.interrupted(file.name);
+          this._uploadProgress = undefined;
+        },
+        onRetry: (attempt, attempts) => {
+          this._uploading = m.retrying(file.name, attempt, attempts);
+          this._uploadProgress = 0;
+        },
       });
       this._addUrl(url);
       activity.done();
     } catch (err) {
+      if (controller.signal.aborted) {
+        dismissActivity(activity.id);
+        return;
+      }
       const reason = err instanceof Error ? err.message : String(err);
       this._uploadError = `${m.uploadFailed(file.name)}: ${reason}`;
       activity.fail(this._uploadError);
@@ -225,22 +253,27 @@ export class NpMediaInput extends LitElement {
             `
             : nothing
         }
-        ${
-          this._uploading
-            ? html`
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: ${this._uploadProgress}%"></div>
-              </div>
-              <div class="upload-status" role="status">
-                ${this._uploading} ${this._uploadProgress}%
-                ${this._uploadDetail ? html`· ${this._uploadDetail}` : nothing}
-              </div>
-            `
-            : nothing
-        }
+        ${this._uploading ? this._renderUploadStatus() : nothing}
         ${this._uploadError ? html`<div class="error">${this._uploadError}</div>` : nothing}
 
         <div class="hint">${m.fileCount(this._urls.length, this._maxFiles)}</div>
+      </div>
+    `;
+  }
+
+  /** The running upload: progress, what's happening (also retries), and Cancel */
+  private _renderUploadStatus() {
+    return html`
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${this._uploadProgress ?? 0}%"></div>
+      </div>
+      <div class="upload-status" role="status">
+        ${this._uploading}
+        ${this._uploadProgress === undefined ? nothing : `${this._uploadProgress}%`}
+        ${this._uploadDetail ? html`· ${this._uploadDetail}` : nothing}
+        <button type="button" class="cancel-btn" @click=${() => this._abort?.abort()}>
+          ${this._m.cancel}
+        </button>
       </div>
     `;
   }

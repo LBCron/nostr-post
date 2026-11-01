@@ -80,15 +80,22 @@ export { mediaPlugin } from './core';
 // Re-export upload utilities so consumers (e.g. the composer's paste/drop handler)
 // can reuse the shared NIP-98 auth + upload logic without duplicating it.
 export {
-  uploadToNostrBuild,
-  createNip98AuthToken,
-  NOSTR_BUILD_UPLOAD,
   handleMediaPaste,
   handleMediaDrop,
-  uploadWithProgress,
   uploadIntoContent,
   type ContentUploadContext,
 } from './web/upload';
+export {
+  uploadToNostrBuild,
+  createNip98AuthToken,
+  NOSTR_BUILD_UPLOAD,
+  uploadWithProgress,
+  uploadWithRetry,
+  uploadFailureKind,
+  type UploadFailure,
+  type UploadOptions,
+  type RetryOptions,
+} from './web/uploadRequest';
 export { compressImage, preferredQuality, rememberQuality } from './web/compress';
 export {
   DEFAULT_MEDIA_MESSAGES,

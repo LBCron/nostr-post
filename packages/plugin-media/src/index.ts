@@ -17,4 +17,8 @@ export {
   isMediaQuality,
   isCompressibleImage,
   scaledSize,
+  type UploadFailureKind,
+  UPLOAD_STALL_MS,
+  UPLOAD_RETRY_DELAYS_MS,
+  isRetryableUpload,
 } from './core';

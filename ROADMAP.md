@@ -157,6 +157,11 @@
         (`match`), the chip says how it was found, and the picker's page preview (the whole page in
         a popup, its links as players) has "It's them" / "Not them" (back to its name and links, so
         it can get its own page); the publish summary lists pages not checked yet
+  - [x] Publishing a gig again after it failed (pages made, then the gig not) doesn't make the
+        performers' pages again: pages made in the session are remembered, and the user's own page
+        with the name and links at the slug is linked. The venue's page is found by name nearby
+        (300 m) when its IDs don't find it (picked from Google, the page from OSM). Gemini: a busy
+        model (503, 429) is tried again, then `gemini-3.5-flash-lite`
   - [ ] Richer artist pages: description, genres, country (the venue field's country level, `i`
         `iso3166:`), albums and releases, members, active years; links stay one field. Prefill them
         from the AI's answer when the user confirms the artist

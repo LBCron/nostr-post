@@ -495,6 +495,11 @@ community and are kept. The entity carries every external ID as an `i` tag (`osm
 geohash with its prefixes (`g`), and `["source", "OpenStreetMap", <copyright URL>, "node/123/v42"]`
 for attribution and the imported version.
 
+The venue's page is found by its external IDs. When none of them finds it (the venue was picked from
+another source, e.g. Google while the page came from OSM, or from a duplicate OSM entry), a venue
+page nearby (within 300 m) with the same name is used, compared without case, accents, spaces and
+the title's "(qualifier)": the post links it as it is, without syncing another element's OSM data.
+
 Bitcoin payments are OSM tags too, the data [BTC Map](https://btcmap.org) shows: `currency:XBT`,
 `payment:lightning`, `payment:onchain`, `payment:lightning_contactless`, `check_date:currency:XBT`.
 A venue manifest can map them to infobox rows and link to BTC Map with

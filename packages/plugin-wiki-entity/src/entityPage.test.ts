@@ -10,11 +10,11 @@ vi.mock('@nostr-post/signer', () => ({
   signEvent: (...args: unknown[]) => signEvent(...args),
   publishToRelays: (...args: unknown[]) => publishToRelays(...args),
   getPublishRelays: async (_pubkey: string, relays: string[]) => relays,
+  getPublicKey: async () => author,
 }));
 
-const { createEntityPage, createsPage } = await import('./entityPage');
-
 const author = 'b'.repeat(64);
+const { createEntityPage, createsPage, forgetCreatedPages } = await import('./entityPage');
 const artist = {
   id: 'musician',
   version: '1',
@@ -59,6 +59,7 @@ const taken = (dTags: string[]) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  forgetCreatedPages();
   fetchEvents.mockResolvedValue([]);
   taken([]);
   signEvent.mockImplementation(async (e: object) => ({ ...e, pubkey: author, id: 'i', sig: 's' }));
@@ -107,9 +108,53 @@ describe('createEntityPage', () => {
     taken(['naraka-musician']);
     const tags = await createEntityPage(unlinked(), field as never);
     expect(tags).toEqual([['a', `30818:${author}:naraka-metal-musician`]]);
+    // Another Naraka (not the one just created here): no free slug left
+    forgetCreatedPages();
     taken(['naraka-musician', 'naraka-metal-musician']);
     await expect(createEntityPage(unlinked(), field as never)).rejects.toThrow('Naraka');
     expect(signEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('links the page an earlier try made when the post failed, without another', async () => {
+    const first = await createEntityPage(
+      unlinked({ externalIds: [], createPage: true }),
+      field as never
+    );
+    taken(['naraka-musician']);
+    const again = await createEntityPage(
+      unlinked({ externalIds: [], createPage: true }),
+      field as never
+    );
+    expect(again).toEqual(first);
+    expect(signEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("links the user's own page with the entity's name at its slug (e.g. after a reload)", async () => {
+    taken(['naraka-musician']);
+    const own = (pubkey: string) => ({
+      kind: 30818,
+      pubkey,
+      created_at: 1,
+      tags: [
+        ['d', 'naraka-musician'],
+        ['title', 'Naraka (musician)'],
+        ['i', 'instagram:naraka'],
+      ],
+    });
+    fetchEvents.mockImplementation(async (filter: { '#d'?: string[] }) =>
+      filter['#d'] ? [own(author)] : []
+    );
+    expect(await createEntityPage(unlinked(), field as never)).toEqual([
+      ['a', `30818:${author}:naraka-musician`],
+    ]);
+    expect(signEvent).not.toHaveBeenCalled();
+    // Someone else's page with that name is another entity's: a qualified slug instead
+    fetchEvents.mockImplementation(async (filter: { '#d'?: string[] }) =>
+      filter['#d'] ? [own('c'.repeat(64))] : []
+    );
+    expect(await createEntityPage(unlinked(), field as never)).toEqual([
+      ['a', `30818:${author}:naraka-metal-musician`],
+    ]);
   });
 
   it('fails when no relay took the page, so the post is not published', async () => {

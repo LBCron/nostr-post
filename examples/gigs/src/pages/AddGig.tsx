@@ -106,7 +106,13 @@ export function AddGig() {
     store.set(provider.storeKey, rememberKey ? key : null);
     setStatus(`Asking ${provider.name}…`);
     try {
-      const reply = await provider.ask({ apiKey: key, text, poster, suggestLinks });
+      const reply = await provider.ask({
+        apiKey: key,
+        text,
+        poster,
+        suggestLinks,
+        onStatus: setStatus,
+      });
       setAnswer(reply);
       setStatus('Done: check the preview below.');
       await preview(reply);

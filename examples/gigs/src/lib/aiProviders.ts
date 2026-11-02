@@ -13,6 +13,8 @@ export interface AskOptions {
   text: string;
   poster?: File;
   suggestLinks?: boolean;
+  /** Progress to show, e.g. a busy model's fallback */
+  onStatus?: (text: string) => void;
 }
 
 /** An AI the app can call */
@@ -98,39 +100,94 @@ export async function askClaude({
   return response.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('');
 }
 
+/** Gemini models, tried in turn while one is overloaded: the newest, then a lighter one */
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+
+/** HTTP statuses of a busy or briefly failing Gemini, worth another try or model */
+const BUSY = [429, 500, 503, 504];
+
+const statusOf = (error: unknown): number | undefined =>
+  typeof (error as { status?: unknown })?.status === 'number'
+    ? (error as { status: number }).status
+    : undefined;
+
+/** Gemini's error as a sentence: its JSON body's message, or what a busy status means */
+const geminiError = (error: unknown): Error => {
+  const status = statusOf(error);
+  if (status === 503 || status === 500 || status === 504) {
+    return new Error(
+      'Gemini is overloaded right now. Try again in a minute, or use Claude or the copied prompt.'
+    );
+  }
+  if (status === 429) {
+    return new Error(
+      "Your key's Gemini limit is reached for now (the free tier allows a few requests a minute and a day). Try again later."
+    );
+  }
+  const text = (error as Error | undefined)?.message ?? String(error);
+  try {
+    const message = JSON.parse(text.slice(text.indexOf('{')))?.error?.message;
+    return new Error(typeof message === 'string' ? message : text);
+  } catch {
+    return new Error(text);
+  }
+};
+
+/** The answer's text; throws with Gemini's reason when it blocked the prompt or gave none */
+const geminiAnswer = (response: {
+  text?: string;
+  promptFeedback?: { blockReason?: string };
+  candidates?: Array<{ finishReason?: string }>;
+}): string => {
+  const blocked = response.promptFeedback?.blockReason;
+  if (blocked) throw new Error(`Gemini blocked this request (${blocked})`);
+  const finish = response.candidates?.[0]?.finishReason;
+  if (!response.text) throw new Error(`Gemini gave no answer${finish ? ` (${finish})` : ''}`);
+  return response.text;
+};
+
 /**
  * Asks Google Gemini (its key from Google AI Studio). The answer follows `gigSchema()` through
- * `responseJsonSchema`. A blocked prompt or answer throws with Gemini's reason.
+ * `responseJsonSchema`. A busy model (503, 429) is retried twice by the SDK, then the next of
+ * `GEMINI_MODELS` is asked. A blocked prompt or answer throws with Gemini's reason.
  */
 export async function askGemini({
   apiKey,
   text,
   poster,
   suggestLinks = false,
-  model = 'gemini-3.8-flash',
-}: AskOptions & { model?: string }): Promise<string> {
+  onStatus,
+  models = GEMINI_MODELS,
+}: AskOptions & { models?: string[] }): Promise<string> {
   const [{ GoogleGenAI }] = await Promise.all([import('@google/genai'), loadGigPlugins()]);
-  const client = new GoogleGenAI({ apiKey });
-  const image = poster ? await posterImage(poster) : undefined;
-  const response = await client.models.generateContent({
-    model,
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          ...(image ? [{ inlineData: { mimeType: image.type, data: image.data } }] : []),
-          { text: gigPrompt(text, { suggestLinks }) },
-        ],
-      },
-    ],
-    config: { responseMimeType: 'application/json', responseJsonSchema: gigSchema() },
+  const client = new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      retryOptions: { attempts: 3, initialDelay: 2, maxDelay: 8, httpStatusCodes: BUSY },
+    },
   });
-  const blocked = response.promptFeedback?.blockReason;
-  if (blocked) throw new Error(`Gemini blocked this request (${blocked})`);
-  const finish = response.candidates?.[0]?.finishReason;
-  const answer = response.text ?? '';
-  if (!answer) throw new Error(`Gemini gave no answer${finish ? ` (${finish})` : ''}`);
-  return answer;
+  const image = poster ? await posterImage(poster) : undefined;
+  const contents = [
+    {
+      role: 'user',
+      parts: [
+        ...(image ? [{ inlineData: { mimeType: image.type, data: image.data } }] : []),
+        { text: gigPrompt(text, { suggestLinks }) },
+      ],
+    },
+  ];
+  const config = { responseMimeType: 'application/json', responseJsonSchema: gigSchema() };
+  let failure: unknown;
+  for (const [i, model] of models.entries()) {
+    if (i > 0) onStatus?.(`Gemini is busy, asking ${model}…`);
+    try {
+      return geminiAnswer(await client.models.generateContent({ model, contents, config }));
+    } catch (error) {
+      failure = error;
+      if (!BUSY.includes(statusOf(error) ?? 0)) break;
+    }
+  }
+  throw geminiError(failure);
 }
 
 /** The AIs to choose from, the first is the default */

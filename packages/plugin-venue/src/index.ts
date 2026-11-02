@@ -28,9 +28,15 @@ export {
   OSM_COPYRIGHT_URL,
   type EntitySyncAction,
   entitySyncAction,
+  isSameVenueByName,
   mergeOsmFields,
   venueEntityTags,
   venueIdentifiers,
   venueToEntityData,
 } from './wikiEntity';
-export { findVenueEntity, planVenueEntity, syncVenueEntity } from './wikiSync';
+export {
+  findVenueEntity,
+  findVenueEntityByName,
+  planVenueEntity,
+  syncVenueEntity,
+} from './wikiSync';

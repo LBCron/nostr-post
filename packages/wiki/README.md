@@ -287,6 +287,9 @@ picked entities of a single or `multiple` field.
 type, prefilled with the name. It doesn't publish: its "Add" picks the filled-in page as an entity
 without a page yet, and the page is published together with the post (a checkbox next to the
 publish button, like the [venue hub](../../MANIFEST.md#venue-hub)'s), one more event to sign.
+When the post then fails (a relay, the signer), publishing again links the pages already made
+instead of making them again: those made in this browser session, and after a reload the user's own
+page with the entity's name and links at its slug.
 That's unless a plugin registered its own form
 for that type with `registerEntityCreator({ tagName, matches })`: a custom element with `manifest`,
 `query` and `relays` properties that dispatches `wiki-entity-created` with `{ dTag, pubkey,

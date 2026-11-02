@@ -16,12 +16,13 @@ import {
 import { publishBlockers, waitForPublishBlockers } from '@nostr-post/plugins/activity';
 import { publishSummaries, runAfterPublish, runPublishHooks } from '@nostr-post/plugins/publish';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
+import { requestSignIn } from '@nostr-post/plugins/signIn';
 import { html, type TemplateResult } from 'lit';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { parseExtraTags } from './composerForm';
 import type { ComposerMessages } from './composerMessages';
 import { applyReplyTargetToBundle } from './composerReply';
-import { getUserRelays, type SignedEvent, signAndPublish } from './signer';
+import { getPublicKey, getUserRelays, type SignedEvent, signAndPublish } from './signer';
 
 // ---------------------------------------------------------------------------
 // Addressable-event helpers
@@ -220,6 +221,20 @@ export const withTags = (bundle: EventBundle, tags: [string, ...string[]][]): Ev
 // ---------------------------------------------------------------------------
 // Sign-and-publish bundle
 // ---------------------------------------------------------------------------
+
+/**
+ * Who publishes: the composer's `pubkey`, else (auto-publish) the signer's. Undefined when no one
+ * is signed in; the app is then asked to sign the user in (`requestSignIn`)
+ */
+export const signedInPubkey = async (
+  pubkey: string | undefined,
+  autoPublish: boolean
+): Promise<string | undefined> => {
+  const signer = !pubkey && autoPublish ? await getPublicKey().catch(() => undefined) : undefined;
+  const result = pubkey ?? signer;
+  if (!result) requestSignIn('publish');
+  return result;
+};
 
 type BundleEvent = EventBundle['events'][number];
 

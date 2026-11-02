@@ -106,12 +106,16 @@ export { getEntityManifest, registerEntityManifest } from '@nostr-post/wiki';
  * `{placeholder}` of wikiConfig.titleTemplate, else the first required string field.
  */
 export function entityPrefill(manifest: NostrPostManifest, name: string): Record<string, unknown> {
+  const fieldId = entityNameField(manifest);
+  return fieldId ? { [fieldId]: name } : {};
+}
+
+/** The field holding an entity's name: the title template's first, else the first required text */
+export function entityNameField(manifest: NostrPostManifest): string | undefined {
   const titleTemplate = (manifest as { wikiConfig?: { titleTemplate?: string } }).wikiConfig
     ?.titleTemplate;
   const fromTemplate = titleTemplate?.match(/\{(\w+)\}/)?.[1];
-  const fieldId =
-    fromTemplate ?? manifest.fields.find((f) => f.required && f.type === 'string')?.id;
-  return fieldId ? { [fieldId]: name } : {};
+  return fromTemplate ?? manifest.fields.find((f) => f.required && f.type === 'string')?.id;
 }
 
 // Entity type affixes live in @nostr-post/wiki so other plugins (e.g. venue) share them

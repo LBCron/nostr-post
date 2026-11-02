@@ -29,19 +29,14 @@ import {
   publishWithHooks,
   renderPublishSummaries,
   renderSubmitArea,
+  signedInPubkey,
   type ValidationResult,
   validateAndCoordinate,
   waitForUploads,
 } from './composerSubmit';
 import './composerElement';
 import { ensurePluginsForManifest } from './pluginAutoLoad';
-import {
-  fetchManifestByATag,
-  getPublicKey,
-  SIGNING_EVENT,
-  type SignedEvent,
-  type SigningDetail,
-} from './signer';
+import { fetchManifestByATag, SIGNING_EVENT, type SignedEvent, type SigningDetail } from './signer';
 
 @customElement('nostr-post-composer')
 export class NostrPostComposer extends NostrPostElement {
@@ -321,9 +316,9 @@ export class NostrPostComposer extends NostrPostElement {
         return undefined;
       }
     }
-    const pubkey = this.pubkey ?? (this.autoPublish ? await getPublicKey() : undefined);
+    const pubkey = await signedInPubkey(this.pubkey, this.autoPublish);
     if (!pubkey) {
-      this.showError('No pubkey provided. Please login first.');
+      this.showError(this._m.signInToPublish);
       return undefined;
     }
     return { manifest: this.manifest || STANDARD_KIND1_POST_MANIFEST, pubkey };

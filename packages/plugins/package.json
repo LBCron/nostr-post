@@ -31,6 +31,10 @@
     "./activity": {
       "types": "./dist/activity.d.ts",
       "import": "./dist/activity.js"
+    },
+    "./signIn": {
+      "types": "./dist/signIn.d.ts",
+      "import": "./dist/signIn.js"
     }
   },
   "scripts": {

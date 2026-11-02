@@ -4,11 +4,12 @@
  */
 
 import { dismissActivity, startActivity } from '@nostr-post/plugins/activity';
+import { requestSignIn } from '@nostr-post/plugins/signIn';
 import type { PostField } from '@nostr-post/plugins/types';
 import type { MediaPluginConfig, MediaQuality } from '../core';
 import { compressImage, preferredQuality } from './compress';
-import { formatBytes, mediaMessages } from './mediaMessages';
-import { uploadWithRetry } from './uploadRequest';
+import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
+import { uploadFailureKind, uploadWithRetry } from './uploadRequest';
 
 /** Largest file uploaded, after shrinking (MediaPluginConfig.maxSize) */
 export const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
@@ -22,6 +23,19 @@ export interface ContentUploadContext {
   /** The media field attached to the text field: its upload settings */
   attachedField?: PostField;
 }
+
+/**
+ * Why an upload failed, for the user. When it needs a signed-in user, the app is asked to sign
+ * them in (`requestSignIn`, e.g. it opens its login)
+ */
+export const uploadFailureText = (err: unknown, fileName: string, m: MediaMessages): string => {
+  if (uploadFailureKind(err) === 'sign-in') {
+    requestSignIn('upload');
+    return m.signInToUpload(fileName);
+  }
+  const reason = err instanceof Error ? err.message : String(err);
+  return `${m.uploadFailed(fileName)}: ${reason}`;
+};
 
 /** The quality to upload at: the user's choice, unless the field doesn't offer one */
 export const uploadQuality = (config: MediaPluginConfig): MediaQuality =>
@@ -70,8 +84,7 @@ async function uploadOneIntoContent(
       dismissActivity(activity.id);
       return;
     }
-    const reason = err instanceof Error ? err.message : String(err);
-    activity.fail(`${m.uploadFailed(file.name)}: ${reason}`);
+    activity.fail(uploadFailureText(err, file.name, m));
   }
 }
 

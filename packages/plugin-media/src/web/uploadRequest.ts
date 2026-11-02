@@ -61,6 +61,8 @@ export async function createNip98AuthToken(url: string, method: string): Promise
   }
 }
 
+const hasSigner = (): boolean => Boolean((window as unknown as { nostr?: unknown }).nostr);
+
 /** The token, or null (upload without auth) when the signer doesn't answer within `ms` */
 const tokenWithin = (url: string, ms: number): Promise<string | null> =>
   Promise.race([
@@ -92,9 +94,12 @@ export interface UploadOptions {
   stallMs?: number;
 }
 
-/** The URL in a finished request's answer, or why there's none */
-const answer = (xhr: XMLHttpRequest): string | UploadFailure => {
+/** The URL in a finished request's answer, or why there's none (`signedIn`: the request had auth) */
+const answer = (xhr: XMLHttpRequest, signedIn: boolean): string | UploadFailure => {
   if (xhr.status >= 500) return failure('server', `Upload failed (HTTP ${xhr.status})`);
+  if (!signedIn && (xhr.status === 401 || xhr.status === 403)) {
+    return failure('sign-in', 'Sign in to upload');
+  }
   if (xhr.status < 200 || xhr.status >= 300) {
     return failure('rejected', `Upload failed (HTTP ${xhr.status})`);
   }
@@ -116,6 +121,10 @@ export async function uploadWithProgress(file: File, options: UploadOptions = {}
   if (signal?.aborted) throw cancelled();
   const body = new FormData();
   body.append('file', file);
+  // No signer at all: nothing to sign the upload's auth with (custom servers may not need it)
+  if (!hasSigner() && uploadUrl === NOSTR_BUILD_UPLOAD) {
+    throw failure('sign-in', 'Sign in to upload');
+  }
   const token = await tokenWithin(uploadUrl, stallMs);
   if (signal?.aborted) throw cancelled();
   return new Promise<string>((resolve, reject) => {
@@ -143,7 +152,7 @@ export async function uploadWithProgress(file: File, options: UploadOptions = {}
     });
     // Sent: the server may take a while to store it
     xhr.upload.addEventListener('load', () => watch(stallMs * 2));
-    xhr.addEventListener('load', () => settle(answer(xhr)));
+    xhr.addEventListener('load', () => settle(answer(xhr, Boolean(token))));
     xhr.addEventListener('error', () => settle(failure('network', 'Network error')));
     xhr.addEventListener('abort', () =>
       settle(

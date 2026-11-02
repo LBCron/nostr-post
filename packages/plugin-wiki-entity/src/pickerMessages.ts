@@ -17,6 +17,8 @@ export interface WikiEntityPickerMessages {
   distinctSlug: string;
   /** Title of the create dialog; `typeName` from the manifest, if it has one */
   createDialogTitle: (typeName?: string) => string;
+  /** The create dialog's button: the page isn't published yet, but with the post */
+  addWithPost: string;
   versions: (count: number) => string;
   preview: string;
   previewLabel: (dTag: string) => string;
@@ -50,6 +52,7 @@ export const DEFAULT_WIKI_ENTITY_PICKER_MESSAGES: WikiEntityPickerMessages = {
   createAnother: (query) => `+ Create another "${query}"`,
   distinctSlug: 'with a distinct slug',
   createDialogTitle: (typeName) => `Create ${typeName ?? 'entity'}`,
+  addWithPost: 'Add: published with the post',
   versions: (count) => `${count} version${count === 1 ? '' : 's'}`,
   preview: 'Preview',
   previewLabel: (dTag) => `Preview ${dTag}`,

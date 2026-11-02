@@ -211,6 +211,8 @@ export {
   publishBlockers,
   waitForPublishBlockers,
 } from '@nostr-post/plugins/activity';
+// Asking the app to sign the user in (uploads, publishing)
+export { onSignInNeeded, requestSignIn, type SignInReason } from '@nostr-post/plugins/signIn';
 export {
   type ActivityMessages,
   DEFAULT_ACTIVITY_MESSAGES,

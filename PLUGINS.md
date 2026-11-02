@@ -315,6 +315,23 @@ publishing).
 The media plugin reports its text-field uploads this way, and `<np-activity>` shows events still
 being sent to relays (the signer's `RELAYS_PENDING_EVENT`).
 
+Work that needs a signed-in user (an upload's NIP-98 auth, publishing) asks the app to sign the user
+in through `@nostr-post/plugins/signIn`; the app decides how, e.g. by opening its signer's login:
+
+```typescript
+import { onSignInNeeded, requestSignIn } from '@nostr-post/plugins/signIn';
+
+// In the app: open the sign-in when something needs it ('upload' or 'publish')
+const stop = onSignInNeeded((reason) => window.NostrBridge?.login());
+
+// In a plugin or component: no one is signed in
+requestSignIn('upload'); // true when the app listens
+```
+
+The media plugin asks when an upload server wants auth and no one is signed in (its message says
+"Sign in to upload …"), and `<nostr-post-composer auto-publish>` when publishing without a signer's
+pubkey.
+
 ## Overriding a Built-in Plugin
 
 Since plugins register by ID, you can replace any built-in plugin by registering a new one with the same ID **after** the original:

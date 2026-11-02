@@ -12,6 +12,7 @@
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
+import './entityView';
 import './pagePublish';
 import {
   DEFAULT_WIKI_RELAYS,
@@ -44,6 +45,7 @@ import {
 } from './pickerMessages';
 import { needsPageLinks, withPageLinks } from './eventLinks';
 import { renderModal } from './modal';
+import { entityFromPageForm, type PageForm, withEntity } from './pageDraft';
 import { confirmMatch, rejectMatch } from './entityMatch';
 import { isShown, renderMatchActions, renderPickedChip } from './pickedChip';
 import { type EntitySearchResult, searchEntities } from './search';
@@ -300,11 +302,14 @@ export class WikiEntityPicker extends LitElement {
     this._creating = undefined;
   }
 
-  /** Select the entity the dialog just published */
-  private _onEntityPublished(e: CustomEvent): void {
-    const signed = e.detail?.results?.signedEvent as WikiEvent | undefined;
-    const dTag = (e.detail?.dTag as string | undefined) ?? '';
-    if (signed && dTag) this._onSelect(signed);
+  /** The dialog's page, to publish with the post (`entityFromPageForm`): picked in its place */
+  private _onPageFilled(e: CustomEvent<PageForm>): void {
+    const creating = this._creating;
+    if (!creating) return;
+    const entity = entityFromPageForm(creating.manifest, e.detail, creating.replaces);
+    this._emit(
+      this._config.multiple ? withEntity(this._picked, entity, creating.replaces) : entity
+    );
     this._creating = undefined;
   }
 
@@ -327,11 +332,11 @@ export class WikiEntityPicker extends LitElement {
           ></${unsafeStatic(creating.creatorTag)}>`
         : html`
         <nostr-wiki-composer
-          auto-publish
           .manifest=${creating.manifest}
           .prefill=${creating.prefill}
           .relays=${this._relays}
-          @nostr-wiki-published=${(e: CustomEvent) => this._onEntityPublished(e)}
+          .messages=${{ publish: this._m.addWithPost }}
+          @nostr-wiki-submit=${(e: CustomEvent<PageForm>) => this._onPageFilled(e)}
         ></nostr-wiki-composer>
       `,
       () => {
@@ -476,9 +481,10 @@ export class WikiEntityPicker extends LitElement {
   }
 }
 
-// Register plugin and set the elements the composer uses: the input, and the pages to create
+// Register plugin and set its elements: the input, the view, and the pages to create
 const tagNames = {
   inputTagName: 'wiki-entity-picker',
+  viewTagName: 'np-wiki-entity-view',
   publishSummaryTagName: 'np-wiki-entity-publish',
 };
 const entry = pluginRegistry.get('wiki-entity-picker');

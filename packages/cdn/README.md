@@ -200,6 +200,9 @@ The bundle re-exports utilities for advanced usage:
   while it runs (relay sends have it); `hidden`: not listed, for a component showing it itself;
   `cancel`: shown as ✕ while it runs; your code aborts and calls `dismissActivity(id)`, and a
   dismissed publish blocker no longer holds publishing.
+- `onSignInNeeded((reason) => …)`: called when an upload or the composer needs a signed-in user and
+  there's none (`reason`: `'upload'` or `'publish'`), e.g. to open your signer's login;
+  `requestSignIn(reason)` asks for it from your own code.
   `publishBlockers()`, `waitForPublishBlockers()`: what the composer waits for
 - `DEFAULT_ACTIVITY_MESSAGES`, `setActivityMessages(messages)`: its text;
   `DEFAULT_MEDIA_MESSAGES`, `setMediaMessages(messages)`: the media upload's text (Add media, photo

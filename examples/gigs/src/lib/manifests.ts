@@ -71,8 +71,17 @@ export const GENRES = [
   'folk',
 ];
 
+/**
+ * Venue pages: the venue page type published on Nostr (`venue-entity-v1`, also used by
+ * worldtrip.guide), so venues are shared pages, not this app's own
+ */
+export const VENUE_ENTITY_MANIFEST =
+  '30078:6a19c89b2694b307aae6dc40256264071a47bdad89d8ddae6d1ab7139a94015d:nostr-post:venue-entity-v1';
+
 /** The gig's own wording of calendar event fields */
 const GIG_FIELD_METADATA: Record<string, PostField['metadata']> = {
+  // The venue gets its wiki page (created from OpenStreetMap when missing), linked by the gig
+  location: { wikiEntity: VENUE_ENTITY_MANIFEST },
   tags: {
     label: 'Genres',
     description: 'Music genres, e.g. punk or techno',

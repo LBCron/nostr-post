@@ -46,9 +46,12 @@ beforeEach(() => {
   vi.useFakeTimers();
   behaviours = [];
   requests = 0;
-  win = new EventTarget();
+  // A signer with no one signed in (as nostr-bridge before sign-in): uploads without auth
+  win = Object.assign(new EventTarget(), {
+    nostr: { getPublicKey: () => Promise.reject(new Error('not logged in')) },
+  });
   nav = { onLine: true };
-  vi.stubGlobal('window', win); // no window.nostr: uploads without auth
+  vi.stubGlobal('window', win);
   vi.stubGlobal('navigator', nav);
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
 });
@@ -138,5 +141,19 @@ describe('uploadWithRetry', () => {
     const error = await settle(uploadWithRetry(file), 20_000);
     expect(uploadFailureKind(error)).toBe('server');
     expect(requests).toBe(3);
+  });
+});
+
+describe('signing in', () => {
+  it('asks to sign in when there is no signer, before sending anything', async () => {
+    vi.stubGlobal('window', new EventTarget());
+    expect(uploadFailureKind(await settle(uploadWithRetry(file), 200))).toBe('sign-in');
+    expect(requests).toBe(0);
+  });
+
+  it('asks to sign in when the server wants auth that no one could sign, without retrying', async () => {
+    behaviours = [{ status: 401 }];
+    expect(uploadFailureKind(await settle(uploadWithRetry(file), 200))).toBe('sign-in');
+    expect(requests).toBe(1);
   });
 });

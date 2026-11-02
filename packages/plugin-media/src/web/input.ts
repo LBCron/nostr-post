@@ -24,7 +24,7 @@ import {
 import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
-import { DEFAULT_MAX_SIZE, uploadQuality } from './upload';
+import { DEFAULT_MAX_SIZE, uploadFailureText, uploadQuality } from './upload';
 import { NOSTR_BUILD_UPLOAD, uploadWithRetry } from './uploadRequest';
 
 @customElement('np-media-input')
@@ -196,8 +196,7 @@ export class NpMediaInput extends LitElement {
         dismissActivity(activity.id);
         return;
       }
-      const reason = err instanceof Error ? err.message : String(err);
-      this._uploadError = `${m.uploadFailed(file.name)}: ${reason}`;
+      this._uploadError = uploadFailureText(err, file.name, m);
       activity.fail(this._uploadError);
     }
   }

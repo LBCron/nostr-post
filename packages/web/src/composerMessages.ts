@@ -27,6 +27,8 @@ export interface ComposerMessages {
   afterPublishFailed: (errors: string[]) => string;
   /** While the signer works on a signature, e.g. waits for the user to approve it */
   stepSigning: string;
+  /** Publishing without a signed-in user (the app is asked to sign them in) */
+  signInToPublish: string;
   /** Shown at the button when fields failed validation; the field labels follow */
   invalidFields: string;
   /** Publish hooks didn't finish in time */
@@ -51,6 +53,7 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
   doneWithoutPost: 'Done!',
   afterPublishFailed: (errors) => `Published, but: ${errors.join('; ')}`,
   stepSigning: 'Waiting for your signer to approve…',
+  signInToPublish: 'Sign in to publish: posts are signed with your Nostr key.',
   invalidFields: 'Please fix these fields:',
   hooksTimeout: 'Publishing linked pages took too long. Nothing was published; try again.',
   signerTimeout:

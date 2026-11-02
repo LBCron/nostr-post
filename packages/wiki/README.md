@@ -283,7 +283,11 @@ roles (e.g. a beer's breweries and where it was brewed) in
 [References with a role](../../MANIFEST.md#references-with-a-role). `pickedEntities(value)` lists the
 picked entities of a single or `multiple` field.
 
-"+ Create" opens a blank wiki composer for the entity type, unless a plugin registered its own form
+"+ Create" (also "Create page" on a picked entity without one) opens a wiki composer for the entity
+type, prefilled with the name. It doesn't publish: its "Add" picks the filled-in page as an entity
+without a page yet, and the page is published together with the post (a checkbox next to the
+publish button, like the [venue hub](../../MANIFEST.md#venue-hub)'s), one more event to sign.
+That's unless a plugin registered its own form
 for that type with `registerEntityCreator({ tagName, matches })`: a custom element with `manifest`,
 `query` and `relays` properties that dispatches `wiki-entity-created` with `{ dTag, pubkey,
 displayName }` once the entity exists. `@nostr-post/plugin-venue/web` registers one for venue pages

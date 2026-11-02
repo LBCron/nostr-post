@@ -67,7 +67,14 @@ export const isCompressibleImage = (type: string): boolean =>
  * server failed (`server`, HTTP 5xx), refused it or answered nonsense (`rejected`), or the
  * user stopped it (`cancelled`)
  */
-export type UploadFailureKind = 'network' | 'stalled' | 'server' | 'rejected' | 'cancelled';
+/** `sign-in`: the server wants NIP-98 auth and no one is signed in */
+export type UploadFailureKind =
+  | 'network'
+  | 'stalled'
+  | 'server'
+  | 'rejected'
+  | 'sign-in'
+  | 'cancelled';
 
 /** An upload aborts when no progress arrives for this long (ms); once sent, twice as long */
 export const UPLOAD_STALL_MS = 30_000;

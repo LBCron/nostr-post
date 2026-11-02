@@ -26,6 +26,8 @@ export interface MediaMessages {
   cancel: string;
   uploaded: (fileName: string) => string;
   uploadFailed: (fileName: string) => string;
+  /** The upload server wants the user signed in (NIP-98) and no one is */
+  signInToUpload: (fileName: string) => string;
   tooLarge: (maxMb: number) => string;
   /** <np-media-input>'s drop zone */
   dropFiles: string;
@@ -52,6 +54,7 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   cancel: 'Cancel upload',
   uploaded: (name) => `${name} added`,
   uploadFailed: (name) => `Couldn't upload ${name}`,
+  signInToUpload: (name) => `Sign in to upload ${name}: the upload is signed with your Nostr key`,
   tooLarge: (maxMb) => `File too large (max ${maxMb} MB)`,
   dropFiles: 'Drop files here, or click to browse',
   dropHint: (host, maxMb) => `Uploads to ${host} (max ${maxMb} MB each)`,

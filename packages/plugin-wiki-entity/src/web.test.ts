@@ -61,7 +61,7 @@ async function pickerWithQuery(query: string, metadata: Record<string, unknown>)
 }
 
 describe('<wiki-entity-picker> create', () => {
-  it('opens a prefilled composer and selects the published entity', async () => {
+  it('opens a prefilled composer whose page is picked, to publish with the post', async () => {
     registerEntityManifest(breweryManifest);
     const { picker, p } = await pickerWithQuery('Moonshine', {
       entityManifest: 'brewery-entity-test',
@@ -86,28 +86,34 @@ describe('<wiki-entity-picker> create', () => {
     );
     expect(outer).not.toHaveBeenCalled();
 
-    const signedEvent = {
-      id: 'e1',
-      pubkey: 'pk1',
-      sig: 's',
-      kind: 30818,
-      created_at: 1,
-      content: '',
-      tags: [
-        ['d', 'moonshine-(brewery)'],
-        ['title', 'Moonshine (Brewery)'],
-      ],
-    };
+    // The dialog doesn't publish: its form becomes the entity, created with the post
     composer.dispatchEvent(
-      new CustomEvent('nostr-wiki-published', {
-        detail: { dTag: 'moonshine-(brewery)', results: { signedEvent } },
+      new CustomEvent('nostr-wiki-submit', {
+        detail: {
+          event: {
+            tags: [
+              ['d', 'moonshine-(brewery)'],
+              ['title', 'Moonshine (Brewery)'],
+              ['i', 'https://moonshine.example.com'],
+            ],
+          },
+          formData: { name: 'Moonshine', website: 'https://moonshine.example.com' },
+        },
         bubbles: true,
         composed: true,
       })
     );
     await picker.updateComplete;
 
-    expect(picker.value).toMatchObject({ dTag: 'moonshine-(brewery)', resolvedPubkey: 'pk1' });
+    expect(picker.value).toEqual({
+      dTag: '',
+      resolvedPubkey: '',
+      externalIds: ['https://moonshine.example.com'],
+      displayName: 'Moonshine',
+      unlinked: true,
+      prefill: { name: 'Moonshine', website: 'https://moonshine.example.com' },
+      createPage: true,
+    });
     expect(outer).toHaveBeenCalledTimes(1);
     expect(picker.shadowRoot?.querySelector('nostr-wiki-composer')).toBeNull();
     document.body.removeEventListener('np-value-changed', outer);

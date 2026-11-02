@@ -14,8 +14,16 @@ players, RSVP, `.ics` import and export.
   the packages' `<nostr-calendar-event thread editable>`, the app only passes the gig manifest:
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
-  comments (NIP-22) and reactions. The performers field (`@nostr-post/plugin-wiki-entity`) removes
-  a performer's profile links with them; performers without a page are named in the description.
+  comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a
+  page as a row that opens it (`<np-wiki-entity-view>`). The performers field
+  (`@nostr-post/plugin-wiki-entity`) removes a performer's profile links with them; performers
+  without a page are named in the description.
+- **Venues** are wiki pages of the venue page type published on Nostr (`VENUE_ENTITY_MANIFEST` in
+  `manifests.ts`, `venue-entity-v1`, shared with worldtrip.guide): publishing a gig creates the
+  venue's page from OpenStreetMap when it has none, and links it.
+- **New performers' pages** are published with the gig, like the venue's: a performer read from a
+  post, or filled in with "+ Create" / "Create page" (the dialog's "Add" doesn't publish), gets a
+  checkbox next to the publish button; each page is one more event to sign.
 - **Musician** (`#/artist/<d-tag>`, `#/artist-new[/<name>]`, `#/artist-edit/<d-tag>[?add=<JSON>]`):
   a musician's wiki page (type
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link

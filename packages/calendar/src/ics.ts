@@ -7,6 +7,7 @@
  * No DOM dependencies.
  */
 
+import { parsePostRoles } from '@nostr-post/core/postRoles';
 import {
   ALL_DAY_EVENT_KIND,
   type DateValue,
@@ -97,7 +98,9 @@ const veventLines = (event: IcsEventSource): string[] => {
   }
   const title = tagValue(event.tags, 'title') ?? tagValue(event.tags, 'name');
   if (title) lines.push(`SUMMARY:${escapeText(title)}`);
-  const description = event.content?.trim() || tagValue(event.tags, 'summary');
+  // Without role lines (`Performers: nostr:naddr1…`): links calendar apps can't open
+  const text = parsePostRoles(event.content ?? '', []).text.trim();
+  const description = text || tagValue(event.tags, 'summary');
   if (description) lines.push(`DESCRIPTION:${escapeText(description)}`);
   const locations = event.tags.filter((t) => t[0] === 'location' && t[1]).map((t) => t[1] ?? '');
   if (locations.length > 0) lines.push(`LOCATION:${escapeText(locations.join(', '))}`);

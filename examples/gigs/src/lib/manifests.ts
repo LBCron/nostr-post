@@ -109,10 +109,13 @@ export const GIG_MANIFEST: NostrPostManifest = {
       id: 'performers',
       type: 'ref',
       uiPlugin: 'wiki-entity-picker',
-      // The artists' pages as `a` tags: an artist's page can list its gigs
+      // The artists' pages as `a` tags (an artist's page can list its gigs) and as a
+      // `Performers: nostr:naddr1…` line per page after the description, links in any client
       mapTo: [
         { kind: 31922, target: 'tag', tagName: 'a' },
         { kind: 31923, target: 'tag', tagName: 'a' },
+        { kind: 31922, target: 'content' },
+        { kind: 31923, target: 'content' },
       ],
       metadata: {
         label: 'Performers',

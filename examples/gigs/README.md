@@ -15,7 +15,8 @@ players, RSVP, `.ics` import and export.
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
   comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a
-  page as a row that opens it (`<np-wiki-entity-view>`). The performers field
+  page as a row that opens it. Performers' pages are `a` tags and a `Performers: nostr:naddr1…`
+  line each after the description, so other clients show them as links too. The performers field
   (`@nostr-post/plugin-wiki-entity`) removes a performer's profile links with them; performers
   without a page are named in the description.
 - **Venues** are wiki pages of the venue page type published on Nostr (`VENUE_ENTITY_MANIFEST` in

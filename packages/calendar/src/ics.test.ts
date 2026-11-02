@@ -1,3 +1,4 @@
+import { encodeNaddr } from '@nostr-post/core/nip19';
 import { describe, expect, it } from 'vitest';
 import { eventsToIcs, icsDTag, icsToDrafts } from './ics';
 
@@ -33,6 +34,14 @@ const timed = {
 };
 
 describe('eventsToIcs', () => {
+  it('leaves role lines (links to pages) out of the description', () => {
+    const naddr = encodeNaddr(`30818:${pubkey}:doom-(musician)`);
+    const withRoles = { ...allDay, content: `Three days of punk\nPerformers: nostr:${naddr}` };
+    const ics = eventsToIcs([withRoles], 'My gigs').replace(/\r\n /g, '');
+    expect(ics).toContain('DESCRIPTION:Three days of punk\r\n');
+    expect(ics).not.toContain('naddr1');
+  });
+
   it('writes all-day and timed events as RFC 5545 entries', () => {
     // Unfolded: long lines continue on lines starting with a space
     const ics = eventsToIcs([allDay, timed], 'My gigs').replace(/\r\n /g, '');

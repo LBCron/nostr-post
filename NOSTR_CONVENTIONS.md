@@ -81,11 +81,14 @@ event links to it with `["e", <note id>]`, which `<nostr-post-view>` uses to fin
 so no client shows an event as a reply to its own copy. Events published before had
 `["e", <id>, "", "root"]`; it's read the same way.
 
-## Roles in kind-1 text
+## Roles in plain text
 
-A reference field on kind 1 appends one line per entity after the text,
-`<field label>: nostr:naddr1…` (NIP-27). Other clients show the line and a link; our view reads the
-role from the label and hides the lines.
+A reference field mapped to an `a` tag and to the content of a plain-text kind (kind 1, NIP-52
+calendar events) appends one line per entity after the text, `<field label>: nostr:naddr1…`
+(NIP-27), e.g. a gig's `Performers: nostr:naddr1…`. Other clients show the line and a link; our
+view reads the role from the label, hides the lines and shows a row per page. The `.ics` export
+leaves them out. A reference field mapped only to an `a` tag shows the same rows in our view
+(`<np-wiki-entity-view>`), but other clients see nothing of it.
 
 ## Update comments
 

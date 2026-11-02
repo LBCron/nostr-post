@@ -84,13 +84,16 @@ export {
 // Players for links (YouTube, Spotify, SoundCloud, Vimeo, Bandcamp)
 export {
   checkLink,
+  checkSuggestedLinks,
   type Embed,
   embedFor,
   embedPlugin,
   isCheckableLink,
+  keepKnownLinks,
   type LinkCheck,
   linkFromEmbedCode,
   linkProvider,
+  linksInText,
   namesMatch,
   profileLink,
   profileUrls,

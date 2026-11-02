@@ -7,11 +7,12 @@
  */
 
 import { findJsonObject } from '@nostr-post/core/formJson';
+import { keepKnownLinks } from '@nostr-post/plugin-embed';
 import type { WikiEntityData } from '@nostr-post/plugin-wiki-entity';
 import { formJsonSchema, parseFormJson } from '@nostr-post/plugins/formJson';
 import type { FormJsonSuggestion } from '@nostr-post/plugins/types';
 import { ensurePluginsForManifest } from '@nostr-post/web';
-import { checkLinks, performersOf } from './links';
+import { performersOf } from './links';
 import { GIG_MANIFEST } from './manifests';
 
 /**
@@ -82,7 +83,10 @@ export const readAnswer = async (
   const json = findJsonObject(answer);
   if (!json.success) throw json.error;
   await loadGigPlugins();
-  const { value, fromPoster } = checkLinks(json.data, text, hasPoster, confirmed);
+  const { value, fromImage: fromPoster } = keepKnownLinks(json.data, text, {
+    hasImage: hasPoster,
+    confirmed,
+  });
   const parsed = await parseFormJson(GIG_MANIFEST, value);
   if (!parsed.success) throw parsed.error;
   const { formatId, formData, suggestions } = parsed.data;

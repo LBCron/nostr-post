@@ -19,6 +19,12 @@ const syncDark = () => document.body.classList.toggle('dark', darkQuery.matches)
 syncDark();
 darkQuery.addEventListener('change', syncDark);
 
+// Sign-in: start the bridge here instead of relying on its script tag (init() is safe to call
+// again). It installs window.nostr and its sign-in widget in the bottom-right corner
+window.NostrBridge?.init({ layout: 'floating' }).catch((err: unknown) => {
+  console.error('nostr-bridge: sign-in could not start', err);
+});
+
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(

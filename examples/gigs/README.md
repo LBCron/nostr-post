@@ -10,10 +10,12 @@ players, RSVP, `.ics` import and export.
   page's link (`#/?city=…&g=…&genre=…&view=…&from=…`); "Share" sends it with the shown gigs as text
   (`agendaText`), "Image" as a picture (`agendaImage`), through the device's share sheet or as a
   copy or download.
-- **Gig** (`#/event/<naddr>`): one event with its comments (`<nostr-calendar-event thread editable>`),
-  shareable. Edit: who posted it republishes it, anyone else's changes are a suggestion (an update
-  comment); removing a performer removes their profile links too, performers without a page are
-  edited in the description.
+- **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions. All of it is
+  the packages' `<nostr-calendar-event thread editable>`, the app only passes the gig manifest:
+  editing (who posted it republishes it, anyone else's changes are update comments, see
+  [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
+  comments (NIP-22) and reactions. The performers field (`@nostr-post/plugin-wiki-entity`) removes
+  a performer's profile links with them; performers without a page are named in the description.
 - **Musician** (`#/artist/<d-tag>`, `#/artist-new[/<name>]`, `#/artist-edit/<d-tag>[?add=<JSON>]`):
   a musician's wiki page (type
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link
@@ -23,7 +25,7 @@ players, RSVP, `.ics` import and export.
   hint when it seems to be on Nostr already → the composer, prefilled, to correct and publish.
   Or "fill in the form yourself": the empty composer, without AI.
   Nothing the AI returns is published without you. The AI's JSON follows the gig manifest
-  (`formJsonSchema`). Only links the post's text has are kept (with a poster, others are kept but
+  (`formJsonSchema`). Only links the post's text has are kept (`keepKnownLinks`) (with a poster, others are kept but
   marked "read from the poster"); the performers' links show as players. Optionally the AI also
   suggests performers' links from any site, offered as players or links to confirm ("It's them"):
   Spotify, SoundCloud and YouTube video links are checked with their site (`checkLink`,
@@ -46,7 +48,8 @@ The code is in `src/`:
 
 - `lib/`: the logic, without React. The app's own data (the musician and gig manifests, genres)
   in `manifests.ts`; the AI prompt and the Claude call (the official SDK, loaded only when asked)
-  in `ai.ts`; the link check in `links.ts`; the browse filter and cities in `filter.ts`; sharing in
+  in `ai.ts`; the performers' links in `links.ts` (the checks are `@nostr-post/plugin-embed`'s
+  `keepKnownLinks` and `checkSuggestedLinks`); the browse filter and cities in `filter.ts`; sharing in
   `share.ts`; the draft's preview and duplicates in `draft.ts`; hash routes in `routes.ts`.
 - `pages/`: a component per page, and the add flow's parts (`SuggestedLinks`, `DraftReview`).
 - `elements.d.ts`: the custom elements' JSX types, from the packages' own element types.

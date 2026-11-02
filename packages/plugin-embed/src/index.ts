@@ -15,6 +15,13 @@ export {
 } from './core';
 export { checkLink, isCheckableLink, type LinkCheck, namesMatch } from './linkCheck';
 export {
+  checkSuggestedLinks,
+  keepKnownLinks,
+  linkKey,
+  linksInText,
+  type SuggestedLink,
+} from './linkGuard';
+export {
   type ProfileLink,
   type ProfilePlatform,
   profileLink,

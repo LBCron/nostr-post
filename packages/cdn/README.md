@@ -119,7 +119,9 @@ The bundle re-exports utilities for advanced usage:
 - Embeds: `embedFor(link)` (a link's player), `linkProvider(link)`, `embedPlugin`, `Embed`;
   `profileLink(link)`, `profileUrls(links)`: profile links in canonical form (NIP-73 `i` tags);
   `linkFromEmbedCode(text)`; `checkLink(link)`, `isCheckableLink(link)`, `namesMatch(name, names)`:
-  whether a Spotify, SoundCloud or YouTube link exists, and whose it is
+  whether a Spotify, SoundCloud or YouTube link exists, and whose it is; `linksInText(text)`,
+  `keepKnownLinks(value, text)`, `checkSuggestedLinks(candidates, text)`: keep only links a source
+  text has (e.g. in what an AI read from it), check the others
 - `profilePlugin`, `personFromText(text)`, `peopleFromTags(tags)`, `personTag(person)`, `Person`
 - `mentionsIn(text)`: the people in a text's `nostr:npub…` mentions; the composer completes `@name` in
   text fields with an attached `profile` field (the standard kind 1 post has one)

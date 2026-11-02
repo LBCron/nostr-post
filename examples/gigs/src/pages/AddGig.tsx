@@ -162,6 +162,10 @@ export function AddGig() {
             Ask Claude
           </button>
         </div>
+        <p className="hint">
+          Using ChatGPT, Gemini or another AI? Copy the prompt below into it and paste its answer
+          back: the answer is checked the same way.
+        </p>
         {pluginsLoaded && <PromptCopy prompt={gigPrompt(text, { suggestLinks })} />}
         <label>
           <input

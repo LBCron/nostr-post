@@ -50,6 +50,9 @@
   - [x] Comments on addressable events were kind 1 with an `a` root tag; now NIP-22 comments (kind 1111,
         `A`/`K`/`P`), kind-1 replies only on notes
   - [ ] Write the NIP-73 `k` tag next to each `i` tag (`["k", "iso3166"]`, `["k", "web"]`)
+  - [ ] Reactions (kind 7, `buildReactionEvent`) have only `e` and `p`; NIP-25 asks for `k` (the reacted
+        event's kind) and, on addressable events, `a`, so likes stay with an event when it's republished
+        (the feed would then also fetch them by `#a`)
 
 ### Phase 2: Domain Scenarios (Planned)
 
@@ -138,6 +141,9 @@
         prompt → prefill → duplicate hint (`similarEvents`) → preview → sign. The AI's result is never
         published directly: it shows as the event preview (and in the composer) for the user to check
   - [x] Adding a gig without AI: "fill in the form yourself" opens the empty composer
+  - [ ] Direct API calls to other AIs (OpenAI/ChatGPT, Google Gemini) next to Claude: a provider choice
+        next to the key field, each with its own SDK loaded on demand and its structured-output format
+        for `gigSchema()`. Today they work only through the copied prompt
   - [x] Create performers' artist pages together with the gig (`@nostr-post/plugin-wiki-entity`, like the
         venue hub): the picker's `beforePublish` hook (`createEntityPage`) creates the pages of
         unlinked values, so the gig links them (`a` tags). Always optional, no manifest key to

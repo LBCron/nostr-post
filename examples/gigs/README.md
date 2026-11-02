@@ -28,8 +28,9 @@ players, RSVP, `.ics` import and export.
   a musician's wiki page (type
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link
   the page (`a` tag) or one of its profiles (`i` tag), so gigs added before the page show too.
-- **Add a gig** (`#/add`): paste a post's text and its poster → AI reads it (Claude with your own
-  API key, called from the browser; or a prompt you copy to any AI) → a preview of the event, a
+- **Add a gig** (`#/add`): paste a post's text and its poster → AI reads it (Claude or Google Gemini
+  with your own API key, called from the browser; Gemini's key from Google AI Studio has a free
+  tier, on which Google may use what you send to improve its products; or a prompt you copy to any AI) → a preview of the event, a
   hint when it seems to be on Nostr already → the composer, prefilled, to correct and publish.
   Or "fill in the form yourself": the empty composer, without AI.
   Nothing the AI returns is published without you. The AI's JSON follows the gig manifest
@@ -55,8 +56,8 @@ players, RSVP, `.ics` import and export.
 The code is in `src/`:
 
 - `lib/`: the logic, without React. The app's own data (the musician and gig manifests, genres)
-  in `manifests.ts`; the AI prompt and the Claude call (the official SDK, loaded only when asked)
-  in `ai.ts`; the performers' links in `links.ts` (the checks are `@nostr-post/plugin-embed`'s
+  in `manifests.ts`; the AI prompt and reading its answer in `ai.ts`; the Claude and Gemini calls
+  (their official SDKs, loaded only when asked) in `aiProviders.ts`; the performers' links in `links.ts` (the checks are `@nostr-post/plugin-embed`'s
   `keepKnownLinks` and `checkSuggestedLinks`); the browse filter and cities in `filter.ts`; sharing in
   `share.ts`; the draft's preview and duplicates in `draft.ts`; hash routes in `routes.ts`.
 - `pages/`: a component per page, and the add flow's parts (`SuggestedLinks`, `DraftReview`).

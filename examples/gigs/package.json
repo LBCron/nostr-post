@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
+    "@google/genai": "2.32.0",
     "@nostr-post/calendar": "workspace:*",
     "@nostr-post/core": "workspace:*",
     "@nostr-post/plugin-date": "workspace:*",

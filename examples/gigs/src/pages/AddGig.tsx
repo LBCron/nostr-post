@@ -1,12 +1,13 @@
 /**
- * Adding a gig: the post's text and poster, read by AI (Claude with the user's key, or any AI
+ * Adding a gig: the post's text and poster, read by AI (Claude or Gemini with the user's key, or any AI
  * through a copied prompt), checked as a preview and corrected in the composer before publishing;
  * or the empty form, filled in by hand.
  */
 
 import { findJsonObject } from '@nostr-post/core/formJson';
 import { useEffect, useRef, useState } from 'react';
-import { askClaude, type GigDraft, gigPrompt, loadGigPlugins, readAnswer } from '../lib/ai';
+import { type GigDraft, gigPrompt, loadGigPlugins, readAnswer } from '../lib/ai';
+import { AI_PROVIDERS, aiProvider } from '../lib/aiProviders';
 import { type SuggestedLink, suggestedLinks } from '../lib/links';
 import { store } from '../lib/store';
 import { DraftReview } from './DraftReview';
@@ -61,8 +62,9 @@ type Next =
 export function AddGig() {
   const [text, setText] = useState('');
   const [poster, setPoster] = useState<File>();
-  const [apiKey, setApiKey] = useState(() => store.get('gigs:api-key') ?? '');
-  const [rememberKey, setRememberKey] = useState(() => Boolean(store.get('gigs:api-key')));
+  const [provider, setProvider] = useState(() => aiProvider(store.get('gigs:ai-provider')));
+  const [apiKey, setApiKey] = useState(() => store.get(provider.storeKey) ?? '');
+  const [rememberKey, setRememberKey] = useState(() => Boolean(store.get(provider.storeKey)));
   const [suggestLinks, setSuggestLinks] = useState(() => store.get('gigs:suggest-links') !== '0');
   const [answer, setAnswer] = useState('');
   const [status, setStatus] = useState('');
@@ -101,16 +103,25 @@ export function AddGig() {
   const ask = async () => {
     const key = apiKey.trim();
     if (!key) return setStatus('Enter your API key, or use the prompt with any AI.');
-    store.set('gigs:api-key', rememberKey ? key : null);
-    setStatus('Asking Claude…');
+    store.set(provider.storeKey, rememberKey ? key : null);
+    setStatus(`Asking ${provider.name}…`);
     try {
-      const reply = await askClaude({ apiKey: key, text, poster, suggestLinks });
+      const reply = await provider.ask({ apiKey: key, text, poster, suggestLinks });
       setAnswer(reply);
       setStatus('Done: check the preview below.');
       await preview(reply);
     } catch (error) {
-      setStatus(`Claude: ${messageOf(error)}`);
+      setStatus(`${provider.name}: ${messageOf(error)}`);
     }
+  };
+
+  // Each AI has its own key; the choice is remembered
+  const chooseProvider = (id: string) => {
+    const chosen = aiProvider(id);
+    store.set('gigs:ai-provider', chosen.id);
+    setProvider(chosen);
+    setApiKey(store.get(chosen.storeKey) ?? '');
+    setRememberKey(Boolean(store.get(chosen.storeKey)));
   };
 
   return (
@@ -142,7 +153,19 @@ export function AddGig() {
         <h3>2. Read it with AI</h3>
         <div className="row">
           <label>
-            Your Anthropic API key{' '}
+            AI{' '}
+            <select value={provider.id} onChange={(e) => chooseProvider(e.target.value)}>
+              {AI_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <a href={provider.keyUrl} target="_blank" rel="noreferrer">
+              {provider.keyLabel}
+            </a>{' '}
             <input
               type="password"
               autoComplete="off"
@@ -159,12 +182,13 @@ export function AddGig() {
             Remember in this browser
           </label>
           <button type="button" onClick={ask}>
-            Ask Claude
+            Ask {provider.name}
           </button>
         </div>
+        {provider.note && <p className="hint">{provider.note}</p>}
         <p className="hint">
-          Using ChatGPT, Gemini or another AI? Copy the prompt below into it and paste its answer
-          back: the answer is checked the same way.
+          Using ChatGPT or another AI? Copy the prompt below into it and paste its answer back: the
+          answer is checked the same way.
         </p>
         {pluginsLoaded && <PromptCopy prompt={gigPrompt(text, { suggestLinks })} />}
         <label>

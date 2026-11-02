@@ -1,7 +1,7 @@
 /**
  * Turning a post about a gig (text, a poster) into the gig form's values, with AI: either
- * Claude with the user's own API key (the official SDK, called from the browser; the key stays
- * in this browser) or a prompt the user copies to any AI, pasting the answer back. The result is
+ * Claude or Gemini with the user's own API key (`aiProviders.ts`, called from the browser; the
+ * key stays in this browser) or a prompt the user copies to any AI, pasting the answer back. The result is
  * only ever a draft: the app shows it as a preview and in the composer before anything is
  * published.
  */
@@ -123,75 +123,3 @@ const withUnlinkedNames = (formData: Record<string, unknown>): Record<string, un
   const line = `With: ${missing.join(', ')}`;
   return { ...formData, description: description ? `${description}\n\n${line}` : line };
 };
-
-/** A file as base64 without its data-URL prefix */
-const base64Of = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-
-type ImageType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
-const IMAGE_TYPES: string[] = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-/**
- * Asks Claude with the user's own API key, from the browser (`dangerouslyAllowBrowser`: the key
- * is the user's and stays in their browser). The SDK is loaded only when someone asks. The answer
- * is the gig as JSON, valid against gigSchema(). On a safety decline the API retries on
- * Anthropic's recommended fallback model (`fallbacks: "default"`); a refusal of the whole chain
- * throws.
- */
-export async function askClaude({
-  apiKey,
-  model = 'claude-opus-5-5',
-  text,
-  poster,
-  suggestLinks = false,
-}: {
-  apiKey: string;
-  model?: string;
-  text: string;
-  poster?: File;
-  suggestLinks?: boolean;
-}): Promise<string> {
-  const [{ default: Anthropic }] = await Promise.all([
-    import('@anthropic-ai/sdk'),
-    loadGigPlugins(),
-  ]);
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-  if (poster && !IMAGE_TYPES.includes(poster.type)) {
-    throw new Error('The poster must be a JPEG, PNG, GIF or WebP image');
-  }
-  const image = poster
-    ? [
-        {
-          type: 'image' as const,
-          source: {
-            type: 'base64' as const,
-            media_type: poster.type as ImageType,
-            data: await base64Of(poster),
-          },
-        },
-      ]
-    : [];
-  const response = await client.beta.messages.create({
-    model,
-    max_tokens: 16000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    // A short extraction: low effort is enough
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: gigSchema() } },
-    messages: [
-      {
-        role: 'user',
-        content: [...image, { type: 'text', text: gigPrompt(text, { suggestLinks }) }],
-      },
-    ],
-  });
-  if (response.stop_reason === 'refusal') {
-    throw new Error(response.stop_details?.explanation ?? 'Claude declined this request');
-  }
-  return response.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('');
-}

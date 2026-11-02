@@ -141,9 +141,10 @@
         prompt → prefill → duplicate hint (`similarEvents`) → preview → sign. The AI's result is never
         published directly: it shows as the event preview (and in the composer) for the user to check
   - [x] Adding a gig without AI: "fill in the form yourself" opens the empty composer
-  - [ ] Direct API calls to other AIs (OpenAI/ChatGPT, Google Gemini) next to Claude: a provider choice
-        next to the key field, each with its own SDK loaded on demand and its structured-output format
-        for `gigSchema()`. Today they work only through the copied prompt
+  - [ ] Direct API calls to other AIs next to Claude: a provider choice next to the key field, each
+        with its own SDK loaded on demand and its structured-output format for `gigSchema()`
+        (`aiProviders.ts`). Done for Google Gemini (`@google/genai`, `responseJsonSchema`). Left:
+        OpenAI/ChatGPT, which works only through the copied prompt today
   - [x] Create performers' artist pages together with the gig (`@nostr-post/plugin-wiki-entity`, like the
         venue hub): the picker's `beforePublish` hook (`createEntityPage`) creates the pages of
         unlinked values, so the gig links them (`a` tags). Always optional, no manifest key to

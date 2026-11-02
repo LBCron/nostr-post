@@ -12,6 +12,7 @@
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
+import { panelPosition } from '@nostr-post/plugins/panelPosition';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { hasItem, itemFor, listWithTitle, manifestListPresets } from '../core';
@@ -21,7 +22,6 @@ import { loadMyLists, type MyListsState, NOT_LOADED, shownLists } from '../myLis
 import { BOOKMARK_LISTS, type BookmarkList, type ListKind } from '../types';
 import { DEFAULT_LIST_MESSAGES, type ListMessages } from './listMessages';
 import { renderLoadState } from './loadState';
-import { panelPosition } from './panelPosition';
 import { listStyles } from './styles';
 
 @customElement('np-list-save')

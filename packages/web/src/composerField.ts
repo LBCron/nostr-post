@@ -20,6 +20,7 @@ import { html, nothing, type TemplateResult } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { renderEnumInput } from './composerEnum';
+import './fieldActionPanel';
 
 type NumberFieldConfig = {
   min?: number;
@@ -85,6 +86,9 @@ interface BoundFieldAction {
   label: string;
   run: () => void | Promise<void>;
   setting?: FieldActionSetting;
+  runLabel?: string;
+  dropLabel?: string;
+  dropFiles?: (files: File[]) => void | Promise<void>;
 }
 
 function getPluginIcon(field: PostField): string {
@@ -279,44 +283,29 @@ function getFieldActions(field: PostField, ctx: FieldRenderContext): BoundFieldA
     const fieldActions = plugin.getFieldActions(attachedField);
     // Wire up onClick context
     for (const action of fieldActions) {
+      const actionCtx = (): FieldActionContext => ({
+        field: attachedField,
+        targetField: field,
+        formData: ctx.formData,
+        getFormData: ctx.getFormData,
+        onUpdateField: ctx.onFieldChange,
+      });
+      const { onDropFiles } = action;
       actions.push({
         id: action.id,
         icon: action.icon,
         label: action.label,
         setting: action.setting,
-        run: () => {
-          const actionCtx: FieldActionContext = {
-            field: attachedField,
-            targetField: field,
-            formData: ctx.formData,
-            getFormData: ctx.getFormData,
-            onUpdateField: ctx.onFieldChange,
-          };
-          return action.onClick(actionCtx);
-        },
+        runLabel: action.runLabel,
+        dropLabel: action.dropLabel,
+        dropFiles: onDropFiles ? (files) => onDropFiles(files, actionCtx()) : undefined,
+        run: () => action.onClick(actionCtx()),
       });
     }
   }
 
   return actions;
 }
-
-/** A field action's choice (e.g. photo quality) as a small select next to its button */
-const renderActionSetting = (setting: FieldActionSetting): TemplateResult => html`
-  <select
-    class="field-action-setting"
-    title=${setting.label}
-    aria-label=${setting.label}
-    @change=${(e: Event) => setting.onChange((e.target as HTMLSelectElement).value)}
-  >
-    ${setting.options.map(
-      (option) =>
-        html`<option value=${option.value} ?selected=${option.value === setting.value}>
-          ${option.label}
-        </option>`
-    )}
-  </select>
-`;
 
 /** Render the toolbar row of action icons for an attached-plugins field. */
 function renderFieldToolbar(
@@ -334,17 +323,19 @@ function renderFieldToolbar(
 
   return html`
     <div class="field-toolbar">
-      ${actions.map(
-        (action) => html`
-          <button
-            type="button"
-            class="field-action"
-            title=${action.label}
-            aria-label=${action.label}
-            @click=${() => action.run()}
-          >${action.icon}</button>
-          ${action.setting ? renderActionSetting(action.setting) : nothing}
-        `
+      ${actions.map(({ setting, ...action }) =>
+        // An action with a choice opens a panel with it (e.g. Add media and its photo quality)
+        setting
+          ? html`<np-field-action-panel .action=${{ ...action, setting }}></np-field-action-panel>`
+          : html`
+              <button
+                type="button"
+                class="field-action"
+                title=${action.label}
+                aria-label=${action.label}
+                @click=${() => action.run()}
+              >${action.icon}</button>
+            `
       )}
       ${expandableAttached.map((attachedField) => {
         const isExpanded = ctx.expandedFields.has(attachedField.id);

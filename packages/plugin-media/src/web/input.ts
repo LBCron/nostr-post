@@ -18,6 +18,7 @@ import {
   isMediaQuality,
   isVideoUrl,
   MEDIA_QUALITIES,
+  MEDIA_QUALITY_PRESETS,
   type MediaPluginConfig,
   toArray,
 } from '../core';
@@ -293,6 +294,9 @@ export class NpMediaInput extends LitElement {
           )}
         </select>
       </label>
+      <span class="hint">
+        ${m.qualityDescription(selected, MEDIA_QUALITY_PRESETS[selected]?.maxSide)}
+      </span>
     `;
   }
 

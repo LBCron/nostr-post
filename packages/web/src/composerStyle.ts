@@ -341,28 +341,12 @@ export const composerStyle = css`
     color: #d1d5db;
   }
 
-  /* Attached plugins' buttons under a text field, e.g. Add media and its photo quality */
+  /* Attached plugins' buttons under a text field, e.g. Add media */
   .field-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.375rem;
     margin-top: 0.375rem;
-  }
-
-  .field-action-setting {
-    width: auto;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #fff;
-    color: #374151;
-    font-size: 0.8125rem;
-  }
-
-  :host-context(.dark) .field-action-setting {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f3f4f6;
   }
 `;

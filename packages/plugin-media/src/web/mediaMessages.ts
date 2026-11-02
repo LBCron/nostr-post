@@ -9,9 +9,16 @@ import type { MediaQuality } from '../core';
 export interface MediaMessages {
   /** The text field's button */
   addMedia: string;
+  /** In its panel: the button choosing files, and the drop zone's text */
+  chooseMedia: string;
+  dropMedia: string;
   /** Label of the photo quality choice */
   quality: string;
   qualityLevels: Record<MediaQuality, string>;
+  /** What a level means; `maxSide`: its longest side in px (none for `full`) */
+  qualityDescription: (quality: MediaQuality, maxSide?: number) => string;
+  /** About all levels, under them */
+  qualityHint: string;
   /** While a photo is shrunk on the device */
   preparing: (fileName: string) => string;
   uploading: (fileName: string) => string;
@@ -43,8 +50,18 @@ export interface MediaMessages {
 
 export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   addMedia: 'Add media',
+  chooseMedia: 'Choose photos or videos',
+  dropMedia: 'or drop them here',
   quality: 'Photo quality',
-  qualityLevels: { low: 'Low (fastest)', mid: 'Medium', full: 'Full (original)' },
+  qualityLevels: { low: 'Low', mid: 'Medium', full: 'Full (original)' },
+  qualityDescription: (quality, maxSide) =>
+    ({
+      low: `Up to ${maxSide} px: the smallest file and fastest upload, fine on a phone.`,
+      mid: `Up to ${maxSide} px: sharp on most screens, usually a fraction of the original's size.`,
+      full: 'The file as it is: the largest and slowest upload, with all its details.',
+    })[quality],
+  qualityHint:
+    'Low and Medium shrink photos on your device before uploading and remove details like where they were taken; a photo already smaller is uploaded as it is. Videos and GIFs are never changed.',
   preparing: (name) => `Preparing ${name}…`,
   uploading: (name) => `Uploading ${name}`,
   sizes: (original, uploaded) => (original === uploaded ? uploaded : `${original} → ${uploaded}`),

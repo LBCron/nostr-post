@@ -35,6 +35,10 @@
     "./signIn": {
       "types": "./dist/signIn.d.ts",
       "import": "./dist/signIn.js"
+    },
+    "./panelPosition": {
+      "types": "./dist/panelPosition.d.ts",
+      "import": "./dist/panelPosition.js"
     }
   },
   "scripts": {

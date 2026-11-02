@@ -11,7 +11,13 @@
  */
 
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { isMediaQuality, MEDIA_QUALITIES, type MediaPluginConfig, mediaPlugin } from './core';
+import {
+  isMediaQuality,
+  MEDIA_QUALITIES,
+  MEDIA_QUALITY_PRESETS,
+  type MediaPluginConfig,
+  mediaPlugin,
+} from './core';
 
 // Import web components (side-effect: defines custom elements)
 import './web/input';
@@ -20,6 +26,8 @@ import './web/view';
 import { rememberQuality } from './web/compress';
 import { mediaMessages } from './web/mediaMessages';
 import { handleMediaDrop, handleMediaPaste, uploadIntoContent, uploadQuality } from './web/upload';
+
+const isMediaFile = (file: File) => /^(image|video)\//.test(file.type);
 
 // Register the plugin with its web component tag names + textarea event handlers
 pluginRegistry.register({
@@ -36,6 +44,16 @@ pluginRegistry.register({
         id: 'media-upload',
         icon: '🖼️',
         label: m.addMedia,
+        // With the quality choice the button opens a panel: choose or drop files, pick quality
+        runLabel: m.chooseMedia,
+        dropLabel: m.dropMedia,
+        onDropFiles: (files, { targetField, formData, getFormData, onUpdateField }) =>
+          uploadIntoContent(files.filter(isMediaFile), targetField, {
+            formData,
+            getFormData,
+            onUpdateField,
+            attachedField: field,
+          }),
         setting:
           config.qualityChoice === false
             ? undefined
@@ -44,11 +62,13 @@ pluginRegistry.register({
                 options: MEDIA_QUALITIES.map((value) => ({
                   value,
                   label: m.qualityLevels[value],
+                  description: m.qualityDescription(value, MEDIA_QUALITY_PRESETS[value]?.maxSide),
                 })),
                 value: uploadQuality(config),
                 onChange: (value) => {
                   if (isMediaQuality(value)) rememberQuality(value);
                 },
+                hint: m.qualityHint,
               },
         onClick: ({ targetField, formData, getFormData, onUpdateField }) => {
           const input = document.createElement('input');

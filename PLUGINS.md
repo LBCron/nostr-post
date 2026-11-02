@@ -429,10 +429,13 @@ interface NostrUIPlugin {
   publishSummaryTagName?: string;
 
   // Web-only: toolbar action buttons rendered in the target field's toolbar when attachTo is set.
-  // FieldAction: { id, icon, label, onClick(ctx), setting? }. onClick gets { field, targetField,
-  // formData, getFormData, onUpdateField }: read getFormData() when work finishes later (an
-  // upload), the user may have typed meanwhile. `setting` ({ label, options, value, onChange })
-  // shows a select next to the button, e.g. the media plugin's photo quality.
+  // FieldAction: { id, icon, label, onClick(ctx), setting?, runLabel?, onDropFiles?, dropLabel? }.
+  // onClick gets { field, targetField, formData, getFormData, onUpdateField }: read getFormData()
+  // when work finishes later (an upload), the user may have typed meanwhile. With a `setting`
+  // ({ label, options: [{ value, label, description? }], value, onChange, hint? }) the button
+  // opens a panel (<np-field-action-panel>): a button running onClick (`runLabel`), a drop zone
+  // when `onDropFiles(files, ctx)` is given (`dropLabel`), and the choice as radios, each with
+  // its description. E.g. the media plugin's Add media with its photo quality.
   getFieldActions?(field: PostField): FieldAction[];
 
   // Completions while typing in the text field this field is attached to (attachTo), e.g.

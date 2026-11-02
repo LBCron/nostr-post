@@ -75,14 +75,17 @@ export interface FieldActionContext {
   onUpdateField: (fieldId: string, value: unknown) => void;
 }
 
-/** A choice shown next to a FieldAction's button, e.g. the media plugin's photo quality */
+/** A choice in a FieldAction's panel, e.g. the media plugin's photo quality */
 export interface FieldActionSetting {
-  /** Accessible label of the choice */
+  /** Heading of the choice */
   label: string;
-  options: Array<{ value: string; label: string }>;
+  /** Each option with what it means (`description`, shown under its label) */
+  options: Array<{ value: string; label: string; description?: string }>;
   /** The selected value */
   value: string;
   onChange: (value: string) => void;
+  /** Shown under the options, about all of them */
+  hint?: string;
 }
 
 /**
@@ -96,8 +99,17 @@ export interface FieldAction {
   /** Accessible label and tooltip text. */
   label: string;
   onClick: (ctx: FieldActionContext) => void | Promise<void>;
-  /** A choice shown next to the button as a select */
+  /**
+   * A choice for the action. With one, the button opens a panel: a button running `onClick`
+   * (`runLabel`), a drop zone with `onDropFiles`, and the choice with its options' descriptions.
+   */
   setting?: FieldActionSetting;
+  /** The panel's button that runs `onClick` (default: `label`) */
+  runLabel?: string;
+  /** Files dropped on the panel's drop zone (none without it) */
+  onDropFiles?: (files: File[], ctx: FieldActionContext) => void | Promise<void>;
+  /** The drop zone's text */
+  dropLabel?: string;
 }
 
 /** Context passed to handleTextareaPaste and handleTextareaDrop */

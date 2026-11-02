@@ -25,4 +25,9 @@ describe('panelPosition', () => {
     expect(panelPosition(box(10, 100, 80, 32), panel, viewport).left).toBe(8);
     expect(panelPosition(box(380, 100, 80, 32), panel, viewport).left).toBe(136);
   });
+
+  it("aligns the panel's left edge with the button's at the start", () => {
+    expect(panelPosition(box(20, 100, 32, 32), panel, viewport, 'start').left).toBe(20);
+    expect(panelPosition(box(300, 100, 32, 32), panel, viewport, 'start').left).toBe(136);
+  });
 });

@@ -179,7 +179,7 @@ Each plugin package includes: core logic + web component input + web component v
 **Core:** Nominatim search + NIP-73 identity tag support  
 **Input:** <np-venue-input> wraps geo, adds search overlay  
 **View:** <np-venue-view> wraps geo view, adds venue UI  
-**Tags:** ["g", geohash] + ["i", "osm:node:123"] (NIP-73) + ["location", address]
+**Tags:** ["g", geohash] + ["i", "osm:node:123"] (our `osm:` namespace) + ["location", address]
 
 **Special Pattern:** Composition - venue wraps geo, doesn't duplicate map logic
 

@@ -2,9 +2,10 @@
  * @nostr-post/core - Update-comment parsing and event patching
  *
  * Pure functions for parsing `update:{fieldId}:{value}` comment lines and
- * applying them to Nostr events.  No Lit or plugin-registry dependencies.
+ * applying them to Nostr events. Update comments are kind-1 replies or NIP-22 comments (`./comments`).  No Lit or plugin-registry dependencies.
  */
 
+import { isCommentKind } from './comments';
 import { matchFieldOption } from './enumOptions';
 import { getFieldsByKind, isStructuredContentKind } from './manifestMappings';
 import type { DisplayableEvent, NostrPostManifest, PostField } from './types';
@@ -67,6 +68,8 @@ const parseFieldValue = (
     }
     case 'geo':
     case 'ref':
+    case 'date':
+    case 'profile':
       return rawValue;
   }
 };
@@ -156,7 +159,7 @@ const applySingleUpdateComment = (
   fieldsById: Map<string, PostField>,
   interactionEvent: DisplayableEvent
 ): DisplayableEvent => {
-  if (interactionEvent.kind !== 1) return event;
+  if (!isCommentKind(interactionEvent.kind)) return event;
 
   const lines = interactionEvent.content.split('\n');
   let current = event;
@@ -184,10 +187,31 @@ const applySingleUpdateComment = (
   return current;
 };
 
+/** Roles of `p` tags whose people the author lets update the event (e.g. NIP-52 organizers) */
+export const EDITOR_ROLES = ['host', 'co-host', 'organizer', 'editor'];
+
+/**
+ * Who may update an event with update comments: its author, the people it names with an
+ * editor role (`["p", pubkey, relay, "organizer"]`), and `extra` (e.g. the maintainer of the
+ * calendar it's shown from)
+ */
+export const eventEditors = (
+  event: Pick<DisplayableEvent, 'pubkey' | 'tags'>,
+  extra: readonly string[] = []
+): Set<string> => {
+  const named = event.tags
+    .filter((tag) => tag[0] === 'p' && tag[1] && EDITOR_ROLES.includes(tag[3]?.toLowerCase() ?? ''))
+    .map((tag) => tag[1] as string);
+  return new Set([event.pubkey, ...named, ...extra]);
+};
+
 export const applyUpdateCommentsToEvent = (
   event: DisplayableEvent,
   manifest: NostrPostManifest | undefined,
-  interactionEvents: DisplayableEvent[] | undefined
+  interactionEvents: DisplayableEvent[] | undefined,
+  extraEditors: readonly string[] = [],
+  /** Ids of others' update comments (suggestions) the viewer chose to see applied */
+  accepted: ReadonlySet<string> = new Set()
 ): DisplayableEvent => {
   if (!manifest || !interactionEvents || interactionEvents.length === 0) return event;
 
@@ -196,10 +220,13 @@ export const applyUpdateCommentsToEvent = (
   );
   if (fieldsById.size === 0) return event;
 
-  // Only trust update-comment events authored by the same pubkey as the original.
-  // This prevents third parties from injecting `update:...` lines that alter rendering.
+  // Only trust update comments of the event's editors (eventEditors): third parties can't
+  // inject `update:...` lines that alter rendering, unless the viewer accepted one
+  const editors = eventEditors(event, extraEditors);
   const trustedUpdates = interactionEvents.filter(
-    (ie) => ie.pubkey === event.pubkey && isUpdateComment(ie.content)
+    (ie) =>
+      (editors.has(ie.pubkey) || (ie.id !== undefined && accepted.has(ie.id))) &&
+      isUpdateComment(ie.content)
   );
 
   const sorted = [...trustedUpdates].sort((a, b) => a.created_at - b.created_at);
@@ -208,4 +235,21 @@ export const applyUpdateCommentsToEvent = (
     (current, interaction) => applySingleUpdateComment(current, fieldsById, interaction),
     event
   );
+};
+
+/**
+ * Others' update comments: suggested changes, which don't apply unless the viewer accepts them
+ * (`applyUpdateCommentsToEvent`'s `accepted`). Newest first
+ */
+export const suggestedUpdates = (
+  event: Pick<DisplayableEvent, 'pubkey' | 'tags'>,
+  interactionEvents: DisplayableEvent[] | undefined,
+  extraEditors: readonly string[] = []
+): DisplayableEvent[] => {
+  const editors = eventEditors(event, extraEditors);
+  return (interactionEvents ?? [])
+    .filter(
+      (ie) => isCommentKind(ie.kind) && !editors.has(ie.pubkey) && isUpdateComment(ie.content)
+    )
+    .sort((a, b) => b.created_at - a.created_at);
 };

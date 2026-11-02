@@ -151,4 +151,67 @@ describe('composer submit area', async () => {
     expect(text(c)).toContain("Your signer didn't answer the signing request");
     vi.useRealTimers();
   });
+
+  it('waits for running uploads before building the post, stops when one failed', async () => {
+    const { startActivity } = await import('@nostr-post/plugins/activity');
+    const c = document.createElement('nostr-post-composer') as HTMLElement &
+      Record<string, unknown>;
+    c.manifest = {
+      id: 'u',
+      version: '1',
+      fields: [
+        { id: 'body', type: 'string', uiPlugin: 'textarea', mapTo: { kind: 1, target: 'content' } },
+      ],
+    };
+    c.pubkey = 'a'.repeat(64);
+    c.prefill = { body: 'Nice bar' };
+    const submitted: unknown[] = [];
+    c.addEventListener('nostr-post-submit', (e) => submitted.push((e as CustomEvent).detail));
+    document.body.appendChild(c);
+    const updated = () => (c as unknown as { updateComplete: Promise<void> }).updateComplete;
+    const submit = async () => {
+      c.shadowRoot?.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true }));
+      for (let i = 0; i < 5; i++) await tick();
+      await updated();
+    };
+    await updated();
+
+    const upload = startActivity('Uploading a.jpg', { blocksPublish: true });
+    await submit();
+    expect(text(c)).toContain('Waiting for uploads to finish…');
+    expect(submitted).toEqual([]);
+    upload.done();
+    for (let i = 0; i < 5; i++) await tick();
+    expect(submitted).toHaveLength(1);
+
+    c.prefill = { body: 'Again' };
+    await updated();
+    const failing = startActivity('Uploading b.jpg', { blocksPublish: true });
+    await submit();
+    failing.fail('HTTP 500');
+    for (let i = 0; i < 5; i++) await tick();
+    await updated();
+    expect(text(c)).toContain('Not published: Uploading b.jpg failed');
+    expect(submitted).toHaveLength(1);
+    // A failed upload doesn't block: publishing again posts without it
+    await submit();
+    expect(submitted).toHaveLength(2);
+  });
+});
+
+describe('a post published as several kinds', async () => {
+  const { bundleSigningOrder, linkToPrimary } = await import('./composerSubmit');
+  const event = (kind: number) => ({ kind, created_at: 1, content: '', tags: [], pubkey: '' });
+
+  it('signs the note first, so the link never lands on it', () => {
+    expect(bundleSigningOrder([event(30078), event(1)]).map((e) => e.kind)).toEqual([1, 30078]);
+    expect(bundleSigningOrder([event(30023), event(30078)]).map((e) => e.kind)).toEqual([
+      30023, 30078,
+    ]);
+  });
+
+  it('links other kinds to the first event without a reply marker', () => {
+    expect(linkToPrimary(event(30078), 'f'.repeat(64)).tags).toEqual([['e', 'f'.repeat(64)]]);
+    expect(linkToPrimary(event(1), 'f'.repeat(64)).tags).toEqual([]);
+  });
 });

@@ -5,14 +5,22 @@
  * in its own file, separate from lifecycle, state, and event publishing.
  */
 
+import type { Completer } from './composerCompletion';
+import './composerCompletion';
 import { fieldDescription, fieldLabel } from '@nostr-post/core/manifest';
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import type { FieldActionContext, NostrUIPlugin } from '@nostr-post/plugins/types';
+import type {
+  FieldActionContext,
+  FieldActionSetting,
+  NostrUIPlugin,
+  TextareaEventContext,
+} from '@nostr-post/plugins/types';
 import { html, nothing, type TemplateResult } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { renderEnumInput } from './composerEnum';
+import './fieldActionPanel';
 
 type NumberFieldConfig = {
   min?: number;
@@ -61,8 +69,12 @@ export interface FieldRenderContext {
   attachedByTarget: Map<string, PostField[]>;
   /** Full manifest — needed to look up attached fields. */
   manifest: NostrPostManifest;
+  /** Kinds the selected publish format writes (e.g. the date field's precision follows them) */
+  activeKinds: number[];
   /** The author, when the composer knows it (inputs that need the user's data use it) */
   pubkey?: string;
+  /** The form data as it is now, for plugin work that finishes later (an upload) */
+  getFormData: () => Record<string, unknown>;
   isReadonly: (field: PostField) => boolean;
   onFieldChange: (fieldId: string, value: unknown) => void;
   onToggleExpanded: (fieldId: string) => void;
@@ -73,6 +85,10 @@ interface BoundFieldAction {
   icon: string;
   label: string;
   run: () => void | Promise<void>;
+  setting?: FieldActionSetting;
+  runLabel?: string;
+  dropLabel?: string;
+  dropFiles?: (files: File[]) => void | Promise<void>;
 }
 
 function getPluginIcon(field: PostField): string {
@@ -114,6 +130,8 @@ export function renderFieldInput(
         .value=${value}
         .field=${field}
         .manifest=${ctx.manifest}
+        .activeKinds=${ctx.activeKinds}
+        .error=${ctx.errors[field.id]}
         .pubkey=${ctx.pubkey}
         @np-value-changed=${(e: CustomEvent) => ctx.onFieldChange(field.id, e.detail.value)}
       ></${tag}>`;
@@ -133,16 +151,7 @@ export function renderFieldInput(
   switch (field.type) {
     case 'string':
       if (field.uiPlugin === 'textarea' || field.uiPlugin === 'markdown') {
-        // Check if any plugin wants to handle textarea paste/drop events
-        const handlers = getTextareaEventHandlers(field, ctx);
-
-        return html`<textarea
-          @input=${handleInput}
-          @paste=${(e: ClipboardEvent) => handlers.onPaste?.(e)}
-          @drop=${(e: DragEvent) => handlers.onDrop?.(e)}
-          @dragover=${(e: DragEvent) => e.preventDefault()}
-          .value=${String(value)}
-        ></textarea>`;
+        return renderTextarea(field, value, ctx, handleInput);
       }
       return html`<input type="text" @input=${handleInput} .value=${String(value)} />`;
 
@@ -172,6 +181,43 @@ export function renderFieldInput(
   }
 }
 
+/** A text field: with completions (e.g. `@` mentions) when attached plugins offer them */
+function renderTextarea(
+  field: PostField,
+  value: unknown,
+  ctx: FieldRenderContext,
+  handleInput: (e: Event) => void
+): TemplateResult {
+  // Check if any plugin wants to handle textarea paste/drop events
+  const handlers = getTextareaEventHandlers(field, ctx);
+  const completers = getTextareaCompleters(field, ctx);
+  if (completers.length > 0) {
+    return html`<np-completing-textarea
+        .value=${String(value)}
+        .completers=${completers}
+        .onInput=${(text: string) => ctx.onFieldChange(field.id, text)}
+        .onPaste=${handlers.onPaste}
+        .onDrop=${handlers.onDrop}
+      ></np-completing-textarea>`;
+  }
+
+  return html`<textarea
+      @input=${handleInput}
+      @paste=${(e: ClipboardEvent) => handlers.onPaste?.(e)}
+      @drop=${(e: DragEvent) => handlers.onDrop?.(e)}
+      @dragover=${(e: DragEvent) => e.preventDefault()}
+      .value=${String(value)}
+    ></textarea>`;
+}
+
+/** Completions while typing (e.g. `@` mentions) from the plugins attached to this field */
+function getTextareaCompleters(field: PostField, ctx: FieldRenderContext): Completer[] {
+  return (ctx.attachedByTarget.get(field.id) ?? []).flatMap((attachedField) => {
+    const completion = pluginRegistry.get(attachedField.uiPlugin)?.textareaCompletion;
+    return completion ? [{ ...completion, field: attachedField }] : [];
+  });
+}
+
 /**
  * Get textarea event handlers from all plugins attached to this field.
  * Collects paste/drop handlers from every attached plugin that registers them.
@@ -184,35 +230,40 @@ function getTextareaEventHandlers(
   onDrop?: (e: DragEvent) => void;
 } {
   const attached = ctx.attachedByTarget.get(field.id) ?? [];
-  const pasteHandlers: NonNullable<NostrUIPlugin['handleTextareaPaste']>[] = [];
-  const dropHandlers: NonNullable<NostrUIPlugin['handleTextareaDrop']>[] = [];
+  type Bound<H> = { handler: NonNullable<H>; attachedField: PostField };
+  const pasteHandlers: Bound<NostrUIPlugin['handleTextareaPaste']>[] = [];
+  const dropHandlers: Bound<NostrUIPlugin['handleTextareaDrop']>[] = [];
 
   for (const attachedField of attached) {
     const plugin = pluginRegistry.get(attachedField.uiPlugin) as NostrUIPlugin | undefined;
-    if (plugin?.handleTextareaPaste) pasteHandlers.push(plugin.handleTextareaPaste.bind(plugin));
-    if (plugin?.handleTextareaDrop) dropHandlers.push(plugin.handleTextareaDrop.bind(plugin));
+    if (plugin?.handleTextareaPaste) {
+      pasteHandlers.push({ handler: plugin.handleTextareaPaste.bind(plugin), attachedField });
+    }
+    if (plugin?.handleTextareaDrop) {
+      dropHandlers.push({ handler: plugin.handleTextareaDrop.bind(plugin), attachedField });
+    }
   }
+  const eventContext = (attachedField: PostField): TextareaEventContext => ({
+    formData: ctx.formData,
+    getFormData: ctx.getFormData,
+    onUpdateField: ctx.onFieldChange,
+    attachedField,
+  });
 
   if (!pasteHandlers.length && !dropHandlers.length) return {};
 
   return {
     onPaste: pasteHandlers.length
       ? (e: ClipboardEvent) => {
-          for (const handler of pasteHandlers) {
-            void handler(e, field, {
-              formData: ctx.formData,
-              onUpdateField: ctx.onFieldChange,
-            });
+          for (const { handler, attachedField } of pasteHandlers) {
+            void handler(e, field, eventContext(attachedField));
           }
         }
       : undefined,
     onDrop: dropHandlers.length
       ? (e: DragEvent) => {
-          for (const handler of dropHandlers) {
-            void handler(e, field, {
-              formData: ctx.formData,
-              onUpdateField: ctx.onFieldChange,
-            });
+          for (const { handler, attachedField } of dropHandlers) {
+            void handler(e, field, eventContext(attachedField));
           }
         }
       : undefined,
@@ -232,19 +283,23 @@ function getFieldActions(field: PostField, ctx: FieldRenderContext): BoundFieldA
     const fieldActions = plugin.getFieldActions(attachedField);
     // Wire up onClick context
     for (const action of fieldActions) {
+      const actionCtx = (): FieldActionContext => ({
+        field: attachedField,
+        targetField: field,
+        formData: ctx.formData,
+        getFormData: ctx.getFormData,
+        onUpdateField: ctx.onFieldChange,
+      });
+      const { onDropFiles } = action;
       actions.push({
         id: action.id,
         icon: action.icon,
         label: action.label,
-        run: () => {
-          const actionCtx: FieldActionContext = {
-            field: attachedField,
-            targetField: field,
-            formData: ctx.formData,
-            onUpdateField: ctx.onFieldChange,
-          };
-          return action.onClick(actionCtx);
-        },
+        setting: action.setting,
+        runLabel: action.runLabel,
+        dropLabel: action.dropLabel,
+        dropFiles: onDropFiles ? (files) => onDropFiles(files, actionCtx()) : undefined,
+        run: () => action.onClick(actionCtx()),
       });
     }
   }
@@ -268,16 +323,19 @@ function renderFieldToolbar(
 
   return html`
     <div class="field-toolbar">
-      ${actions.map(
-        (action) => html`
-          <button
-            type="button"
-            class="field-action"
-            title=${action.label}
-            aria-label=${action.label}
-            @click=${() => action.run()}
-          >${action.icon}</button>
-        `
+      ${actions.map(({ setting, ...action }) =>
+        // An action with a choice opens a panel with it (e.g. Add media and its photo quality)
+        setting
+          ? html`<np-field-action-panel .action=${{ ...action, setting }}></np-field-action-panel>`
+          : html`
+              <button
+                type="button"
+                class="field-action"
+                title=${action.label}
+                aria-label=${action.label}
+                @click=${() => action.run()}
+              >${action.icon}</button>
+            `
       )}
       ${expandableAttached.map((attachedField) => {
         const isExpanded = ctx.expandedFields.has(attachedField.id);

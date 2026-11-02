@@ -1,3 +1,4 @@
+import { commentRootOf } from '@nostr-post/core/comments';
 import { filterLatestAddressableEvents } from '@nostr-post/core/nip33';
 import {
   type NostrPostManifest,
@@ -11,7 +12,17 @@ export interface ReplyTarget {
   replyToPubkey?: string;
   rootEventId?: string;
   rootPubkey?: string;
+  /** The root's address when it's addressable */
+  rootAddress?: string;
 }
+
+/** An addressable event's address (`kind:pubkey:d`); undefined for other events */
+export const addressOf = (event: SignedEvent): string | undefined => {
+  const dTag = event.tags.find((tag) => tag[0] === 'd')?.[1];
+  return event.kind >= 30000 && event.kind < 40000 && dTag !== undefined
+    ? `${event.kind}:${event.pubkey}:${dTag}`
+    : undefined;
+};
 
 export interface FeedThread {
   root: SignedEvent;
@@ -35,7 +46,8 @@ const getRootTagValue = (event: SignedEvent): string | undefined => {
 
 const isReactionEvent = (event: SignedEvent): boolean => event.kind === 7;
 
-const isReplyEvent = (event: SignedEvent): boolean => event.kind === 1 && !!getRootTagValue(event);
+/** A kind-1 reply or a NIP-22 comment (`commentRootOf`) */
+const isReplyEvent = (event: SignedEvent): boolean => commentRootOf(event) !== undefined;
 
 const insertUniqueEvent = (events: SignedEvent[], nextEvent: SignedEvent): SignedEvent[] => {
   if (events.some((event) => event.id === nextEvent.id)) return events;
@@ -58,12 +70,15 @@ export const mergeUniqueEvents = (
 };
 
 export const buildReplyTarget = (event: SignedEvent, rootEvent?: SignedEvent): ReplyTarget => {
-  const resolvedRootId = getRootTagValue(event) ?? rootEvent?.id ?? event.id;
+  const commentRoot = commentRootOf(event);
+  const resolvedRootId = commentRoot?.id ?? rootEvent?.id ?? event.id;
+  const rootAddress = addressOf(rootEvent ?? event) ?? commentRoot?.address;
   return {
     replyToEventId: event.id,
     replyToPubkey: event.pubkey,
     rootEventId: resolvedRootId,
     rootPubkey: rootEvent?.pubkey ?? (resolvedRootId === event.id ? event.pubkey : undefined),
+    ...(rootAddress ? { rootAddress } : {}),
   };
 };
 
@@ -91,6 +106,18 @@ export const buildThreads = (
   const dedupedPrimary = filterLatestAddressableEvents(primaryEvents);
   const allEvents = [...dedupedPrimary, ...interactionEvents];
   const primaryIds = new Set(dedupedPrimary.map((event) => event.id));
+  // Replies to an earlier version of an addressable root reach it through its address
+  const rootIdByAddress = new Map(
+    dedupedPrimary.flatMap((event) => {
+      const address = addressOf(event);
+      return address ? [[address, event.id] as const] : [];
+    })
+  );
+  const currentRootId = (reply: SignedEvent): string | undefined => {
+    const root = commentRootOf(reply);
+    if (root?.id && primaryIds.has(root.id)) return root.id;
+    return root?.address ? rootIdByAddress.get(root.address) : undefined;
+  };
   const repliesByRoot = new Map<string, SignedEvent[]>();
   const reactionsByTarget = new Map<string, SignedEvent[]>();
 
@@ -106,8 +133,8 @@ export const buildThreads = (
 
     if (!isReplyEvent(event)) continue;
 
-    const rootId = getRootTagValue(event);
-    if (!rootId || rootId === event.id || !primaryIds.has(rootId)) continue;
+    const rootId = currentRootId(event);
+    if (!rootId || rootId === event.id) continue;
 
     const replies = repliesByRoot.get(rootId) ?? [];
     if (!replies.some((reply) => reply.id === event.id)) {

@@ -14,13 +14,15 @@
 - [ ] add style customization options for web components (CSS custom properties, theming)
 - [ ] Dark mode in the manifest creator (follow `prefers-color-scheme`, with a toggle); the web components' colors need CSS custom properties for it (see theming above)
 - [ ] fix pwa example shared image/text, it's not getting to post input now
+- [ ] preview of kind1 with photo
+- [ ] custom nostr-post relay(paid or run) or reupload(similar as shard-signer)
 - [x] fix list plugin to use lists(nip-51?) instead of manifests (NIP-51 bookmark lists, see the rewrite below)
 - [x] Rewrite `plugin-list` and test it as a whole: it's now save-to-list for wiki entities and other events, on NIP-51 bookmark lists (the bookmarks list, kind 10003, and bookmark sets, kind 30003; items as `a`/`e` tags). `<np-list-save target=…>` adds/removes the target in the user's lists or starts a new one; `<np-list-view>` shows lists with item titles, removing items and deleting sets. Wiki entities are one item whichever author's version was saved (compared and shown by d-tag); edits start from the newest copy on relays and keep other clients' tags and content; deleting sends a NIP-09 request. Publishes through the signer (`signAndPublish`: test mode, the user's relays). `<np-venue-view>` shows Save for a venue with a wiki page. The old audience-picker composer field (`np-list-input`, made-up `i list:` tags, never used) is gone. Tested with an in-memory relay (core, publishing, both components)
 - [x] plugin-list in manifests: any manifest names lists for its events (`lists`; d-tag `nostr-post:<listType>:<id>`, `listType` default the manifest id, set it for versioned ids so versions and extending manifests share the user's lists; or a fixed `dTag` to share one across manifests; `lists` merge by id with `extends`). Save shows only for such events and offers them first: `<nostr-post-view>`, `<nostr-wiki-view>`, `<np-venue-view>` render plugins' event actions (`@nostr-post/plugins/entities`, `registerEventAction`). `list` field: `metadata.saveField` saves that field's entity (its manifest's lists), without it the post itself (the post manifest's lists); value: list addresses and `new:<title>`; saved after publishing by the new `afterPublish` plugin hook (`runAfterPublish`; both composers run it, a failure is shown and doesn't undo the post). Publish formats may have `kinds: []` (hooks only): the "Save a place" example finds a place, creates its page if needed and saves it. Plugins meet the wiki package through the hub: plugin-list depends on neither the wiki nor the venue plugin, the venue plugin not on plugin-list. The list components show each loading step (signer with a 20 s timeout, relays) with a retry, and take the composer's `pubkey` (composers pass `.manifest` and `.pubkey` to plugin inputs); the signer asks `getPublicKey` once (`clearPublicKeyCache` on sign-in changes); relay reads end on `CLOSED`; the plugin auto-loader loads a web entry also when the main entry registered the plugin first
-- [ ] plugin-list: try it with a real signer and relays (save a venue from a review, the lists in another client such as one showing NIP-51 bookmark sets), and show `<np-list-view>` somewhere in the manifest creator
-- [ ] plugin-list: private items (NIP-51 encrypted `content`, NIP-44 through the signer's `nip44`), with a fallback when the signer lacks it; Google Maps-style lists are private by default. Edits already keep the content as it is
-- [ ] plugin-list: make a private list public (republish its encrypted items as public tags); sharing a private list with chosen people has no standard yet (a copy encrypted to each, or a per-list key), later. After private items
-- [ ] plugin-list: lists of lists instead of lists edited by several people: a set's items can already be other users' sets (`a` tags `30003:<pubkey>:<d-tag>`); `<np-list-view>` shows such items as nested lists (merged, or expandable)
+- [ ] `@nostr-post/list`: try it with a real signer and relays (save a venue from a review, the lists in another client such as one showing NIP-51 bookmark sets), and show `<np-list-view>` somewhere in the manifest creator
+- [ ] `@nostr-post/list`: private items (NIP-51 encrypted `content`, NIP-44 through the signer's `nip44`), with a fallback when the signer lacks it; Google Maps-style lists are private by default. Edits already keep the content as it is
+- [ ] `@nostr-post/list`: make a private list public (republish its encrypted items as public tags); sharing a private list with chosen people has no standard yet (a copy encrypted to each, or a per-list key), later. After private items
+- [ ] `@nostr-post/list`: lists of lists instead of lists edited by several people: a set's items can already be other users' sets (`a` tags `30003:<pubkey>:<d-tag>`); `<np-list-view>` shows such items as nested lists (merged, or expandable)
 - [ ] `<np-list-view>` titles wiki items by their newest version; use the wiki resolver's canonical version like `<nostr-wiki-view>` (through `@nostr-post/plugins/entities`, plugin-list doesn't depend on the wiki)
 - [x] Lists created by name: d-tag `nostr-post:<slug>` instead of a random suffix, so the same name is the same list everywhere (creating it again adds to it; "Favourites" is the shared preset); typing an existing list's name ticks it; lists shown together with the same title get their type ("Liked (beer)")
 - [ ] `<np-list-input>` keeps the item counts it loaded before publishing; reload the lists after the field saved to them
@@ -29,7 +31,8 @@
 - [ ] User profile view: a `<nostr-profile>` web component (+ React wrapper) with picture, name, about, NIP-05, website and the user's posts (optionally filtered by manifest, e.g. their reviews); post and comment author names link to it (app-overridable link target)
 - [x] `<nostr-post-view>` shows kind 1 text like other clients: links, images/videos (extension or `imeta`), `#hashtags` and `nostr:` references in place (`@nostr-post/core/noteContent`), HTML-escaped; `r`/`t` tag values the text already shows aren't repeated below it
 - [x] Inline note text: `nostr:npub`/`nprofile` mentions show the profile name (`@name`), fetched in one batch per post, newest kind 0 per pubkey (`fetchProfiles`); core decodes them without dependencies (`@nostr-post/core/nip19`, which now also holds the `naddr` helpers)
-- [ ] Inline note text, follow-ups: `nevent`/`naddr` link out instead of embedding the quoted event; hashtags aren't clickable (app-overridable target, e.g. a `#t` feed filter); image galleries for several images in a row
+- [ ] Inline note text, follow-ups: `nevent` links out instead of embedding the quoted event, and so does
+      `naddr` of kinds without a registered kind view (lists and wiki pages show in place: `registerKindView`); hashtags aren't clickable (app-overridable target, e.g. a `#t` feed filter); image galleries for several images in a row
 - [ ] add link to library in web component footers for better discoverability
 - [ ] Publish npm packages for each package (packages/\*) with CI, semantic
       versioning, and automated releases to the npm registry
@@ -40,13 +43,191 @@
 - [ ] allow to share NIP-78 data to Kind 1 events (for better compatibility with existing clients)
 - [ ] manifest definition in manifest, manifest UI editing tool as plugins
 - [ ] fix width jumping of manifest editor while loading data/showing json
+- [ ] Interoperability with other clients (what we write beyond the NIPs: [NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md)):
+  - [x] A post published as two kinds (`kinds: [1, 30078]`) linked the second event to the first with
+        `["e", <id>, "", "root"]`: NIP-10's reply marker, so a kind 1 that wasn't first showed as a reply.
+        Now the note is signed first and the others link to it with a plain `["e", <id>]`
+  - [x] Comments on addressable events were kind 1 with an `a` root tag; now NIP-22 comments (kind 1111,
+        `A`/`K`/`P`), kind-1 replies only on notes
+  - [ ] Write the NIP-73 `k` tag next to each `i` tag (`["k", "iso3166"]`, `["k", "web"]`)
+  - [ ] Reactions (kind 7, `buildReactionEvent`) have only `e` and `p`; NIP-25 asks for `k` (the reacted
+        event's kind) and, on addressable events, `a`, so likes stay with an event when it's republished
+        (the feed would then also fetch them by `#a`)
 
 ### Phase 2: Domain Scenarios (Planned)
 
 - [x] Comments support (kind 1) with manifest presets, examples, and protocol-standard reply tags
 - [ ] pool plugin
 - [ ] Calendar events support (NIP-52) with agenda-oriented rendering
-- [ ] calendar view
+  - [x] Date field plugin (`@nostr-post/plugin-date`): all-day (kind 31922, `start`/`end` as `YYYY-MM-DD`) or timed (kind 31923,
+        unix `start`/`end`, `start_tzid`/`end_tzid`), writing one `D` tag per covered day (unix days)
+        on both kinds. NIP-52 only defines `D` for 31922's timed sibling; on 31922 it is an extra tag
+        so relays can return our all-day events by day too. All-day or timed is the manifest's
+        publish format; the input follows the selected one (`activeKinds`)
+  - [x] Date input: time zone picker. A text field searchable through the zones the browser knows
+        (`timeZones()`, a datalist); an unknown zone gets a message and blocks publishing
+        (`INVALID_TIME_ZONE`)
+  - [x] Event manifest for 31922/31923, `CALENDAR_EVENT_MANIFEST` in `@nostr-post/plugin-date` (title, date,
+        location/`g` via plugin-venue, description, summary, image, `t`); in the manifest creator's examples
+  - [x] Event participants: NIP-52 lists people on an event as `p` tags with a role, e.g. `speaker` or
+        `host`. New `@nostr-post/plugin-profile` (field type `profile`): search profiles by name (NIP-50
+        search relays) or paste an npub, a role each; `CALENDAR_EVENT_MANIFEST` has a Participants field
+  - [x] Mentions with the people picker: `@` in the text field searching profiles, inserting
+        `nostr:npub…` (plugin `textareaCompletion` hook, core `textCompletion`); the standard kind 1
+        post has a `mentions` field (plugin-profile attached to the text), the people mentioned get `p` tags
+  - [ ] `@` mentions in the markdown editor (its WYSIWYG mode has its own editor; only the plain text
+        field completes now)
+  - [ ] People search only finds profiles on NIP-50 relays (`DEFAULT_SEARCH_RELAYS`); also search the
+        user's follows and recently seen profiles locally
+  - [ ] View: the title heading comes after the note text (content); show `title` first
+  - [x] Event location as free text or a URL: `CALENDAR_EVENT_MANIFEST` has "Place details" (NIP-52
+        `location` text: a room, an address, "Online") and "Link" (`r`: video call, tickets, event page)
+        next to the OpenStreetMap venue; the venue reads its name from its own, last, `location` tag;
+        the view makes web links in text fields clickable
+  - [ ] Several links per event (the Link field takes one)
+  - [x] Link an event's venue to its wiki page (venue hub, `metadata.wikiEntity`): the manifest creator's
+        `calendar-event` example adds it to `CALENDAR_EVENT_MANIFEST`'s location (the package can't name
+        the app's `venue-entity-v1`)
+  - [ ] A venue's wiki page lists its upcoming events: calendar events linked to the page (its `a` tag)
+        get an agenda section on the venue page
+  - [x] Agenda in `<nostr-post-feed>` (`agenda`, `agenda-from`, `agenda-days`, `time-zone`): a date window becomes a `#D` relay filter, events sorted by
+        start (not `created_at`), grouped under day headings in the viewer's time zone, newest
+        version per address only. Logic as framework-free functions in the plugin's main entry
+  - [x] Agenda navigation: Previous / Today / Next buttons move the date window (`shiftWindow`), the
+        `nostr-post-agenda-change` event reports it; an event spanning several days opens its reply
+        composer on its first day only
+  - [x] Agenda rows: compact rows (`agendaItem`) instead of full event views, one opening in full under its
+        row; with hundreds of events a full view each (venue maps, RSVP requests) used gigabytes and
+        crashed the month view. The feed loads comments, reactions and profiles once per load, not on
+        every partial update, and renders partial updates at most every 300 ms
+  - [x] Agenda: keep the buttons and days shown while the next window loads: the previous window's
+        days stay (dimmed, `aria-busy`) with their comments until the new events arrive, the
+        `loading` message next to the buttons; a slower earlier load no longer overwrites a later one
+  - [x] Calendars (kind 31924): a named list of events someone publishes, e.g. "Prague tech meetups". It
+        points to events by address (`a` tags), anyone's events, not only the publisher's: a bookmark
+        list for events, close to plugin-list's bookmark sets (NIP-51). Brings: - "Add to calendar" on events, like the list plugin's Save - `<nostr-post-feed agenda calendar="31924:…">`: the agenda of one calendar (load its events by
+        address, sort them into the window's days) - other clients' all-day events: they have no `D` tags, so a date filter doesn't find them;
+        a calendar names them, so they load directly (a short known list, not a network search).
+        Authors, `t` or `g` scopes work the same way
+        Done on plugin-list (`ListKind`: `BOOKMARK_LISTS`, `CALENDAR_LISTS`): `<np-calendar-save>` is its
+        Save with calendars; `fetchCalendarItems`, `calendarEventFilters` in plugin-date
+  - [ ] Calendars: a page or component listing a calendar (title, events, follow/share), and finding
+        other people's calendars; agenda of several calendars at once
+  - [x] RSVP (kind 31925): Going / Maybe / Can't go on calendar events with counts (`<np-rsvp>`, an event
+        action of calendar manifests); one replaceable RSVP per person and event (`d` = the event's address)
+  - [x] RSVP: who answered: "Who" opens the people of each answer with avatars and names
+        (`peopleByStatus`, plugin-profile's `<np-profile-view>`)
+  - [ ] RSVP: highlight the user's own answer when the page loads (now only after answering here, so
+        reading doesn't ask the signer); a note with the answer
+  - [x] iCalendar: `eventsToIcs`, `icsToDrafts` (d-tag `ics:<UID>`, so re-imports replace), `.ics`
+        download on calendar events (`<np-ics-download>`)
+  - [x] Duplicate check before creating: `similarEvents` (same day, alike title)
+  - [x] Trusted editors: update comments of the people an event names as organizers (`p` + role) and
+        of the calendar's maintainer (`trustedEditors`) apply; comments on addressable events carry
+        an `a` root tag and are fetched and threaded by address, so they survive republishing
+- [x] calendar view: month grid on the same day-grouping functions as the agenda
+      (`<nostr-post-feed agenda agenda-view="month">`, `monthGrid`)
+- [ ] rich media preview - youtube with play, spotify/bandcamp/soundcloud with playlist if possible.
+      Done for link fields: `@nostr-post/plugin-embed` (`uiPlugin: 'embed'`, click-to-load players).
+      Bandcamp: its embed code (Share / Embed) pasted into the field becomes the player link.
+      Left: players for links inside note text; Bandcamp page links (the album number is only on the
+      page, also for direct album links: read it through a proxy, e.g. the cron)
+- [ ] Gig platform example (`examples/gigs`, plan: static nsite now, cron worker later in its own repo)
+  - [x] Static app: city + genre + date browser (agenda/month with `#g`/`#t`), event and artist pages,
+        "add gig" composer
+  - [x] Artist wiki entity manifest (name, genres, media links as `embed` field with `r`/NIP-73 `i`) and a
+        gig manifest with Performers (wiki-entity picker, role `performer`)
+  - [x] Add flow: paste text or a poster → AI with the user's own key (browser call) or a copy-paste
+        prompt → prefill → duplicate hint (`similarEvents`) → preview → sign. The AI's result is never
+        published directly: it shows as the event preview (and in the composer) for the user to check
+  - [x] Adding a gig without AI: "fill in the form yourself" opens the empty composer
+  - [ ] Direct API calls to other AIs next to Claude: a provider choice next to the key field, each
+        with its own SDK loaded on demand and its structured-output format for `gigSchema()`
+        (`aiProviders.ts`). Done for Google Gemini (`@google/genai`, `responseJsonSchema`). Left:
+        OpenAI/ChatGPT, which works only through the copied prompt today
+  - [x] Create performers' artist pages together with the gig (`@nostr-post/plugin-wiki-entity`, like the
+        venue hub): the picker's `beforePublish` hook (`createEntityPage`) creates the pages of
+        unlinked values, so the gig links them (`a` tags). Always optional, no manifest key to
+        require them: `<np-wiki-entity-publish>` next to the publish button has a checkbox per
+        performer (`createPage`), ticked when it has links, unticked for a name alone. A page of
+        its type found by its links meanwhile is linked instead; a taken name gets the first free
+        qualifier (handle, genre), and with none free nothing is published, so another
+        performer's page is never overwritten
+  - [x] Confirm a page found for a performer automatically (by links or name): the value is marked
+        (`match`), the chip says how it was found, and the picker's page preview (the whole page in
+        a popup, its links as players) has "It's them" / "Not them" (back to its name and links, so
+        it can get its own page); the publish summary lists pages not checked yet
+  - [x] Publishing a gig again after it failed (pages made, then the gig not) doesn't make the
+        performers' pages again: pages made in the session are remembered, and the user's own page
+        with the name and links at the slug is linked. The venue's page is found by name nearby
+        (300 m) when its IDs don't find it (picked from Google, the page from OSM). Gemini: a busy
+        model (503, 429) is tried again, then `gemini-3.5-flash-lite`
+  - [ ] Richer artist pages: description, genres, country (the venue field's country level, `i`
+        `iso3166:`), albums and releases, members, active years; links stay one field. Prefill them
+        from the AI's answer when the user confirms the artist
+  - [x] Rewritten in React (Vite, TypeScript), still a static nsite: logic in `src/lib`, a component
+        per page; the packages' custom elements used in JSX directly (React 19 sets their properties
+        and listens to their events), typed from their `HTMLElementTagNameMap` entries
+        (`<nostr-post-composer>` got its entry). `@nostr-post/react` only wraps the composer, view
+        and feed, so the app doesn't use its wrappers
+  - [x] Preview / test mode: the whole app usable without publishing (the signer's dry run,
+        `setDryRun`): events are signed and shown as they would be, nothing reaches relays; a banner
+        says so
+  - [x] `.ics` import UI (`icsToDrafts`, confirm each event)
+  - [x] In `build:pages`, so `preview:pages` and PR previews show it (`/examples/gigs/`)
+  - [ ] Its own nsite (deploy separately from the library's pages)
+  - [x] Share the current filter (city, genre, week) as a link plus text, and as an image
+        (`agendaText`, `agendaImage` in `@nostr-post/calendar`; the filter is in the page's link)
+  - [x] Times in a shared city's agenda (and the agenda itself) show in the viewer's time zone: show a
+        city's gigs in its own zone (the window's `eventZones`: each event in its `start_tzid`)
+  - [x] Gigs in the agenda link to their page (`#/event/<naddr>`): `<nostr-calendar-agenda>`'s `eventHref`
+  - [ ] The add flow's preview shows event actions (RSVP, Add to calendar, .ics) that would act on a
+        placeholder address: a view option to hide actions
+  - [ ] Musician pages identified by their profile links (type suffix `(musician)`; "artist" also
+        means painters)
+    - [x] Profile links (Bandcamp, Spotify artist, SoundCloud, Instagram, Facebook, YouTube) in one
+          canonical form (`profileLink`), written as NIP-73 `i` tags by the embed field
+    - [x] Slug: the name if free, else a profile handle (Bandcamp/Instagram/SoundCloud/Facebook), else
+          the name plus a genre or city; a taken slug whose page has the same link is that musician.
+          The handle is added to the name as the qualifier (`doomsday-doomsdayband-musician`), so the
+          slug still starts with the name; the wiki composer picks the first free one
+    - [x] validate artist links from AI input: only links in the post's text (or marked as read from
+          the poster); the preview shows them as players, so the user sees what was found
+    - [x] AI-suggested links (opt-in), from any site: Spotify, SoundCloud and YouTube video links the post
+          doesn't have are checked with the provider (oEmbed: exists, and under the performer's name)
+          and come ticked; YouTube channels, Bandcamp, Instagram and Facebook can't be checked from a
+          browser and are offered unticked, for the user to open and confirm
+    - [x] artist wiki is not mandatory: performers without a page stay as text, linked through their
+          profile links (`i` tags), so a page created later finds the gig. The picker keeps them as
+          unlinked values with "Create page" (prefilled with name and links)
+    - [x] validate existence of artist wiki by links, name, before creating new: look up by `#i`, then by
+          the name's slug (`resolveEntities`; the picker's form JSON asks for the entity manifest's name
+          and link fields)
+    - [x] A gig that adds links the musician's page doesn't have: suggest updating the page (`update`
+          suggestions): "add them to the page" opens its edit form with the links added (`additions`)
+    - [x] Editing an event with several picked entities: their `i` tags come back on one nameless
+          unlinked value (tags can't be told apart by entity). The picker gives each picked entity
+          the links its page has (`withPageLinks`), so removing it removes them; the rest stay.
+          Unlinked entities' names stay in the description only, on purpose: they're edited there
+          (e.g. "X cancelled"), as are others' update comments
+  - [x] Artist page lists the artist's gigs: events with its `a` tag or one of its profile links (`i`).
+        In the gigs app for now; a generic version would be a related section (`wikiConfig.related`)
+        that also queries `#i`
+  - [x] Cities: any city by search (Nominatim, as the venue field's city level) and the ones picked
+        before (no hand-typed geohashes)
+  - [ ] A city's area is one 4-character geohash cell (about 40 × 20 km) around its center: a city near
+        a cell's edge misses gigs in the next cell; query the neighbouring cells too
+  - [ ] The Claude call (`askClaude`) is untested against the real API: try it with a key and a poster
+  - [x] The AI's JSON Schema comes from the gig manifest (`formJsonSchema`, plugins' `jsonSchema`), and
+        performers' names become their artist pages (`parseJson`); names without a page link to
+        "Add an artist" with the name filled in
+  - [x] JSON schemas (`jsonSchema`) for the fields still left out of form JSON: venue (a place name → OpenStreetMap
+        search), participants (names → NIP-50 profile search; only an exact, unique name). Reference
+        (derived from a text field) and list (not part of the post) stay out on purpose
+  - [ ] Cron worker (own repo): Open Graph pages and `.ics` feeds into the nsite; Facebook `.ics`
+        subscriptions (URL encrypted to the cron with NIP-44 as app data, events signed through the
+        user's NIP-46 signer or as drafts to confirm). Imported gigs never create or update artist or
+        venue pages: performers stay as names and links, venues as their own tags
 - [ ] P2P offers support (NIP-69) with filtered feed presets/views
 - [ ] Zap support (NIP-57): zap requests/receipts with amount + payer views and filtering
 - [ ] Add scenario manifests for:
@@ -76,6 +257,13 @@
 - [x] Controlled vocabularies, part 1: enum options with value, label, group, description and an unpublished `code`; one published value per field (readable values like `american-ipa` in `t`), infobox rows show the label; options editor in the manifest creator; BJCP 2021 beer styles (121, category 27 split into its beers) as the `beer-style-bjcp-2021` base manifest (imported once from beerjson/bjcp-json), which the beer entity extends; brewery type (Brewers Association segments)
 - [x] Controlled vocabularies, part 2: brewery location from OpenStreetMap instead of free-text country and city. A venue field with `metadata.levels` (country, city, place) searches those levels; every level gets `i` `iso3166:CZ` (NIP-73) and `i` `wikidata:Q…` when OSM has one, so "breweries in Czechia" is one `#i` query; a city a 4-character geohash, a country none; geohash prefixes on wiki pages too. Cities and countries are not wiki entities: they're identities with existing authorities (ISO 3166, OSM, Wikidata), and community-made country pages would invite fake or disputed ones; disputed territories follow OSM. Venue pages also get their country and Wikidata `i` tags
 - [x] Brewery location at an exact place creates/links the venue wiki page from the brewery's form: the wiki composer runs plugin `beforePublish` hooks and renders `publishSummaryTagName` (shared via `@nostr-post/plugins/publish`); cities and countries get no venue page
+- [x] Creating wiki pages while publishing is the user's choice (a page is one more event to sign, and
+      many signers don't sign it on their own; without it the post keeps its own identifiers, so a
+      page made later still finds it):
+  - [x] Venue fields (`wikiEntity`): the opt-out checkbox next to the publish button (`syncWiki`) was
+        there; `metadata.requirePage: true` removes it, and `linkOnly` fields always require the page
+        (their post has only the page's `a` tag). The manifest creator's venue settings have
+        "Require the wiki page"
 - [ ] A city wiki page, if people want to describe cities; with the same `i` tags it links up like the venue hub
 - [x] References with a role (wiki entities): an entity can point to several entities of one type, each in a role, using only NIP-01 and NIP-54. Every referenced entity is a plain `a` tag (`#a` queries find all beers a brewery was involved in); a `ref` field mapped to an `a` tag and the infobox writes its row as NIP-54 wikilinks (`Brewed at | [Pivovar Z][pivovar-z-brewery]`), and reading matches them to the `a` tags. The wiki-entity picker has `multiple: true`. A `ref` field without a row takes the `a` tags no row claims; entities written before roles read into the first role field. One entity in two roles gets one `a` tag. First use: the beer example's `breweries` (several for a collaboration) and `brewed_at`
   - not chosen: a 4th marker element on `a` (NIP-10 markers exist only for `e`, with fixed values), NIP-32 labels (they label the event or the referenced entity, not which `a` tag), custom tag names (other clients and `#a` queries miss them)
@@ -102,6 +290,12 @@
 - [ ] Import your own Google Maps reviews and photos from Google Takeout (Reviews.json): your text, stars, date and photos become review events; the place's Google link → `gcid:`, matched to OSM; photos uploaded via the media plugin; Google's place details only used to find the place
 - [x] Related sections: review stats, `stats: { tag: 'rating', max: 5 }` → "12 reviews · ★ 4.3" above the list (count + average of that tag over the section's posts; computed when shown, not stored; fetched up to ~500 for the numbers, the list stays at `limit`). For any entity type: a venue's or a beer's reviews
 - [x] Related sections: photo gallery, `gallery: true` → the images (`r`/`imeta` tags) of the section's posts, e.g. a venue's or a beer's review photos
+- [x] List field stuck at "Waiting for your signer…", or showing only the new-list input (found on worldtrip.guide with nostr-login): `getPublicKey` treats an empty answer (nobody signed in) as a failure instead of caching it, and forgets the pubkey on nostr-login's `nlAuth` (sign-in/out); a signer answering after the 20 s timeout still loads the lists; `<np-list-input>`/`<np-list-save>` ignore a load replaced by a newer one; `<np-list-save>` reloads when its target changes while open. Not reproduced with a real signer yet (see "plugin-list: try it with a real signer")
+- [x] Venue wiki panel: a new page of a venue from OSM can get its Google Maps link (`i gcid:`; `lacksGoogleLink`, `googleLinkChange`). Only for new pages; an existing page lacking the link isn't updated for it
+- [x] Venue input: a pasted Google Maps link whose place isn't at the link's point on OSM (e.g. OSM's node ~2 km off, or named "apostrophe's" for Google's "Apostrophe s") is searched in ~5 km around it, closest first, with a note that it's nearby; searching by name afterwards keeps the link's CID for the picked place (also after setting it on the map); clearing the search drops it
+- [ ] Venue hub: add a Google Maps link to an existing venue page (a new version when the review's venue has an identifier the page lacks; now only new pages get it)
+- [x] Venue wiki panel ("No wiki page yet: it will be created from OpenStreetMap.") has dark styles (`:host-context(.dark)`)
+- [x] Dark styles for the rest of plugin-venue: `<np-venue-input>`, `<np-venue-list>`, `<np-venue-entity-create>` (shared `venueInputStyles`) and `<np-venue-view>` have `:host-context(.dark)` rules. Left: `:host-context()` support (Firefox and Safari lacked it), CSS custom properties would work everywhere (see theming above)
 - [ ] Venue hub: area search ("venues near me") via the entity's `g` prefix tags
 - [x] Venue hub: create a venue entity from an OSM search directly in the wiki picker: plugins register their own "+ Create" form (`registerEntityCreator`); the venue plugin's searches OSM and runs the venue hub
 - [x] Venue hub: add btc payment availability from btcmap data. BTC Map's data are OSM tags (`currency:XBT`, `payment:lightning`, `payment:onchain`, `payment:lightning_contactless`, `check_date:currency:XBT`), so `venue-entity-v1` maps them to infobox rows via `sources.osm`. The BTC Map link isn't stored: entity manifests can declare derived links (`wikiConfig.links`, e.g. `https://btcmap.org/merchant/{i:osm}` when `bitcoin` is "yes"), shown in the wiki view's Links row (which also shows `r` URLs). Existing entities get the rows on their next OSM-triggered update
@@ -110,6 +304,7 @@
 - [ ] Venue hub: BTC Map extras from its API (`api.btcmap.org/v4/places`): verification date as BTC Map computes it, comments, boosts; and a "₿ accepts bitcoin" badge in the venue picker and the review's venue view
 - [x] Venue hub: the slug of a new venue page is never qualified automatically (no street or OSM ID): it's an always-editable input next to the publish button ("Wiki page slug (permanent)", the type suffix `-venue` fixed), with ✓ free / used by another venue / couldn't verify, the create/update/link action and the opt-out checkbox. Only when the slug is taken, details (street, district, postcode) are offered to append. A taken slug stops publishing; an "unknown" check is retried once. Generic `publishSummaryTagName` plugin hook renders it
 - [x] Venue hub: the wiki view links the entity's external IDs (OpenStreetMap, Google Maps); a post's venue view shows the linked venue wiki page (collapsed, loaded when opened)
+- [ ] plugin-venue: creating venue wiki page can be voluntary(depends on manifest settings)
 
 ### Venue Reviews (from INTEGRATION.md)
 
@@ -117,8 +312,40 @@
 - [ ] Show reviews on map
 - [ ] User profile + review history (built on the `<nostr-profile>` view above, filtered to reviews)
 - [ ] Reputation/trust scoring
+- [x] Feedback from worldtrip.guide (2026-10-31): photo quality Low / Medium / Full before upload, shrunk on the device, the choice remembered (`media` `quality`, `qualityChoice`); upload progress for the text field's Add media, paste and drop in `<np-activity>`, a corner panel of background work; the upload no longer drops text typed meanwhile (`getFormData` in field action and paste/drop contexts); `publishToRelays` returns at the first accepting relay, the rest keep sending (shown in `<np-activity>`); manifest `viewOrder` (e.g. the rating above the review text); `<np-list-save>`'s panel in the top layer, no longer cut off by the review card
+- [x] Publishing while an upload runs: the composer waits for uploads that add to the form (activities with `blocksPublish`: the text field's upload and `<np-media-input>`), "Waiting for uploads to finish…", then builds the post with their links; a failed one stops publishing once with a message, publishing again posts without it
+- [x] Leaving the page while `<np-activity>` still shows relay sends: the browser asks first (`beforeunload`, activities with `warnOnLeave`). Mobile browsers often skip that prompt
+- [x] Uploads on a bad connection: one with no progress for 30 s (60 s once sent; the NIP-98 signature too) is aborted; network, stall and server failures are tried twice more, after 3 s and 10 s or once the browser is back online ("Waiting for a connection…"); running uploads can be cancelled (✕ in `<np-activity>`, Cancel in `<np-media-input>`), and the composer then publishes without them
+- [x] Photo quality explained, out of the text field's toolbar: Add media (🖼️) opens a panel (`<np-field-action-panel>`, any field action with a `setting`) with Choose photos or videos, a drop zone and the quality levels as radios with what each means (size in px, location removed); `<np-media-input>` shows the picked level's meaning under its select
+- [ ] plugin-media: a retried upload signs a new NIP-98 token, so a remote signer (nostr-login bunker) asks again. Try reusing a token still within the server's time window
+- [ ] plugin-media: try the quality choice and shrinking on iOS Safari and Android Chrome (HEIC photos, large images, `createImageBitmap` orientation)
 
 ### Quality, Tooling & Docs (from DEVELOPMENT_GUIDE.md)
+
+- [ ] Package taxonomy, decided (AGENTS.md "Package tiers"): field plugins `plugin-*`, domains
+      `@nostr-post/<domain>` next to the wiki, `web` knows only posts and the registries
+      (`registerKindView` done). Done: `@nostr-post/calendar` (calendar code out of plugin-date;
+      the agenda out of `<nostr-post-feed>` into `<nostr-calendar-agenda>`, a feed `layout`; the event card
+      `<nostr-calendar-event>` as kind view of 31922/31923). Done: plugin-list → `@nostr-post/list` (the `list` field stays in it). Moves left: plugin-venue →
+      `@nostr-post/venue` (it depends on the wiki domain and most of it is the venue hub: OSM/Google search,
+      wiki page sync; it keeps providing the `venue` field, as list provides `list`). Background: plugin-date has grown into NIP-52 calendar code
+      (manifest, agenda/month, RSVP, calendars, iCalendar, duplicates) next to its date field. Decide
+      the tier between field plugins (`plugin-*` with one `uiPlugin`) and engines (`@nostr-post/wiki`:
+      own composer, view, versioning): list, venue and calendar mix domain logic, fields, event
+      actions and `/web` components. A starting idea: "domain plugins" (`plugin-calendar` next to
+      `plugin-list`, `plugin-venue`), plugin-date back to the date field only, iCalendar as a subpath
+      (`…/ics`). Do the move right after the decision
+- [x] One text normalization in core (`@nostr-post/core/textNormalize`: `slugify`, `nip54DTag`,
+      `textWords`, `foldAccents`): wiki's `normalizeDTag` (now `nip54DTag`), plugin-list's
+      `newSetDTag` and plugin-date's `titleSimilarity` use it; their outputs are unchanged
+- [ ] Who may update a post (update comments, kind 1 and addressable alike), in layers: - the post decides what's allowed: the author, editors it names (`p` + role, done), and an open
+      flag as a NIP-32 self-label, `["L", "nostr-post.updates"], ["l", "anyone", "nostr-post.updates"]`
+      (not a NIP of its own: other clients ignore it), e.g. for imported gigs that should "live their
+      own life" until the promoter takes over - the manifest only sets the composer's default for that label - the viewer filters open posts: everyone's updates, or only their web of trust (follow list
+      first); viewers with different follows can see different versions of an open post - others' updates show as suggestions in any case (done: the view lists them, "Show with this change" per viewer)
+- [x] `<nostr-post-view editable>` shows Edit to everyone; on an addressable event a non-author's
+      edit published their own copy (same d-tag, their key). Now others' edits are update comments,
+      as on kind 1
 
 - [x] Set up Vitest for unit testing
 - [x] Unit tests for validation functions in @nostr-post/core
@@ -144,7 +371,7 @@
 - [x] Fix build, lint and test issues so `pnpm build`, `pnpm lint` and `pnpm -r test` pass cleanly. Done: `pnpm build` passes and Next exports (`**/out`) are ignored by Biome; `pnpm lint` passes with no errors or warnings (example HTML a11y and `sw.js`, unused variables, unsafe optional chaining in tests, accumulating spread in signer, stable keys instead of array indexes in manifest-creator lists, complex functions split: core `validateFieldRelationships` and `resolveManifest`, composer submit, `extractPrefillFromEvent`, `FieldEditor`). `pnpm test:e2e` passes (514 tests; fixed: `runBeforePublish` import, the venue's kind 1 `g` tag, hashtag extraction through an attached hashtag field).
 - [x] Update libraries: Biome 1.9 → 2.5 (config migrated; one-time import sort; import sorting off for package entry points, where it separated section comments from their exports), vitest 5 in all packages, TypeScript 6.0, vite 8 with @vitejs/plugin-react 6, happy-dom 21, jsdom 30, React 19 (react package, wiki, demos, manifest creator; `JSX.IntrinsicElements` moved into `declare module 'react'`), @testing-library/react 16, Next 16.4, nostr-tools 2.25, lit 3.3.3, esbuild 0.28, lefthook 2.2 (`install --force` for the `.husky/_` hooks path). Node ≥ 22.12 (vitest 5), also in CI
 - [ ] TypeScript 7 (native compiler): ships no classic JS API (`typescript` exports only its version), which `next build` uses for type checking; update once Next.js supports it
-- [ ] Plugin packages list `lit` as a regular dependency, so it's installed for apps using only their main entry (the logic, no UI; e.g. a React UI on `@nostr-post/plugin-list`). Make it an optional peer dependency (`peerDependenciesMeta`) of the plugins with a `/web` entry (geo, venue, stars, media, markdown, hashtag, reference, identifier, list, wiki-entity), keeping it a dev dependency for their builds
+- [ ] Plugin packages list `lit` as a regular dependency, so it's installed for apps using only their main entry (the logic, no UI; e.g. a React UI on `@nostr-post/list`). Make it an optional peer dependency (`peerDependenciesMeta`) of the plugins with a `/web` entry (geo, venue, stars, media, markdown, hashtag, reference, identifier, list, wiki-entity), keeping it a dev dependency for their builds
 - [ ] Package builds emit `*.test.ts` into `dist/` (tsconfigs include all of `src/`; only core and wiki exclude tests), so tests get published; test scripts use `vitest run --dir src` since vitest 4+ no longer skips `dist/`. Exclude tests from the emit while keeping them type-checked (e.g. a separate `tsconfig.build.json`)
 - [ ] Publish the examples and the manifest creator as an nsite (static sites hosted on Nostr/Blossom), e.g. from CI on release. Done: PR previews as named nsites (`.github/workflows/pr-preview.yml`, d tag `pr-<number>`). Left: a release or `main` site; Blossom blobs of closed previews stay on the servers (shared with other previews, so not deleted)
 - [ ] Add `llms.txt` (and `llms-full.txt`): a short index of the packages, CDN usage, manifest format and plugin API for AI agents and tools, published with the docs/nsite, add rule to keep them updated
@@ -161,12 +388,12 @@
 - [ ] READMEs by entry point (AGENTS.md "Dependencies"): the wiki README documents its web components and React wrappers before the API of its main entry; put the main entry first. Packages other than plugin-list, wiki and cdn have no README (the CDN README links plugin-geo's and plugin-venue's); add them with the main entry first
 - [ ] Prefix private members of custom elements with `_` (AGENTS.md "Style"): the venue input, the post composer and view, and others without it; best together with thinning them
 - [ ] Thin the largest web components (AGENTS.md "Style": state and render only): `wikiComposer` (446 lines), `wiki-entity-picker` (444), `nostr-post-composer` (435); move logic and template parts into function modules
-- [ ] Bring oversized files under the 500-line limit: plugin-markdown input (done: web feed, core coordinator, web view, plugin-geo input, manifest-creator ManifestEditor and FieldEditor, wiki-composer, plugin-venue input)
+- [x] Bring oversized files under the 500-line limit (done: plugin-markdown input, web feed, core coordinator, web view, plugin-geo input, manifest-creator ManifestEditor and FieldEditor, wiki-composer, plugin-venue input)
 - [ ] Venue linking UI improvements (OSM ID deep links)
 - [ ] Additional plugins: polls, calendars, markets, date, tags, mentions
 - [ ] Plugin examples, plugin developer documentation and plugin validation examples
 - [ ] Advanced manifest features (conditions, dependencies)
-- [x] plugin-list: delete the list event from relays when a list is deleted (TODO in `packages/plugin-list/src/web.ts`): a NIP-09 deletion request, and deleted sets aren't listed
+- [x] plugin-list: delete the list event from relays when a list is deleted (TODO in `packages/list/src/web.ts`): a NIP-09 deletion request, and deleted sets aren't listed
 - [ ] `<nostr-post-feed>` array attributes (`kinds`, `authors`, `ids`) only accept JSON (`kinds="[1]"`); `kinds="1,30023"` is silently ignored. Accept comma lists too
 - [ ] Docs drift check: a test that every name exported by the CDN bundle (`packages/cdn/src/index.ts`) appears in packages/cdn/README.md; later, if drift keeps happening, a read-only Sonnet docs-check agent (`.claude/agents/`) that compares entry points, component properties and plugin hooks against the READMEs before releases
 - [ ] Documentation: API reference for each package, API documentation website, more usage examples, best practices guide, video tutorials

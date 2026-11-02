@@ -1,6 +1,7 @@
+import { CALENDAR_EVENT_MANIFEST } from '@nostr-post/calendar';
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
-import { listField } from '@nostr-post/plugin-list';
+import { listField } from '@nostr-post/list';
 import type { WikiManifest } from '@nostr-post/wiki';
 import { BEER_LISTS, SAVE_PLACE_MANIFEST, VENUE_LISTS } from './listExamples';
 import bjcpStyleManifest from './manifests/beerStyleBjcp2021.json';
@@ -17,6 +18,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
   'geo-review': {
     id: 'geo-review-v1',
     version: '1.0.0',
+    viewOrder: ['rating', 'review'],
     fields: [
       {
         id: 'review',
@@ -80,6 +82,26 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
       name: 'Location Review',
       description: 'Review a place with star rating, map location, photos, and hashtags',
     },
+  },
+
+  // NIP-52 calendar event (kinds 31922/31923) from @nostr-post/calendar, its location
+  // linked to the venue's wiki page (venue hub): the package can't name this app's venue manifest
+  'calendar-event': {
+    ...CALENDAR_EVENT_MANIFEST,
+    id: 'calendar-event-venue-v1',
+    fields: CALENDAR_EVENT_MANIFEST.fields.map((field) =>
+      field.id === 'location'
+        ? {
+            ...field,
+            metadata: {
+              ...field.metadata,
+              description:
+                'Where it takes place: search OpenStreetMap; its venue page is created or linked',
+              wikiEntity: 'venue-entity-v1',
+            },
+          }
+        : field
+    ),
   },
 
   // The BJCP style list as a base manifest (lib/manifests/beerStyleBjcp2021.json).
@@ -731,6 +753,8 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     // Reviews themselves can be saved too (Save in the review's view)
     lists: [{ id: 'saved', label: 'Saved reviews' }],
     listType: 'venue-review',
+    // The rating above the review text in views
+    viewOrder: ['rating', 'review'],
     publishFormats: [
       {
         id: 'kind1-note',
@@ -1236,7 +1260,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
         uiPlugin: 'identifier',
         mapTo: { kind: 1, target: 'tag', tagName: 'i' },
         metadata: {
-          label: 'GTIN (NIP-73 i tag)',
+          label: 'GTIN (i tag)',
           placeholder: '09506000134352',
           prefix: 'gtin',
         },
@@ -1247,7 +1271,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
         uiPlugin: 'identifier',
         mapTo: { kind: 1, target: 'tag', tagName: 'i' },
         metadata: {
-          label: 'EAN (NIP-73 i tag)',
+          label: 'EAN (i tag)',
           placeholder: '4006381333931',
           prefix: 'ean',
         },
@@ -1258,7 +1282,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
         uiPlugin: 'identifier',
         mapTo: { kind: 1, target: 'tag', tagName: 'i' },
         metadata: {
-          label: 'UPC (NIP-73 i tag)',
+          label: 'UPC (i tag)',
           placeholder: '036000291452',
           prefix: 'upc',
         },
@@ -1269,7 +1293,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
         uiPlugin: 'identifier',
         mapTo: { kind: 1, target: 'tag', tagName: 'i' },
         metadata: {
-          label: 'ASIN (NIP-73 i tag)',
+          label: 'ASIN (i tag)',
           placeholder: 'B08N5WRWNW',
           prefix: 'asin',
         },
@@ -1302,7 +1326,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     metadata: {
       name: 'Product Review (Amazon-style)',
       description:
-        'Product review with 5-star rating and multiple NIP-73 product identifiers (gtin/ean/upc/asin) as i tags',
+        'Product review with 5-star rating and product identifiers (gtin/ean/upc/asin) as i tags',
       tags: ['product', 'review', 'shopping', 'retail'],
     },
   },

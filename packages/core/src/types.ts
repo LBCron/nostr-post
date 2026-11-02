@@ -41,7 +41,15 @@ export interface PublishFormat {
  * Supported field types for the manifest system.
  * Each type corresponds to a validation schema and UI plugin interface.
  */
-export type FieldType = 'string' | 'number' | 'boolean' | 'enum' | 'geo' | 'ref';
+export type FieldType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'enum'
+  | 'geo'
+  | 'ref'
+  | 'date'
+  | 'profile';
 
 /**
  * Defines a single field in a post manifest.
@@ -180,6 +188,11 @@ export interface NostrPostManifest {
    * user's lists (e.g. `venue` for `venue-entity-v1`).
    */
   listType?: string;
+  /**
+   * Field ids in the order views show them (e.g. the rating above the text); fields not
+   * listed follow in manifest order. Without it, views follow the manifest's field order.
+   */
+  viewOrder?: string[];
   metadata?: {
     name?: string;
     description?: string;
@@ -369,6 +382,17 @@ export const STANDARD_KIND1_POST_MANIFEST: NostrPostManifest = {
       },
     },
     {
+      id: 'mentions',
+      type: 'profile',
+      uiPlugin: 'profile',
+      // Attaches to content field: typing @name suggests profiles and inserts nostr:npub…
+      // (NIP-27); the people mentioned get p tags. The text shows them, so the view doesn't.
+      attachTo: 'content',
+      mapTo: { kind: 1, target: 'tag', tagName: 'p' },
+      visibility: { view: 'hidden' },
+      metadata: { label: 'Mentions' },
+    },
+    {
       id: 'tags',
       type: 'string',
       uiPlugin: 'hashtag',
@@ -383,7 +407,8 @@ export const STANDARD_KIND1_POST_MANIFEST: NostrPostManifest = {
   ],
   metadata: {
     name: 'Standard Kind 1 Post',
-    description: 'Standard kind 1 post/comment with text, media attachments, and hashtags.',
+    description:
+      'Standard kind 1 post/comment with text, media attachments, @mentions and hashtags.',
     tags: ['kind1', 'standard', 'comment', 'reply'],
   },
 };

@@ -3,11 +3,13 @@ import { osm, venue, venueManifest } from './fixtures.testHelpers';
 import { geohashTags } from './levels';
 import {
   entitySyncAction,
+  isSameVenueByName,
   mergeOsmFields,
   slugBody,
   syncedOsmVersion,
   venueDTag,
   venueEntityTags,
+  venueNameKey,
   venueQualifierSuggestions,
   venueToEntityData,
 } from './wikiEntity';
@@ -119,5 +121,29 @@ describe('editable slug', () => {
     expect(venueDTag(venueManifest, data, 'Louvre Národní 22')).toBe('louvre-národní-22-venue');
     expect(venueDTag(venueManifest, data, 'louvre-venue')).toBe('louvre-venue');
     expect(venueDTag(venueManifest, data, '  ')).toBe('café-louvre-prague-venue');
+  });
+});
+
+describe('isSameVenueByName', () => {
+  // A hub page from another source in `venue`'s cell (its lat/lon; its geohash is a cell away)
+  const page = (title: string, geohash = 'u2fkbh', id = 'gplace:abc') =>
+    entity([
+      ['title', title],
+      ['i', id],
+      ['g', geohash],
+      ['g', geohash.slice(0, 5)],
+    ]);
+
+  it('ignores case, accents, spaces and the qualifier', () => {
+    expect(venueNameKey('Speaker box')).toBe(venueNameKey('Speakerbox'));
+    expect(isSameVenueByName(page('cafe louvre (Prague)'), venue)).toBe(true);
+  });
+
+  it('needs the same name, nearby, on a venue hub', () => {
+    expect(isSameVenueByName(page('Café Slavia'), venue)).toBe(false);
+    // Another cell, kilometers away
+    expect(isSameVenueByName(page('Café Louvre', 'u2fm00'), venue)).toBe(false);
+    // Not a venue hub: no place ID
+    expect(isSameVenueByName(page('Café Louvre', 'u2fkbh', 'iso3166:CZ'), venue)).toBe(false);
   });
 });

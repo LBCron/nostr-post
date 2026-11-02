@@ -6,8 +6,8 @@
  *
  * Produces multiple Nostr tags from a single field:
  *   - ["g", geohash]      → NIP-52 geohash (+ prefix tags for relay filtering)
- *   - ["i", "osm:..."]    → NIP-73 external content ID for OSM venue
- *   - ["i", "gplace:..."] → NIP-73 external content ID for Google Places
+ *   - ["i", "osm:..."]    → OSM venue ID (`i` tag as in NIP-73; `osm:` is our namespace)
+ *   - ["i", "gplace:..."] → Google Places ID (our namespace, not NIP-73)
  *   - ["location", "..."] → Human-readable address (NIP-52 convention)
  *
  * No DOM dependencies — safe for SSR/Node.
@@ -16,6 +16,7 @@
 import { decodeGeohash, encodeGeohash } from '@nostr-post/plugin-geo';
 import type { NostrUIPlugin, PostField, Result, ValidationError } from '@nostr-post/plugins/types';
 import { googleCidIdentifier } from './googleLink';
+import { parseVenueJson, venueJsonSchema } from './venueJson';
 import {
   type VenueLevel,
   geohashTags,
@@ -79,7 +80,8 @@ export interface VenueData {
   address?: VenueAddress;
   /**
    * Create/update the venue's wiki entity when publishing (fields with
-   * `metadata.wikiEntity`). Unset means yes.
+   * `metadata.wikiEntity`). Unset means yes; ignored when the field requires the page
+   * (`metadata.requirePage`, `linkOnly`).
    */
   syncWiki?: boolean;
   /**
@@ -130,11 +132,11 @@ export interface NominatimResult {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/** Build the NIP-73 `i` tag value for an OSM entity. */
+/** Build the `i` tag value for an OSM entity (our `osm:` namespace, see NOSTR_CONVENTIONS.md). */
 export const osmIdentifier = (osmType: string, osmId: string | number): string =>
   `osm:${osmType}:${osmId}`;
 
-/** Build the NIP-73 `i` tag value for a Google Place. */
+/** Build the `i` tag value for a Google Place (our `gplace:` namespace, see NOSTR_CONVENTIONS.md). */
 export const googlePlaceIdentifier = (placeId: string): string => `gplace:${placeId}`;
 
 /** Build an OSM URL from type + id. */
@@ -156,8 +158,10 @@ export const googleMapsUrl = (lat: number, lon: number): string =>
 export const searchNominatim = async (
   query: string,
   levels: VenueLevel[] = ['place'],
-  /** Only results in a small box around this point (e.g. from a pasted Google Maps link) */
-  near?: { lat: number; lon: number }
+  /** Only results in a box around this point (e.g. from a pasted Google Maps link) */
+  near?: { lat: number; lon: number },
+  /** Half the box's side in degrees; default ~300 m */
+  nearDegrees = 0.003
 ): Promise<NominatimResult[]> => {
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.searchParams.set('q', query);
@@ -168,7 +172,7 @@ export const searchNominatim = async (
   const featureType = searchFeatureType(levels);
   if (featureType) url.searchParams.set('featureType', featureType);
   if (near) {
-    const d = 0.003; // ~300 m
+    const d = nearDegrees;
     url.searchParams.set(
       'viewbox',
       `${near.lon - d},${near.lat + d},${near.lon + d},${near.lat - d}`
@@ -335,6 +339,10 @@ export const venuePlugin: NostrUIPlugin = {
     return { success: true, data: undefined };
   },
 
+  /** A place as text ("JAM, Bangkok"), looked up on OpenStreetMap (`venueJson.ts`) */
+  jsonSchema: venueJsonSchema,
+  parseJson: parseVenueJson,
+
   formatValue: (value: unknown): string => {
     if (Array.isArray(value)) return value.map((v) => venuePlugin.formatValue?.(v)).join(', ');
     if (!value || typeof value !== 'object') return 'Unknown venue';
@@ -377,19 +385,19 @@ export const venuePlugin: NostrUIPlugin = {
     const venue = value as VenueData;
     const tags: [string, ...string[]][] = [];
 
-    // NIP-73: OSM venue identity
+    // OSM venue identity (our `osm:` namespace)
     if (venue.osmType && venue.osmId) {
       tags.push(['i', osmIdentifier(venue.osmType, venue.osmId)]);
     }
 
-    // NIP-73: Google Places identity
+    // Google Places identity (our `gplace:` namespace)
     if (venue.googlePlaceId) {
       tags.push(['i', googlePlaceIdentifier(venue.googlePlaceId)]);
     }
     // A pasted Google Maps link: its CID (the link is worked out from it when shown)
     if (venue.googleCid) tags.push(['i', googleCidIdentifier(venue.googleCid)]);
 
-    // NIP-73: country (every level) and Wikidata identity
+    // Country (NIP-73 `iso3166:`, every level) and Wikidata identity (our `wikidata:` namespace)
     if (venue.countryCode) tags.push(['i', `iso3166:${venue.countryCode}`]);
     if (venue.wikidata) tags.push(['i', `wikidata:${venue.wikidata}`]);
 
@@ -438,7 +446,7 @@ export const venuePlugin: NostrUIPlugin = {
     const { lat, lon } = geohash ? decodeGeohash(geohash) : { lat: 0, lon: 0 };
     const venue: VenueData = { geohash, lat, lon };
 
-    // Extract NIP-73 identifiers
+    // Extract `i` tag identifiers
     for (const tag of tags) {
       if (tag[0] !== 'i' || !tag[1]) continue;
 
@@ -460,8 +468,10 @@ export const venuePlugin: NostrUIPlugin = {
       }
     }
 
-    // Extract human-readable location
-    const locationTag = tags.find((t) => t[0] === 'location' && t[1]);
+    // Extract human-readable location: the last `location` tag, the venue's own (posts write
+    // their fields' tags first, then plugins' extra tags; e.g. a calendar event's free-text
+    // place comes before it)
+    const locationTag = [...tags].reverse().find((t) => t[0] === 'location' && t[1]);
     if (locationTag) {
       venue.name = locationTag[1];
     }

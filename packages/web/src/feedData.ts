@@ -1,5 +1,27 @@
+import { COMMENT_KIND } from '@nostr-post/core/comments';
+import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
+import type { NostrPostManifest } from '@nostr-post/core/types';
 import type { FetchFilter } from '@nostr-post/signer';
+import { addressOf } from './feedStandard';
 import type { SignedEvent } from './signer';
+
+/** <nostr-post-feed> properties that change what it loads */
+export const FEED_LOAD_PROPERTIES = [
+  'authors',
+  'kinds',
+  'ids',
+  'limit',
+  'since',
+  'until',
+  'search',
+  'relays',
+  'manifest',
+  'filterTags',
+  'tagFilters',
+  'filters',
+  'commentsEnabled',
+  'reactionsEnabled',
+];
 
 export const parseFilterTags = (input?: string): Record<string, string[]> => {
   if (!input) return {};
@@ -110,6 +132,36 @@ export const buildFetchFilters = ({
   });
 };
 
+/** Events asked for by default */
+const DEFAULT_LIMIT = 20;
+
+/** What <nostr-post-feed> asks relays for */
+export interface FeedQuery {
+  filters?: FetchFilter[];
+  ids?: string[];
+  authors?: string[];
+  kinds?: number[];
+  manifest?: NostrPostManifest;
+  search?: string;
+  limit?: number;
+  since?: number;
+  until?: number;
+  filterTags?: string;
+  tagFilters?: Record<string, string[]>;
+}
+
+/** The feed's relay filters. Kinds: `kinds`, else the manifest's, else notes */
+export const buildFeedFilters = (query: FeedQuery): FetchFilter | FetchFilter[] =>
+  buildFetchFilters({
+    ...query,
+    kinds: query.kinds?.length
+      ? query.kinds
+      : query.manifest
+        ? getManifestAvailableKinds(query.manifest)
+        : [1],
+    limit: query.limit ?? DEFAULT_LIMIT,
+  });
+
 export const buildInteractionLoadKey = (events: SignedEvent[]): string => {
   return events
     .map((event) => event.id)
@@ -126,4 +178,30 @@ export const mergeUniqueEventsById = (
     mergedById.set(event.id, event);
   }
   return [...mergedById.values()];
+};
+
+/**
+ * Relay filters for the comments and reactions of `events`: by id, and for addressable events
+ * by address too, so comments on their earlier versions come along
+ */
+export const interactionFilters = (
+  events: SignedEvent[],
+  options: { comments?: boolean; reactions?: boolean }
+): FetchFilter[] => {
+  const ids = events.map((event) => event.id);
+  if (ids.length === 0) return [];
+  const addresses = events.flatMap((event) => addressOf(event) ?? []);
+  // Other events that aren't notes get NIP-22 comments by id
+  const otherIds = events.filter((e) => e.kind !== 1 && !addressOf(e)).map((e) => e.id);
+  const limit = Math.max(ids.length * 10, 50);
+  const filters: FetchFilter[] = [];
+  if (options.comments) {
+    // Kind-1 replies to notes (NIP-10)
+    filters.push({ kinds: [1], '#e': ids, limit });
+    // NIP-22 comments on any version of an addressable event
+    if (addresses.length > 0) filters.push({ kinds: [COMMENT_KIND], '#A': addresses, limit });
+    if (otherIds.length > 0) filters.push({ kinds: [COMMENT_KIND], '#E': otherIds, limit });
+  }
+  if (options.reactions) filters.push({ kinds: [7], '#e': ids, limit });
+  return filters;
 };

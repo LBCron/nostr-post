@@ -70,6 +70,20 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
 - Biome for linting and formatting: `pnpm lint`, `pnpm lint:fix`, `pnpm format`. The pre-commit
   hook (lefthook) formats staged files.
 
+## Package tiers
+
+- `@nostr-post/core`, `signer`, `plugins`, `web` (and `react`, `cdn`): the base. `web` knows posts
+  (kind 1 and manifest-made events, NIP-78 included) and the registries; it never depends on a
+  domain package. One exception: plugin autoload (`pluginAutoLoad.ts`) lazy-loads a field's `/web`
+  entry by its `uiPlugin` id, also from a domain package that provides the field (`list`), so a
+  manifest's fields work in any app; it never imports a domain's code statically.
+- `@nostr-post/plugin-*`: field plugins, one `uiPlugin` field type each (main entry: the field's logic;
+  `/web`: its input and view).
+- `@nostr-post/<domain>` (`wiki`, `calendar`, `list`): a NIP or domain of its own: its kinds, reading
+  and publishing, event actions, and its own elements. Domains plug into `web` through
+  `@nostr-post/plugins/entities` (`registerKindView`, `registerEventAction`, entity manifests), and may
+  provide fields and depend on field plugins, never the other way round.
+
 ## Packages are the product
 
 - Packages (`packages/*`) must work standalone, as they will be published to npm and in the CDN
@@ -83,6 +97,15 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
   exports.
 - Keep `examples/*` and `tools/manifest-creator` thin: they compose package features. Logic or UI
   that other apps would need belongs in a package.
+
+## Dark theme
+
+- Every web component supports the dark theme, including plugins' `/web` components. Apps turn it
+  on with a `dark` class on an ancestor (the React wrappers' `dark` prop sets it).
+- In a component's styles, follow each light color with a `:host-context(.dark)` override, using the
+  dark values of `colors` in `packages/web/src/theme.ts` (e.g. `packages/web/src/feedStyle.ts`).
+  Text that inherits its color needs none.
+- When you add or restyle a component, check it with the `dark` class too.
 
 ## User-facing text
 

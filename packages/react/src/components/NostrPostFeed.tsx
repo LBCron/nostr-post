@@ -31,6 +31,9 @@ interface NostrPostFeedElement extends HTMLElement {
   reactionsEnabled?: boolean;
   reactionOptions?: string[];
   editable?: boolean;
+  layout?: import('@nostr-post/web').FeedLayout;
+  trustedEditors?: string[];
+  messages?: Partial<import('@nostr-post/web').FeedMessages>;
   refresh?: () => Promise<void>;
 }
 
@@ -98,6 +101,12 @@ export interface NostrPostFeedProps {
   reactionOptions?: string[];
   /** Show Edit button on addressable events (30000-39999) */
   editable?: boolean;
+  /** How the posts are laid out (e.g. @nostr-post/calendar's agenda); default one under another */
+  layout?: import('@nostr-post/web').FeedLayout;
+  /** Whose update comments apply besides each post's author and named editors */
+  trustedEditors?: string[];
+  /** Overrides of the feed's text (e.g. translations) */
+  messages?: Partial<import('@nostr-post/web').FeedMessages>;
   /** Called when the user clicks Edit on an addressable event */
   onEditRequest?: (event: import('@nostr-post/web').SignedEvent, dTag: string | undefined) => void;
   /** Custom class name */
@@ -129,6 +138,9 @@ export const NostrPostFeed = forwardRef<NostrPostFeedElement, NostrPostFeedProps
       until,
       search,
       limit = 20,
+      layout,
+      trustedEditors,
+      messages,
       relays,
       filterTags,
       tagFilters,
@@ -180,6 +192,9 @@ export const NostrPostFeed = forwardRef<NostrPostFeedElement, NostrPostFeedProps
       element.reactionsEnabled = reactionsEnabled;
       element.reactionOptions = reactionOptions;
       element.editable = editable;
+      element.layout = layout;
+      element.trustedEditors = trustedEditors;
+      element.messages = messages;
     };
 
     // Attach edit-request listener via ref

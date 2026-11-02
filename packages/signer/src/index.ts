@@ -76,6 +76,13 @@ export async function signEvent(event: UnsignedNostrEvent): Promise<SignedEvent>
 /** The signer's answer to getPublicKey, asked once per signer */
 let pubkeyRequest: { provider: Nip07Provider; promise: Promise<string> } | undefined;
 
+const NO_PUBKEY = 'The signer gave no public key. Sign in, then try again.';
+
+// nostr-login keeps one window.nostr across sign-ins: forget the pubkey when the user changes
+if (typeof document !== 'undefined') {
+  document.addEventListener('nlAuth', () => clearPublicKeyCache());
+}
+
 /**
  * Get the current user's public key. The signer is asked once (also when several
  * components ask at the same time): signers that handle one request at a time, or ask
@@ -88,7 +95,11 @@ export async function getPublicKey(): Promise<string> {
     throw new Error('No Nostr signer available.');
   }
   if (pubkeyRequest?.provider !== provider) {
-    const promise = provider.getPublicKey();
+    // Some signers answer nothing while no one is signed in (e.g. nostr-login): not a pubkey to keep
+    const promise = provider.getPublicKey().then((pubkey) => {
+      if (typeof pubkey !== 'string' || !pubkey) throw new Error(NO_PUBKEY);
+      return pubkey;
+    });
     pubkeyRequest = { provider, promise };
     promise.catch(() => {
       if (pubkeyRequest?.promise === promise) pubkeyRequest = undefined;
@@ -160,11 +171,51 @@ export interface PublishResults {
   success: number;
   failed: number;
   results: Array<{ relay: string; ok: boolean; error?: string }>;
+  /**
+   * Every relay's results, once all answered. publishToRelays returns when the first relay
+   * accepted the event; the others keep going (see RELAYS_PENDING_EVENT).
+   */
+  all?: Promise<PublishResults>;
+}
+
+/** Window event fired while events are being sent to relays, and when the last send ends */
+export const RELAYS_PENDING_EVENT = 'nostr-post:relays-pending';
+
+export interface RelaysPendingDetail {
+  /** Relay sends still running, of all events; 0 when every relay answered */
+  pending: number;
+  /** Sends that ended since `pending` was last 0: accepted ones */
+  sent: number;
+  /** …and ones that failed (rejected, unreachable, timed out) */
+  failed: number;
+}
+
+declare global {
+  interface WindowEventMap {
+    'nostr-post:relays-pending': CustomEvent<RelaysPendingDetail>;
+  }
+}
+
+let relaySends: RelaysPendingDetail = { pending: 0, sent: 0, failed: 0 };
+
+const notifyRelays = (next: RelaysPendingDetail): void => {
+  relaySends = next;
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  window.dispatchEvent(
+    new CustomEvent<RelaysPendingDetail>(RELAYS_PENDING_EVENT, { detail: relaySends })
+  );
+};
+
+/** Relay sends now running, and how the ones since the last idle moment ended */
+export function getRelaysPending(): RelaysPendingDetail {
+  return relaySends;
 }
 
 /**
- * Publish a signed event to multiple relays. In dry-run mode it is only logged,
- * and every relay reports success.
+ * Publish a signed event to multiple relays. Resolves as soon as one relay accepted it
+ * (or all failed), with the answers so far; `all` resolves with every relay's answer.
+ * Meanwhile `window` gets RELAYS_PENDING_EVENT, so UIs can show the sends still running.
+ * In dry-run mode the event is only logged, and every relay reports success.
  */
 export async function publishToRelays(
   event: SignedEvent,
@@ -173,32 +224,50 @@ export async function publishToRelays(
   if (isDryRun()) {
     logDryRunEvent(event, relays);
     const targets = relays.length > 0 ? relays : ['dry-run'];
-    return {
+    const results = {
       success: targets.length,
       failed: 0,
       results: targets.map((relay) => ({ relay, ok: true })),
     };
+    return { ...results, all: Promise.resolve(results) };
   }
-  const results = await Promise.allSettled(
-    relays.map(async (relay) => {
-      try {
-        await publishToRelay(event, relay);
-        return { relay, ok: true };
-      } catch (error) {
-        return { relay, ok: false, error: (error as Error).message };
-      }
-    })
-  );
-
-  const finalResults = results.map((r) =>
-    r.status === 'fulfilled' ? r.value : { relay: 'unknown', ok: false, error: 'Unknown error' }
-  );
-
-  return {
-    success: finalResults.filter((r) => r.ok).length,
-    failed: finalResults.filter((r) => !r.ok).length,
-    results: finalResults,
-  };
+  const answered: PublishResults['results'] = [];
+  const summary = (): PublishResults => ({
+    success: answered.filter((r) => r.ok).length,
+    failed: answered.filter((r) => !r.ok).length,
+    results: [...answered],
+  });
+  if (relays.length > 0) {
+    const reset = relaySends.pending === 0;
+    notifyRelays({
+      pending: relaySends.pending + relays.length,
+      sent: reset ? 0 : relaySends.sent,
+      failed: reset ? 0 : relaySends.failed,
+    });
+  }
+  let accepted: () => void = () => {};
+  const firstAccepted = new Promise<void>((resolve) => {
+    accepted = resolve;
+  });
+  const sends = relays.map(async (relay) => {
+    let result: PublishResults['results'][number];
+    try {
+      await publishToRelay(event, relay);
+      result = { relay, ok: true };
+    } catch (error) {
+      result = { relay, ok: false, error: (error as Error).message };
+    }
+    answered.push(result);
+    notifyRelays({
+      pending: relaySends.pending - 1,
+      sent: relaySends.sent + (result.ok ? 1 : 0),
+      failed: relaySends.failed + (result.ok ? 0 : 1),
+    });
+    if (result.ok) accepted();
+  });
+  const all = Promise.all(sends).then(summary);
+  await Promise.race([firstAccepted, all]);
+  return { ...summary(), all };
 }
 
 /**
@@ -275,4 +344,5 @@ export {
   fetchProfile,
   fetchProfiles,
   getCachedProfile,
+  newestProfiles,
 } from './profiles';

@@ -7,7 +7,8 @@
  * `@city` and `@name` are derived from the picked venue's address.
  */
 
-import type { NostrPostManifest } from '@nostr-post/core/types';
+import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
+import { decodeGeohash } from '@nostr-post/plugin-geo';
 import {
   type EntityTypeAffixes,
   entityDTagFor,
@@ -96,7 +97,19 @@ export function mergeOsmFields(
   return merged;
 }
 
-/** External identifiers of a venue as NIP-73 `i` values */
+/** External identifiers of a venue as `i` values (`osm:`, `gplace:`, `gcid:`: our namespaces) */
+/**
+ * Whether the field always creates/updates the venue's page: the manifest requires it
+ * (`metadata.requirePage`), or the post has nothing else for the venue (`linkOnly`: only the
+ * page's `a` tag). Otherwise the user may opt out (`VenueData.syncWiki`)
+ */
+export const venuePageRequired = (field: PostField): boolean =>
+  field.metadata?.requirePage === true || field.metadata?.linkOnly === true;
+
+/** Whether publishing creates/updates the venue's page: required, or the user didn't opt out */
+export const syncsVenuePage = (venue: VenueData, field: PostField): boolean =>
+  venuePageRequired(field) || venue.syncWiki !== false;
+
 export function venueIdentifiers(venue: VenueData): string[] {
   const ids: string[] = [];
   if (venue.osmType && venue.osmId) ids.push(`osm:${venue.osmType}:${venue.osmId}`);
@@ -138,6 +151,44 @@ export function entitySyncAction(
   return synced === undefined || osm.version > synced
     ? { kind: 'update', base }
     : { kind: 'none', base };
+}
+
+/** A venue name compared loosely: case, accents, spaces and punctuation ignored */
+export const venueNameKey = (name: string): string =>
+  name
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, '');
+
+/** How close (m) a venue page must be to count as the same place by its name */
+export const SAME_VENUE_METERS = 300;
+
+/** Distance in meters between two points (haversine) */
+const metersBetween = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) => {
+  const rad = Math.PI / 180;
+  const h =
+    Math.sin(((b.lat - a.lat) * rad) / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(((b.lon - a.lon) * rad) / 2) ** 2;
+  return 2 * 6371000 * Math.asin(Math.sqrt(h));
+};
+
+/**
+ * Whether a venue page is this venue's though its IDs differ (picked from another source, e.g.
+ * Google next to OSM, or a duplicate OSM entry): a venue hub (it has a place ID) with the same
+ * name (its title without the " (qualifier)") within `SAME_VENUE_METERS` of the venue
+ */
+export function isSameVenueByName(event: WikiEvent, venue: VenueData): boolean {
+  // The venue's name is its label's first part ("Speakerbox, 1000/39 Soi Sukhumvit 55, …")
+  const key = venueNameKey(venue.name?.split(',')[0] ?? '');
+  const title = event.tags.find((t) => t[0] === 'title')?.[1] ?? '';
+  const isHub = event.tags.some((t) => t[0] === 'i' && /^(osm|gplace|gcid):/.test(t[1] ?? ''));
+  const geohash = event.tags
+    .filter((t) => t[0] === 'g' && t[1])
+    .reduce((longest, t) => ((t[1] ?? '').length > longest.length ? (t[1] ?? '') : longest), '');
+  if (!key || !isHub || !geohash || !venue.geohash) return false;
+  if (venueNameKey(title.replace(/\s*\([^)]*\)\s*$/, '')) !== key) return false;
+  return metersBetween(decodeGeohash(geohash), venue) <= SAME_VENUE_METERS;
 }
 
 /** Details that could tell this venue apart from another with the same name and city */

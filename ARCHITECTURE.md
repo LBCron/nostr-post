@@ -111,7 +111,7 @@ export const venue = {
   // Emit: geohash + OSM identity tag + address
   extraTagsFn: (fieldId, value, manifest, { pubkey }) => [
     ["g", value.geohash],
-    ["i", `osm:node:${value.osmId}`, ""],  // NIP-73
+    ["i", `osm:node:${value.osmId}`, ""],  // `i` tag (NIP-73 style; `osm:` is our namespace)
     ["location", value.address]
   ],
 
@@ -334,8 +334,9 @@ There is no separate "fetch raw" vs "fetch resolved" API — the resolved result
 | ---------- | ---------------------------- | -------------------------------------------------- |
 | **NIP-01** | Base protocol                | All events build on this                           |
 | **NIP-07** | Browser extension signing    | useNostrAuth() connects to window.nostr            |
+| **NIP-22** | Comments (kind 1111)         | Comments on anything but notes (`@nostr-post/core/comments`) |
 | **NIP-23** | Kind 30023 (articles)        | Manifest publishFormats: [{ kinds: [30023] }]      |
 | **NIP-52** | Geohash prefix tags          | plugin-geo emits ["g", "u09"], ["g", "u09t"], etc. |
-| **NIP-73** | External identity (`i` tags) | plugin-venue emits ["i", "osm:node:123"]           |
+| **NIP-73** | External identity (`i` tags) | `iso3166:` countries, profile URLs; plus our own `osm:`, `gplace:`, `gcid:`, `wikidata:` ([NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md#external-ids-i-tags)) |
 | **NIP-78** | Kind 30078 (app data)        | manifestRef links composer to manifest event       |
 | **NIP-98** | HTTP auth (kind 27235)       | plugin-media signs upload to nostr.build           |

@@ -6,12 +6,12 @@
  */
 
 import { fieldOptionLabel } from '@nostr-post/core/enumOptions';
-import { fieldLabel } from '@nostr-post/core/manifest';
-import { getFieldsByKind } from '@nostr-post/core/manifestMappings';
+import { fieldLabel, viewFieldOrder } from '@nostr-post/core/manifest';
+import { getFieldsByKind, getFieldTargets } from '@nostr-post/core/manifestMappings';
 import { isShownInNote, type NoteToken } from '@nostr-post/core/noteContent';
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { html, type TemplateResult } from 'lit';
+import { html, nothing, type TemplateResult } from 'lit';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 
 type RegisteredPlugin = Exclude<ReturnType<typeof pluginRegistry.get>, undefined>;
@@ -22,6 +22,8 @@ export type TagPluginsInput = {
   tags: string[][];
   tokens: readonly NoteToken[];
   excludeFields?: readonly string[];
+  /** The note text, placed where the manifest's content field is in its view order */
+  content?: TemplateResult | typeof nothing;
 };
 
 /** Tag name → manifest fields mapped to that tag on `kind` */
@@ -114,11 +116,43 @@ const renderTagField = (
   return staticHtml`<${viewTag} .value=${value} .field=${field}></${viewTag}>`;
 };
 
+type TagEntry = { fieldId: string; template: TemplateResult };
+
+/** Each shown field's rendered values: a `title` apart, as the heading */
+const renderTagEntries = ({
+  kind,
+  manifest,
+  tags,
+  tokens,
+  excludeFields,
+}: TagPluginsInput): { titles: TemplateResult[]; entries: TagEntry[] } => {
+  const fieldMap = tagFieldMap(manifest, kind);
+  const entries: TagEntry[] = [];
+  const titles: TemplateResult[] = [];
+  for (const [tagName, values] of groupTagValues(tags, fieldMap, tokens)) {
+    for (const field of fieldMap.get(tagName) ?? []) {
+      if (field.visibility?.view === 'hidden' || excludeFields?.includes(field.id)) continue;
+      const rendered = renderTagField(field, tagName, values, tags);
+      if (!rendered) continue;
+      if (tagName === 'title') titles.push(rendered);
+      else entries.push({ fieldId: field.id, template: rendered });
+    }
+  }
+  return { titles, entries };
+};
+
+/** The id of the field written to the event's content on `kind`, '' without one */
+const contentFieldId = (manifest: NostrPostManifest | undefined, kind: number): string =>
+  manifest?.fields.find((field) =>
+    getFieldTargets(field).some((t) => t.kind === kind && t.target === 'content')
+  )?.id ?? '';
+
 /**
- * Render tag values using registered plugin view components.
+ * Render tag values using registered plugin view components, and the note text (`content`).
  * Aggregates multi-value tags (hashtags, media) into arrays.
  * Skips fields without a plugin view (built-in inputs show as text), hidden in view, or in
- * `excludeFields`.
+ * `excludeFields`. A `title` comes first; the rest follow the manifest's view order
+ * (`viewOrder`, else field order), the text where its content field is (else first).
  */
 export const renderTagPlugins = ({
   kind,
@@ -126,16 +160,15 @@ export const renderTagPlugins = ({
   tags,
   tokens,
   excludeFields,
+  content,
 }: TagPluginsInput): TemplateResult[] => {
-  const fieldMap = tagFieldMap(manifest, kind);
-  const results: TemplateResult[] = [];
-  const titles: TemplateResult[] = [];
-  for (const [tagName, values] of groupTagValues(tags, fieldMap, tokens)) {
-    for (const field of fieldMap.get(tagName) ?? []) {
-      if (field.visibility?.view === 'hidden' || excludeFields?.includes(field.id)) continue;
-      const rendered = renderTagField(field, tagName, values, tags);
-      if (rendered) (tagName === 'title' ? titles : results).push(rendered);
-    }
+  const { titles, entries } = renderTagEntries({ kind, manifest, tags, tokens, excludeFields });
+  if (content && content !== nothing) {
+    entries.push({ fieldId: contentFieldId(manifest, kind), template: html`${content}` });
   }
-  return [...titles, ...results];
+  const order = manifest ? viewFieldOrder(manifest) : [];
+  // Fields outside the order (the text without a content field) come first
+  const rank = (fieldId: string) => order.indexOf(fieldId);
+  const sorted = [...entries].sort((a, b) => rank(a.fieldId) - rank(b.fieldId));
+  return [...titles, ...sorted.map((entry) => entry.template)];
 };

@@ -15,26 +15,28 @@ import { buildInitialFormData, isFieldReadonly, renderHiddenFieldErrors } from '
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import { hasReplyTarget, renderReplyTargetPanel, updateReplyTargetValue } from './composerReply';
+import {
+  hasReplyTarget,
+  type ReplyTarget,
+  renderReplyTargetPanel,
+  updateReplyTargetValue,
+} from './composerReply';
 import { composerStyle } from './composerStyle';
 import {
   invalidFieldLabels,
   type NostrPostSubmitDetail,
+  publishedNotice,
   publishWithHooks,
   renderPublishSummaries,
   renderSubmitArea,
+  signedInPubkey,
   type ValidationResult,
   validateAndCoordinate,
+  waitForUploads,
 } from './composerSubmit';
-
+import './composerElement';
 import { ensurePluginsForManifest } from './pluginAutoLoad';
-import {
-  fetchManifestByATag,
-  getPublicKey,
-  SIGNING_EVENT,
-  type SignedEvent,
-  type SigningDetail,
-} from './signer';
+import { fetchManifestByATag, SIGNING_EVENT, type SignedEvent, type SigningDetail } from './signer';
 
 @customElement('nostr-post-composer')
 export class NostrPostComposer extends NostrPostElement {
@@ -93,6 +95,10 @@ export class NostrPostComposer extends NostrPostElement {
   /** Optional root author pubkey when replying deeper in a thread. */
   @property({ type: String, attribute: 'root-pubkey' })
   rootPubkey?: string;
+
+  /** The root's address when it's addressable: replies follow it across its versions */
+  @property({ type: String, attribute: 'root-address' })
+  rootAddress?: string;
 
   /** Show reply target context panel when reply tags are in use. */
   @property({ type: Boolean, attribute: 'show-reply-target' })
@@ -310,9 +316,9 @@ export class NostrPostComposer extends NostrPostElement {
         return undefined;
       }
     }
-    const pubkey = this.pubkey ?? (this.autoPublish ? await getPublicKey() : undefined);
+    const pubkey = await signedInPubkey(this.pubkey, this.autoPublish);
     if (!pubkey) {
-      this.showError('No pubkey provided. Please login first.');
+      this.showError(this._m.signInToPublish);
       return undefined;
     }
     return { manifest: this.manifest || STANDARD_KIND1_POST_MANIFEST, pubkey };
@@ -331,6 +337,7 @@ export class NostrPostComposer extends NostrPostElement {
     this.isSubmitting = true;
 
     try {
+      await waitForUploads(this._m, (step) => (this._submitStep = step));
       const outcome = this._coordinate(manifest, this._formData, pubkey);
 
       if ('validationError' in outcome) {
@@ -341,15 +348,11 @@ export class NostrPostComposer extends NostrPostElement {
       const { bundle, addressableDTag } = outcome;
 
       if (this.autoPublish) {
-        const { events: signedEvents, afterPublishErrors } = await this._publish(manifest, pubkey);
-        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', signedEvents);
-        this.successMessage =
-          signedEvents.length > 0
-            ? `Published to ${signedEvents.length} event(s)!`
-            : this._m.doneWithoutPost;
-        if (afterPublishErrors.length > 0) {
-          this.showError(this._m.afterPublishFailed(afterPublishErrors.map((e) => e.message)));
-        }
+        const published = await this._publish(manifest, pubkey);
+        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
+        const notice = publishedNotice(published, this._m);
+        this.successMessage = notice.success;
+        if (notice.error) this.showError(notice.error);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)
         this.dispatchCustomEvent<NostrPostSubmitDetail>('nostr-post-submit', {
@@ -358,7 +361,7 @@ export class NostrPostComposer extends NostrPostElement {
           formData: { ...this._formData },
           manifest,
         });
-        this.successMessage = 'Post created successfully!';
+        this.successMessage = this._m.created;
       }
 
       this._formData = {};
@@ -384,10 +387,7 @@ export class NostrPostComposer extends NostrPostElement {
         manifestRef: this.manifestRef,
         dTag: this.dTag,
         extraTags: this.extraTags,
-        replyToEventId: this.replyToEventId,
-        replyToPubkey: this.replyToPubkey,
-        rootEventId: this.rootEventId,
-        rootPubkey: this.rootPubkey,
+        ...this._replyTarget,
       }
     );
   }
@@ -408,10 +408,12 @@ export class NostrPostComposer extends NostrPostElement {
     });
   }
 
-  private updateReplyTarget(
-    field: 'replyToEventId' | 'replyToPubkey' | 'rootEventId' | 'rootPubkey',
-    value: string
-  ) {
+  private get _replyTarget(): ReplyTarget {
+    const { replyToEventId, replyToPubkey, rootEventId, rootPubkey, rootAddress } = this;
+    return { replyToEventId, replyToPubkey, rootEventId, rootPubkey, rootAddress };
+  }
+
+  private updateReplyTarget(field: keyof ReplyTarget, value: string) {
     this[field] = updateReplyTargetValue(value);
   }
 
@@ -428,6 +430,7 @@ export class NostrPostComposer extends NostrPostElement {
         selectedFormatId: this.selectedPublishFormatId || undefined,
       }),
       pubkey: this.pubkey,
+      getFormData: () => this._formData,
       isReadonly: (f) => isFieldReadonly(f, this.readonlyFields),
       onFieldChange: (id, val) => this.handleFieldChange(id, val),
       onToggleExpanded: (fieldId) => {
@@ -438,12 +441,7 @@ export class NostrPostComposer extends NostrPostElement {
       },
     };
 
-    const replyTarget = {
-      replyToEventId: this.replyToEventId,
-      replyToPubkey: this.replyToPubkey,
-      rootEventId: this.rootEventId,
-      rootPubkey: this.rootPubkey,
-    };
+    const replyTarget = this._replyTarget;
 
     const showReplyPanel =
       this.showReplyTarget || this.editableReplyTarget || hasReplyTarget(replyTarget);

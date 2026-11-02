@@ -1,4 +1,5 @@
 import type { NostrPostManifest } from '@nostr-post/core/types';
+import { html } from 'lit';
 import { describe, expect, it } from 'vitest';
 import { renderTagPlugins } from './viewTagPlugins';
 
@@ -83,5 +84,37 @@ describe('renderTagPlugins', () => {
       tokens: [],
     });
     expect(text(row)).toContain('<a href=https://meet.example/abc');
+  });
+
+  it('places the text and tag fields in the view order', () => {
+    const review: NostrPostManifest = {
+      id: 'review',
+      version: '1.0.0',
+      fields: [
+        { id: 'text', type: 'string', uiPlugin: 'textarea', mapTo: { kind: 1, target: 'content' } },
+        {
+          id: 'score',
+          type: 'number',
+          uiPlugin: 'number',
+          mapTo: { kind: 1, target: 'tag', tagName: 'score' },
+          metadata: { label: 'Score' },
+        },
+      ],
+    };
+    const input = {
+      kind: 1,
+      tags: [['score', '4']],
+      tokens: [],
+      content: html`<p>Nice place</p>`,
+    };
+    expect(texts(renderTagPlugins({ ...input, manifest: review }))).toEqual([
+      '<p>Nice place</p>',
+      expect.stringContaining('Score:'),
+    ]);
+    const scoreFirst = { ...review, viewOrder: ['score'] };
+    expect(texts(renderTagPlugins({ ...input, manifest: scoreFirst }))).toEqual([
+      expect.stringContaining('Score:'),
+      '<p>Nice place</p>',
+    ]);
   });
 });

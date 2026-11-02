@@ -81,8 +81,10 @@ This keeps relay I/O in one place and avoids duplicate network requests.
 | **@nostr-post/cdn**     | ✅ **Complete** | Single-file CDN bundle (ESM + IIFE, no npm required)                  |
 | **plugin-stars**        | ✅ **Complete** | Star rating (1-5 scale, customizable)                                 |
 | **plugin-geo**          | ✅ **Complete** | Geohash location picker with NIP-52 prefix tags                       |
+| **plugin-embed**        | ✅ **Complete** | Players for links: YouTube, Spotify, SoundCloud, Vimeo, Bandcamp       |
 | **plugin-profile**      | ✅ **Complete** | People picker: profile search or npub, `p` tags with roles             |
-| **plugin-date**         | ✅ **Complete** | Date / date-time input; NIP-52 calendar event dates and `D` day tags  |
+| **plugin-date**         | ✅ **Complete** | Date / date-time input; NIP-52 date and `D` day tags                  |
+| **calendar**            | ✅ **Complete** | NIP-52 calendars: agenda/month, RSVP, calendars, iCalendar            |
 | **plugin-venue**        | ✅ **Complete** | OSM venue search + NIP-73 identity tags, wraps geo                    |
 | **plugin-media**        | ✅ **Complete** | Multi-file upload with NIP-98 auth to nostr.build                     |
 | **plugin-markdown**     | ✅ **Complete** | Markdown editor with live preview                                     |
@@ -221,9 +223,10 @@ Built on standardized Nostr Improvement Proposals:
 | ---------- | ------------------------- | ----------------------------- |
 | **NIP-01** | Base protocol             | All events build on this      |
 | **NIP-07** | Browser extension signing | `window.nostr.signEvent()`    |
+| **NIP-22** | Comments (kind 1111)      | Comments on events other than notes |
 | **NIP-23** | Kind 30023 (articles)     | Long-form content             |
 | **NIP-52** | Geohash prefix tags       | Relay-side location filtering |
-| **NIP-73** | External identity tags    | OSM place IDs                 |
+| **NIP-73** | External identity tags    | Countries, profile URLs; OSM IDs in our own `osm:` namespace ([conventions](./NOSTR_CONVENTIONS.md)) |
 | **NIP-78** | Manifest storage          | Kind 30078 structured data    |
 | **NIP-98** | HTTP file server auth     | nostr.build upload            |
 
@@ -347,7 +350,7 @@ Built-in plugin loading:
 
 - `@nostr-post/web` lazy-loads built-in plugin UI modules when a manifest uses them.
 - This keeps SSR safe while still making built-in manifest plugins work automatically.
-- Built-in plugin ids supported automatically: `media`, `hashtag`, `stars`, `geo`, `date`, `profile`, `venue`, `markdown`, `list`.
+- Built-in plugin ids supported automatically: `media`, `hashtag`, `stars`, `geo`, `date`, `profile`, `embed`, `venue`, `markdown`, `list`.
 - You only need manual plugin imports for custom or external plugin packages.
 
 Default behavior when no `manifest` is provided:
@@ -365,7 +368,7 @@ Tag values the text already shows (`r` URLs, `t` hashtags) aren't repeated below
 
 `<nostr-post-composer>` extended reply context API:
 
-- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`
+- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111, naming it by address)
 - `show-reply-target` to show current reply target
 - `editable-reply-target` to allow editing reply target directly in the composer
 
@@ -393,7 +396,7 @@ override, e.g. for translations.
 - `commentManifest` (defaults to standard kind 1 manifest)
 - `reactionOptions` (defaults to `['+', '❤️', '🔥', '😂']`)
 
-`<nostr-post-feed>` supports direct Nostr filtering (`authors`, `kinds`, `ids`, `since`, `until`, `limit`, `search`) plus universal tag filters via `tagFilters` / `filter-tags` (for example `#g` geohash and `#i` OSM identity tags). It also supports advanced multi-filter `REQ` queries through the `filters` property, and an `agenda` mode: NIP-52 calendar events of a date window under day headings (`agenda-from`, `agenda-days`, `time-zone`).
+`<nostr-post-feed>` supports direct Nostr filtering (`authors`, `kinds`, `ids`, `since`, `until`, `limit`, `search`) plus universal tag filters via `tagFilters` / `filter-tags` (for example `#g` geohash and `#i` OSM identity tags). It also supports advanced multi-filter `REQ` queries through the `filters` property, a `layout` hook (how posts are laid out) and `trustedEditors`. NIP-52 calendars are [`@nostr-post/calendar`](./packages/calendar/README.md): `<nostr-calendar-agenda>` (a date window or a month, by day), RSVP, calendars and iCalendar.
 
 Detailed examples: [packages/cdn/README.md](./packages/cdn/README.md)
 
@@ -560,6 +563,7 @@ nostr-post/
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Comprehensive guide for contributors
 - **[Architecture](./ARCHITECTURE.md)** - System design and technical architecture
 - **[Plugins](./PLUGINS.md)** - Creating and using custom plugins
+- **[Nostr Conventions](./NOSTR_CONVENTIONS.md)** - Our tags and formats beyond the NIPs
 
 ## 🎯 Roadmap
 
@@ -598,6 +602,7 @@ pnpm format
 | **[PLUGINS.md](./PLUGINS.md)**                     | Creating custom UI plugins                                           |
 | **[INTEGRATION.md](./INTEGRATION.md)**             | Using in other projects, Vercel deployment, venue review app example |
 | **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)**     | Technical implementation summary                                     |
+| **[NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md)** | Our tags and formats beyond the NIPs, and what other clients see     |
 
 ## 🤝 Contributing
 

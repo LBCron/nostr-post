@@ -26,7 +26,9 @@ import { fetchOsmElement, type OsmElement } from './osm';
 import {
   type EntitySyncAction,
   entitySyncAction,
+  isSameVenueByName,
   mergeOsmFields,
+  syncsVenuePage,
   venueDTag,
   venueEntityTags,
   venueIdentifiers,
@@ -54,7 +56,32 @@ export async function findVenueEntity(
   return defaultResolver(versions.length > 0 ? versions : events) ?? undefined;
 }
 
-/** What publishing would do with the venue's entity, and the OSM data it would use */
+/**
+ * The venue's page when its IDs don't find it: a venue hub nearby with the same name
+ * (`isSameVenueByName`), e.g. made from OSM while this venue was picked from Google
+ */
+export async function findVenueEntityByName(
+  venue: VenueData,
+  relays: string[] = DEFAULT_WIKI_RELAYS
+): Promise<WikiEvent | undefined> {
+  // Pages carry every prefix of their geohash: a 5-character cell (~5 km) holds the neighbors
+  const cell = venue.geohash?.slice(0, 5);
+  if (!cell || cell.length < 5 || !venue.name) return undefined;
+  const events = (await fetchEvents(
+    { kinds: [WIKI_KIND], '#g': [cell], limit: 200 } as never,
+    relays,
+    {
+      waitForAll: true,
+      relayTimeoutMs: 8000,
+    }
+  )) as unknown as WikiEvent[];
+  return defaultResolver(events.filter((e) => isSameVenueByName(e, venue))) ?? undefined;
+}
+
+/**
+ * What publishing would do with the venue's entity, and the OSM data it would use. A page found
+ * only by name is linked as it is: its OSM data is another element's, so it isn't synced.
+ */
 export async function planVenueEntity(
   venue: VenueData,
   relays: string[] = DEFAULT_WIKI_RELAYS
@@ -65,6 +92,10 @@ export async function planVenueEntity(
       ? fetchOsmElement(venue.osmType, venue.osmId).catch(() => null)
       : Promise.resolve(null),
   ]);
+  if (!base) {
+    const named = await findVenueEntityByName(venue, relays);
+    if (named) return { action: { kind: 'none', base: named }, osm };
+  }
   return { action: entitySyncAction(base, osm), osm };
 }
 
@@ -125,7 +156,9 @@ function addMissingTags(tags: Tag[], extra: Tag[]): Tag[] {
 export async function syncVenueEntity(venue: VenueData, field: PostField): Promise<Tag[]> {
   // A registered id, an inline manifest, or a published manifest's address
   const manifest = await resolveEntityManifest(field.metadata?.wikiEntity as EntityManifestRef);
-  if (!manifest || venue.syncWiki === false || venueIdentifiers(venue).length === 0) return [];
+  if (!manifest || !syncsVenuePage(venue, field) || venueIdentifiers(venue).length === 0) {
+    return [];
+  }
 
   const relays = DEFAULT_WIKI_RELAYS;
   const { action, osm } = await planVenueEntity(venue, relays);

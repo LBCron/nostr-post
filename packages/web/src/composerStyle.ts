@@ -340,4 +340,13 @@ export const composerStyle = css`
   :host-context(.dark) .publish-format-description {
     color: #d1d5db;
   }
+
+  /* Attached plugins' buttons under a text field, e.g. Add media */
+  .field-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+  }
 `;

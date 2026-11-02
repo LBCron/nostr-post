@@ -11,14 +11,23 @@
  */
 
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { mediaPlugin } from './core';
+import {
+  isMediaQuality,
+  MEDIA_QUALITIES,
+  MEDIA_QUALITY_PRESETS,
+  type MediaPluginConfig,
+  mediaPlugin,
+} from './core';
 
 // Import web components (side-effect: defines custom elements)
 import './web/input';
 import './web/view';
 
-// Import the media paste/drop handlers
-import { handleMediaDrop, handleMediaPaste } from './web/upload';
+import { rememberQuality } from './web/compress';
+import { mediaMessages } from './web/mediaMessages';
+import { handleMediaDrop, handleMediaPaste, uploadIntoContent, uploadQuality } from './web/upload';
+
+const isMediaFile = (file: File) => /^(image|video)\//.test(file.type);
 
 // Register the plugin with its web component tag names + textarea event handlers
 pluginRegistry.register({
@@ -27,36 +36,60 @@ pluginRegistry.register({
   viewTagName: 'np-media-view',
   handleTextareaPaste: handleMediaPaste,
   handleTextareaDrop: handleMediaDrop,
-  getFieldActions: (field) => [
-    {
-      id: 'media-upload',
-      icon: '🖼️',
-      label: 'Add media',
-      onClick: ({ targetField, formData, onUpdateField }) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept =
-          (field.metadata?.accept as string[] | undefined)?.join(',') ?? 'image/*,video/*';
-        input.multiple = true;
-        input.onchange = async () => {
-          const files = Array.from(input.files ?? []);
-          if (!files.length) return;
-          const fakeClipboard = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-          });
-          // Use the same upload path as paste handler
-          for (const file of files) {
-            fakeClipboard.clipboardData?.items.add(file);
-          }
-          await handleMediaPaste(fakeClipboard, targetField, {
+  getFieldActions: (field) => {
+    const config = (field.metadata as MediaPluginConfig | undefined) ?? {};
+    const m = mediaMessages();
+    return [
+      {
+        id: 'media-upload',
+        icon: '🖼️',
+        label: m.addMedia,
+        // With the quality choice the button opens a panel: choose or drop files, pick quality
+        runLabel: m.chooseMedia,
+        dropLabel: m.dropMedia,
+        onDropFiles: (files, { targetField, formData, getFormData, onUpdateField }) =>
+          uploadIntoContent(files.filter(isMediaFile), targetField, {
             formData,
+            getFormData,
             onUpdateField,
-          });
-        };
-        input.click();
+            attachedField: field,
+          }),
+        setting:
+          config.qualityChoice === false
+            ? undefined
+            : {
+                label: m.quality,
+                options: MEDIA_QUALITIES.map((value) => ({
+                  value,
+                  label: m.qualityLevels[value],
+                  description: m.qualityDescription(value, MEDIA_QUALITY_PRESETS[value]?.maxSide),
+                })),
+                value: uploadQuality(config),
+                onChange: (value) => {
+                  if (isMediaQuality(value)) rememberQuality(value);
+                },
+                hint: m.qualityHint,
+              },
+        onClick: ({ targetField, formData, getFormData, onUpdateField }) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = config.accept?.join(',') ?? 'image/*,video/*';
+          input.multiple = true;
+          input.onchange = () => {
+            const files = Array.from(input.files ?? []);
+            if (!files.length) return;
+            void uploadIntoContent(files, targetField, {
+              formData,
+              getFormData,
+              onUpdateField,
+              attachedField: field,
+            });
+          };
+          input.click();
+        },
       },
-    },
-  ],
+    ];
+  },
 });
 
 // Re-export components for direct usage
@@ -67,9 +100,25 @@ export { mediaPlugin } from './core';
 // Re-export upload utilities so consumers (e.g. the composer's paste/drop handler)
 // can reuse the shared NIP-98 auth + upload logic without duplicating it.
 export {
+  handleMediaPaste,
+  handleMediaDrop,
+  uploadIntoContent,
+  type ContentUploadContext,
+} from './web/upload';
+export {
   uploadToNostrBuild,
   createNip98AuthToken,
   NOSTR_BUILD_UPLOAD,
-  handleMediaPaste,
-  handleMediaDrop,
-} from './web/upload';
+  uploadWithProgress,
+  uploadWithRetry,
+  uploadFailureKind,
+  type UploadFailure,
+  type UploadOptions,
+  type RetryOptions,
+} from './web/uploadRequest';
+export { compressImage, preferredQuality, rememberQuality } from './web/compress';
+export {
+  DEFAULT_MEDIA_MESSAGES,
+  type MediaMessages,
+  setMediaMessages,
+} from './web/mediaMessages';

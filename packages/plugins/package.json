@@ -20,15 +20,32 @@
       "types": "./dist/publish.d.ts",
       "import": "./dist/publish.js"
     },
+    "./formJson": {
+      "types": "./dist/formJson.d.ts",
+      "import": "./dist/formJson.js"
+    },
     "./entities": {
       "types": "./dist/entities.d.ts",
       "import": "./dist/entities.js"
+    },
+    "./activity": {
+      "types": "./dist/activity.d.ts",
+      "import": "./dist/activity.js"
+    },
+    "./signIn": {
+      "types": "./dist/signIn.d.ts",
+      "import": "./dist/signIn.js"
+    },
+    "./panelPosition": {
+      "types": "./dist/panelPosition.d.ts",
+      "import": "./dist/panelPosition.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run --dir src",
     "clean": "rm -rf dist"
   },
   "keywords": [

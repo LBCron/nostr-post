@@ -31,7 +31,70 @@ export interface MediaPluginConfig {
    * Used only for legacy manifests that have not been updated to use attachTo.
    */
   urlAutoExtractFrom?: string;
+  /**
+   * Photo quality before the user picks one (they can change it; their pick is remembered).
+   * Default 'mid'
+   */
+  quality?: MediaQuality;
+  /** Let the user pick the photo quality (default: true) */
+  qualityChoice?: boolean;
 }
+
+/** How much photos are shrunk on the device before upload: smaller uploads faster */
+export type MediaQuality = 'low' | 'mid' | 'full';
+
+export const MEDIA_QUALITIES: readonly MediaQuality[] = ['low', 'mid', 'full'];
+
+/** Longest side (px) and JPEG quality per level; `full` uploads the original file */
+export const MEDIA_QUALITY_PRESETS: Record<
+  MediaQuality,
+  { maxSide: number; jpegQuality: number } | undefined
+> = {
+  low: { maxSide: 1280, jpegQuality: 0.7 },
+  mid: { maxSide: 2048, jpegQuality: 0.82 },
+  full: undefined,
+};
+
+export const isMediaQuality = (value: unknown): value is MediaQuality =>
+  MEDIA_QUALITIES.includes(value as MediaQuality);
+
+/** Whether a file of this type is shrunk: photos, not GIFs (animation), SVGs or videos */
+export const isCompressibleImage = (type: string): boolean =>
+  /^image\/(jpeg|png|webp|heic|heif|avif)$/i.test(type);
+
+/**
+ * Why an upload failed: no connection (`network`), no progress for a while (`stalled`), the
+ * server failed (`server`, HTTP 5xx), refused it or answered nonsense (`rejected`), or the
+ * user stopped it (`cancelled`)
+ */
+/** `sign-in`: the server wants NIP-98 auth and no one is signed in */
+export type UploadFailureKind =
+  | 'network'
+  | 'stalled'
+  | 'server'
+  | 'rejected'
+  | 'sign-in'
+  | 'cancelled';
+
+/** An upload aborts when no progress arrives for this long (ms); once sent, twice as long */
+export const UPLOAD_STALL_MS = 30_000;
+
+/** Waits before trying a failed upload again (ms): two retries */
+export const UPLOAD_RETRY_DELAYS_MS: readonly number[] = [3_000, 10_000];
+
+/** Whether trying again may help: the connection or the server, not a refusal or the user */
+export const isRetryableUpload = (kind: UploadFailureKind): boolean =>
+  kind === 'network' || kind === 'stalled' || kind === 'server';
+
+/** Size that fits `maxSide`, keeping the aspect ratio; never larger than the original */
+export const scaledSize = (
+  width: number,
+  height: number,
+  maxSide: number
+): { width: number; height: number } => {
+  const scale = Math.min(1, maxSide / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
+};
 
 /** Check if a string is a plausible URL */
 const isUrl = (s: string): boolean => {
@@ -146,6 +209,11 @@ export const mediaPlugin: NostrUIPlugin = {
 
     return { success: true, data: undefined };
   },
+
+  jsonSchema: () => ({
+    type: 'array',
+    items: { type: 'string', description: 'An image or video URL (https://…)' },
+  }),
 
   formatValue: (value: unknown): string => {
     const urls = toArray(value);

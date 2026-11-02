@@ -7,18 +7,28 @@ export interface ComposerMessages {
   submit: string;
   submitting: string;
   loadingManifest: string;
+  /** Publishing waits for uploads that add to the form (e.g. a photo's link in the text) */
+  stepUploads: string;
+  /** An upload failed while publishing waited for it; their labels follow */
+  uploadsFailed: (labels: string[]) => string;
   /** While plugins publish related events first (e.g. a venue's wiki page) */
   stepHooks: string;
   /** While the post itself is signed and published */
   stepPublish: string;
   /** After the post is out, while plugins finish (e.g. save its venue to lists) */
   stepAfterPublish: string;
+  /** After publishing; the number of events published follows */
+  published: (count: number) => string;
+  /** After a submit the app publishes itself (no `auto-publish`) */
+  created: string;
   /** A hooks-only format (`kinds: []`) finished: its plugins did their steps, no post */
   doneWithoutPost: string;
   /** The post is published but a plugin's after-publish step failed; its errors follow */
   afterPublishFailed: (errors: string[]) => string;
   /** While the signer works on a signature, e.g. waits for the user to approve it */
   stepSigning: string;
+  /** Publishing without a signed-in user (the app is asked to sign them in) */
+  signInToPublish: string;
   /** Shown at the button when fields failed validation; the field labels follow */
   invalidFields: string;
   /** Publish hooks didn't finish in time */
@@ -32,12 +42,18 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
   submit: 'Create Post',
   submitting: 'Creating...',
   loadingManifest: 'Loading Manifest...',
+  stepUploads: 'Waiting for uploads to finish… Cancel one to publish without it.',
+  uploadsFailed: (labels) =>
+    `Not published: ${labels.join(', ')} failed. Publish again to post without it, or add it again.`,
   stepHooks: 'Publishing linked pages…',
   stepPublish: 'Signing and publishing the post…',
   stepAfterPublish: 'Finishing (e.g. saving to lists)…',
+  published: (count) => `Published to ${count} event(s)!`,
+  created: 'Post created successfully!',
   doneWithoutPost: 'Done!',
   afterPublishFailed: (errors) => `Published, but: ${errors.join('; ')}`,
   stepSigning: 'Waiting for your signer to approve…',
+  signInToPublish: 'Sign in to publish: posts are signed with your Nostr key.',
   invalidFields: 'Please fix these fields:',
   hooksTimeout: 'Publishing linked pages took too long. Nothing was published; try again.',
   signerTimeout:

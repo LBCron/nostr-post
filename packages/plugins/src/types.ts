@@ -67,10 +67,25 @@ export interface FieldActionContext {
   field: PostField;
   /** The field this plugin is attached to (e.g. the content textarea). */
   targetField: PostField;
-  /** Current composer form data. */
+  /** Composer form data when the action was clicked. */
   formData: Record<string, unknown>;
+  /** The form data as it is now: actions that finish later (an upload) read it then */
+  getFormData?: () => Record<string, unknown>;
   /** Callback to update any field value. */
   onUpdateField: (fieldId: string, value: unknown) => void;
+}
+
+/** A choice in a FieldAction's panel, e.g. the media plugin's photo quality */
+export interface FieldActionSetting {
+  /** Heading of the choice */
+  label: string;
+  /** Each option with what it means (`description`, shown under its label) */
+  options: Array<{ value: string; label: string; description?: string }>;
+  /** The selected value */
+  value: string;
+  onChange: (value: string) => void;
+  /** Shown under the options, about all of them */
+  hint?: string;
 }
 
 /**
@@ -84,6 +99,28 @@ export interface FieldAction {
   /** Accessible label and tooltip text. */
   label: string;
   onClick: (ctx: FieldActionContext) => void | Promise<void>;
+  /**
+   * A choice for the action. With one, the button opens a panel: a button running `onClick`
+   * (`runLabel`), a drop zone with `onDropFiles`, and the choice with its options' descriptions.
+   */
+  setting?: FieldActionSetting;
+  /** The panel's button that runs `onClick` (default: `label`) */
+  runLabel?: string;
+  /** Files dropped on the panel's drop zone (none without it) */
+  onDropFiles?: (files: File[], ctx: FieldActionContext) => void | Promise<void>;
+  /** The drop zone's text */
+  dropLabel?: string;
+}
+
+/** Context passed to handleTextareaPaste and handleTextareaDrop */
+export interface TextareaEventContext {
+  /** Composer form data when the event happened */
+  formData: Record<string, unknown>;
+  /** The form data as it is now: handlers that finish later (an upload) read it then */
+  getFormData?: () => Record<string, unknown>;
+  onUpdateField: (fieldId: string, value: unknown) => void;
+  /** The plugin's own field, attached to the text field (its settings) */
+  attachedField?: PostField;
 }
 
 export interface ValidationError {
@@ -123,6 +160,18 @@ export interface AfterPublishContext {
   events: PublishedEvent[];
   /** The manifest the post was made with */
   manifest: NostrPostManifest;
+}
+
+/** Something the user may do after a field's value was parsed from JSON (`parseJson`) */
+export interface FormJsonSuggestion {
+  /** What it is about, e.g. a name */
+  label: string;
+  /** `create` a page from `prefill`, or `update` the page at `address` with `prefill`'s values */
+  action: 'create' | 'update';
+  /** The page to update (`kind:pubkey:d-tag`) */
+  address?: string;
+  /** Form data for the page's composer, e.g. the name and links */
+  prefill: Record<string, unknown>;
 }
 
 /**
@@ -258,6 +307,32 @@ export interface NostrUIPlugin {
   resolveFromTags?: (tags: string[][], field: PostField) => unknown;
 
   /**
+   * The JSON Schema of this field's value, for filling a post in from JSON (e.g. an AI's
+   * structured output; `formJsonSchema` in `@nostr-post/plugins/formJson`). `null` leaves the
+   * field out. Without this hook the field is left out, as its value's shape is unknown.
+   * Strict like structured outputs: objects list every property in `required` (optional ones
+   * accept `null`) and set `additionalProperties: false`.
+   */
+  jsonSchema?: (field: PostField) => Record<string, unknown> | null;
+
+  /**
+   * Turns a value in `jsonSchema`'s shape into the field's value, when they differ (e.g.
+   * names into picked wiki entities). `suggestions`: what the user may do next (e.g. create the
+   * page of a name that has none, add new links to a page).
+   */
+  parseJson?: (
+    value: unknown,
+    field: PostField
+  ) => Promise<{ value?: unknown; suggestions?: FormJsonSuggestion[] }>;
+
+  /**
+   * Short texts a value gives that tell an entity apart from another with the same name, e.g.
+   * a profile link's handle. A new wiki entity whose slug is taken tries them first as its
+   * qualifier ("Doomsday (doomsdayband musician)"); fields without the hook offer their value.
+   */
+  qualifiers?: (value: unknown, field: PostField) => string[];
+
+  /**
    * Completions while typing in the text field this plugin's field is attached to
    * (`attachTo`), e.g. `@name` mentions: after `trigger`, the composer shows what `search`
    * finds for the typed text and inserts the picked one's `insert`.
@@ -274,15 +349,12 @@ export interface NostrUIPlugin {
    *
    * @param e - The ClipboardEvent from the textarea
    * @param field - The field definition (likely the content field)
-   * @param ctx - Context with formData and a callback to update fields
+   * @param ctx - The form data, a callback to update fields, and the plugin's own field
    */
   handleTextareaPaste?: (
     e: ClipboardEvent,
     field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    }
+    ctx: TextareaEventContext
   ) => Promise<void>;
 
   /**
@@ -292,16 +364,9 @@ export interface NostrUIPlugin {
    *
    * @param e - The DragEvent from the textarea
    * @param field - The field definition (likely the content field)
-   * @param ctx - Context with formData and a callback to update fields
+   * @param ctx - The form data, a callback to update fields, and the plugin's own field
    */
-  handleTextareaDrop?: (
-    e: DragEvent,
-    field: PostField,
-    ctx: {
-      formData: Record<string, unknown>;
-      onUpdateField: (fieldId: string, value: unknown) => void;
-    }
-  ) => Promise<void>;
+  handleTextareaDrop?: (e: DragEvent, field: PostField, ctx: TextareaEventContext) => Promise<void>;
 
   /**
    * Web-only: Return toolbar action buttons for a field this plugin is attached to.

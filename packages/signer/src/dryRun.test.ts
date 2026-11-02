@@ -60,6 +60,7 @@ describe('dry-run publishing', () => {
         { relay: 'wss://r1', ok: true },
         { relay: 'wss://r2', ok: true },
       ],
+      all: expect.any(Promise),
     });
     expect(getDryRunEntries()).toEqual([
       { event: event('b'), relays: ['wss://r3'] },

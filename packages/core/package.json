@@ -61,6 +61,18 @@
     "./textCompletion": {
       "types": "./dist/textCompletion.d.ts",
       "import": "./dist/textCompletion.js"
+    },
+    "./formJson": {
+      "types": "./dist/formJson.d.ts",
+      "import": "./dist/formJson.js"
+    },
+    "./textNormalize": {
+      "types": "./dist/textNormalize.d.ts",
+      "import": "./dist/textNormalize.js"
+    },
+    "./comments": {
+      "types": "./dist/comments.d.ts",
+      "import": "./dist/comments.js"
     }
   },
   "scripts": {

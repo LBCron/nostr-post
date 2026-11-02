@@ -1,13 +1,8 @@
+import { COMMENT_KIND } from '@nostr-post/core/comments';
 import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
 import type { NostrPostManifest } from '@nostr-post/core/types';
-import {
-  type AgendaWindow,
-  ALL_DAY_EVENT_KIND,
-  agendaDayTags,
-  calendarEventFilters,
-  TIMED_EVENT_KIND,
-} from '@nostr-post/plugin-date';
 import type { FetchFilter } from '@nostr-post/signer';
+import { addressOf } from './feedStandard';
 import type { SignedEvent } from './signer';
 
 /** <nostr-post-feed> properties that change what it loads */
@@ -24,11 +19,6 @@ export const FEED_LOAD_PROPERTIES = [
   'filterTags',
   'tagFilters',
   'filters',
-  'agenda',
-  'agendaFrom',
-  'agendaDays',
-  'timeZone',
-  'calendar',
   'commentsEnabled',
   'reactionsEnabled',
 ];
@@ -142,9 +132,8 @@ export const buildFetchFilters = ({
   });
 };
 
-/** Events asked for by default; an agenda gets more, so a whole window fits */
+/** Events asked for by default */
 const DEFAULT_LIMIT = 20;
-const AGENDA_LIMIT = 500;
 
 /** What <nostr-post-feed> asks relays for */
 export interface FeedQuery {
@@ -159,36 +148,19 @@ export interface FeedQuery {
   until?: number;
   filterTags?: string;
   tagFilters?: Record<string, string[]>;
-  /**
-   * Agenda: its date window becomes a `#D` filter; with `calendarItems` (a calendar's event
-   * addresses) those events are asked for by address instead, whatever their tags
-   */
-  agenda?: { window: AgendaWindow; calendarItems?: string[] };
 }
 
-/**
- * The feed's relay filters. Kinds: `kinds`, else the manifest's, else calendar events for an
- * agenda, else notes. An empty list: nothing to ask for (an empty calendar).
- */
-export const buildFeedFilters = (query: FeedQuery): FetchFilter | FetchFilter[] => {
-  const { agenda } = query;
-  if (agenda?.calendarItems) return calendarEventFilters(agenda.calendarItems);
-  const kinds = query.kinds?.length
-    ? query.kinds
-    : query.manifest
-      ? getManifestAvailableKinds(query.manifest)
-      : agenda
-        ? [ALL_DAY_EVENT_KIND, TIMED_EVENT_KIND]
-        : [1];
-  return buildFetchFilters({
+/** The feed's relay filters. Kinds: `kinds`, else the manifest's, else notes */
+export const buildFeedFilters = (query: FeedQuery): FetchFilter | FetchFilter[] =>
+  buildFetchFilters({
     ...query,
-    kinds,
-    limit: query.limit ?? (agenda ? AGENDA_LIMIT : DEFAULT_LIMIT),
-    tagFilters: agenda
-      ? { ...query.tagFilters, '#D': agendaDayTags(agenda.window) }
-      : query.tagFilters,
+    kinds: query.kinds?.length
+      ? query.kinds
+      : query.manifest
+        ? getManifestAvailableKinds(query.manifest)
+        : [1],
+    limit: query.limit ?? DEFAULT_LIMIT,
   });
-};
 
 export const buildInteractionLoadKey = (events: SignedEvent[]): string => {
   return events
@@ -206,4 +178,30 @@ export const mergeUniqueEventsById = (
     mergedById.set(event.id, event);
   }
   return [...mergedById.values()];
+};
+
+/**
+ * Relay filters for the comments and reactions of `events`: by id, and for addressable events
+ * by address too, so comments on their earlier versions come along
+ */
+export const interactionFilters = (
+  events: SignedEvent[],
+  options: { comments?: boolean; reactions?: boolean }
+): FetchFilter[] => {
+  const ids = events.map((event) => event.id);
+  if (ids.length === 0) return [];
+  const addresses = events.flatMap((event) => addressOf(event) ?? []);
+  // Other events that aren't notes get NIP-22 comments by id
+  const otherIds = events.filter((e) => e.kind !== 1 && !addressOf(e)).map((e) => e.id);
+  const limit = Math.max(ids.length * 10, 50);
+  const filters: FetchFilter[] = [];
+  if (options.comments) {
+    // Kind-1 replies to notes (NIP-10)
+    filters.push({ kinds: [1], '#e': ids, limit });
+    // NIP-22 comments on any version of an addressable event
+    if (addresses.length > 0) filters.push({ kinds: [COMMENT_KIND], '#A': addresses, limit });
+    if (otherIds.length > 0) filters.push({ kinds: [COMMENT_KIND], '#E': otherIds, limit });
+  }
+  if (options.reactions) filters.push({ kinds: [7], '#e': ids, limit });
+  return filters;
 };

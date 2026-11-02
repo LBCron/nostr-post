@@ -1,4 +1,4 @@
-/** A link for a NIP-73 external ID, e.g. on an entity's `i` tag */
+/** A link for an external ID on an entity's `i` tag: NIP-73 URLs or our namespaces (NOSTR_CONVENTIONS.md) */
 export interface ExternalIdLink {
   url: string;
   /** Who the link points to, e.g. "OpenStreetMap" */

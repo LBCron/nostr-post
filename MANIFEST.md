@@ -46,6 +46,7 @@ Types: `NostrPostManifest`, `PostField` and `FieldMetadata` in `@nostr-post/core
 | `metadata`       | `name`, `description` (shown in the composer's header), `author`, `tags`                                                                                 |
 | `lists`          | Lists people save events made with it to, e.g. a venue type's "Want to go", see [lists](#lists)                                                         |
 | `listType`       | The type part of those lists' d-tags; default the manifest's `id`, see [lists](#lists)                                                                   |
+| `viewOrder`      | Field ids in the order views show them, e.g. `["rating", "review"]` for the stars above the text; fields not listed follow in manifest order. Without it, views follow the field order. A manifest extending another replaces it |
 | `wikiConfig`     | Wiki entity manifests only, see [below](#wiki-entity-manifests)                                                                                          |
 
 ### Which manifest an event was made with
@@ -71,7 +72,7 @@ unformatted.
 ## Lists
 
 `lists` names the lists people save events made with the manifest to (see
-[plugin-list](./packages/plugin-list/README.md)): any events, posts as well as wiki pages. They are
+[`@nostr-post/list`](./packages/list/README.md)): any events, posts as well as wiki pages. They are
 offered first, before the user's other lists and a new one, by the Save button on those events
 (`<nostr-post-view>`, `<nostr-wiki-view>`, `<np-venue-view>`) and by `list` fields. Without `lists`
 the events have no Save button.
@@ -109,7 +110,7 @@ publishFormats: [{ id: "save", label: "Save only", kinds: [], default: true }],
 fields: [
   { id: "venue", type: "geo", uiPlugin: "venue", mapTo: { kind: 1, target: "tag", tagName: "g" },
     metadata: { wikiEntity: "venue-entity-v1" } },
-  // listField({ saveField: "venue", label: "Save to lists" }) from @nostr-post/plugin-list
+  // listField({ saveField: "venue", label: "Save to lists" }) from @nostr-post/list
   { id: "venue_lists", type: "string", uiPlugin: "list", mapTo: { kind: 1, target: "tag", tagName: "lists" },
     metadata: { label: "Save to lists", saveField: "venue" } },
 ]
@@ -205,15 +206,16 @@ styles, mapped to `t` for posts and wiki entities; the beer entity extends it an
 | `stars`              | `number` | `min`, `max`, `step`, `showNumber`                                                                                                                                                                                             |
 | `markdown`           | `string` | `defaultMode` (`'wysiwyg'` \| `'raw'`), `minLength`, `maxLength`, `minHeight`                                                                                                                                                  |
 | `hashtag`            | `string` | `maxTags` (20), `suggestions`, `autoExtract` (from the `attachTo` field, default `true`)                                                                                                                                       |
-| `media`              | `string` | `accept` (MIME types), `maxSize` (bytes), `maxFiles`, `uploadUrl`, `allowUrl`, `allowUpload`, `urlAutoExtract`                                                                                                                 |
+| `media`              | `string` | `accept` (MIME types), `maxSize` (bytes, after shrinking), `maxFiles`, `uploadUrl`, `allowUrl`, `allowUpload`, `urlAutoExtract`, `quality` (`low`, `mid`: default, `full`: how much photos are shrunk on the device before upload, until the user picks; their pick is remembered), `qualityChoice` (`false`: no choice, always `quality`)                                                                                                                 |
 | `reference`          | `string` | `urlDedupeMode` (`'normalized'` \| `'exact'` \| `'origin-path'`)                                                                                                                                                               |
-| `identifier`         | `string` | `prefix` (NIP-73 namespace, e.g. `isbn`)                                                                                                                                                                                       |
+| `identifier`         | `string` | `prefix` (`i` tag namespace, e.g. NIP-73 `isbn`; others are [our own](./NOSTR_CONVENTIONS.md#external-ids-i-tags))                                                                                                                                                                                       |
 | `geo`                | `geo`    | `precision` (geohash length, default 6), `defaultZoom`, `allowSearch`                                                                                                                                                          |
 | `date`               | `date`   | `precision` (`'day'` default \| `'time'`), on kinds other than NIP-52 calendar events, see [dates](#dates)                                                                                                                      |
+| `embed`              | `string` | `multiple` (several links). Links show as players (YouTube, Spotify, SoundCloud, Vimeo, Bandcamp player links), others as links |
 | `profile`            | `profile` | `roles` (role suggestions, e.g. `['host', 'speaker']`), `max` (most people), `searchRelays` (NIP-50 relays to search profiles; default `DEFAULT_SEARCH_RELAYS`). The value: `{ pubkey, role?, relay? }[]`, written as `["p", pubkey, relay, role]`. With `attachTo` a text field: `@` mentions in it (`nostr:npub…`), the people mentioned get `p` tags |
-| `venue`              | `geo`    | Like `geo`, plus `providers` (`['osm']`, `'google'` with `googleApiKey`) and `levels` (`['country', 'city', 'place']`, default exact places, see [location levels](#location-levels)), `wikiEntity`: the venue's wiki page, see [venue hub](#venue-hub); `linkOnly` (only the page's `a` tag and role, no venue tags, see [roles in posts](#references-with-a-role-in-posts)); `multiple` (several venues, a list)                                                                                  |
+| `venue`              | `geo`    | Like `geo`, plus `providers` (`['osm']`, `'google'` with `googleApiKey`) and `levels` (`['country', 'city', 'place']`, default exact places, see [location levels](#location-levels)), `wikiEntity`: the venue's wiki page, see [venue hub](#venue-hub), and `requirePage` (no opt-out from it); `linkOnly` (only the page's `a` tag and role, no venue tags, see [roles in posts](#references-with-a-role-in-posts)); `multiple` (several venues, a list)                                                                                  |
 | `list`               | `string` | `saveField`: the field whose wiki entity is saved (a `venue` field's page, a `wiki-entity-picker`'s entity); without it, the post itself. `relays`. The value: list addresses and `new:<title>`. See [lists](#lists) |
-| `wiki-entity-picker` | `ref`    | `entityManifest`: the entity type ([reference](#referencing-entity-manifests)), which limits search to it and enables "+ Create"; `relays`; `minSearchLength` (2); `emitExtraTags` (`false`: don't copy the entity's `i` tags); `multiple` (pick several; the value is a list) |
+| `wiki-entity-picker` | `ref`    | `entityManifest`: the entity type ([reference](#referencing-entity-manifests)), which limits search to it and enables "+ Create"; `relays`; `minSearchLength` (2); `emitExtraTags` (`false`: don't copy the entity's `i` tags); `multiple` (pick several; the value is a list). In a post's view, each linked page is a row that opens it; "+ Create" pages are published with the post |
 
 Deprecated: `hashtag.autoExtractFrom`, `media.urlAutoExtractFrom` and `reference.enrichFrom`
 name the source field for manifests without `attachTo`.
@@ -233,7 +235,7 @@ kind it is written to:
 `D` tags are unix day numbers (`floor(unix / 86400)`), at most 366 per event. NIP-52 defines them
 for timed events; on all-day events they are an extra tag, so relays can return those by day too.
 
-`@nostr-post/plugin-date` exports a ready calendar event manifest, `CALENDAR_EVENT_MANIFEST`
+`@nostr-post/calendar` exports a ready calendar event manifest, `CALENDAR_EVENT_MANIFEST`
 (title, date, location, description, summary, image, tags). A calendar event manifest maps the
 field to `start` on both kinds and offers them as two publish
 formats, so the composer's format picker chooses all-day or timed and the input follows:
@@ -441,7 +443,7 @@ point. When OSM doesn't have it, the author clicks the place on the map (it zoom
 point, without setting it), and the venue gets the author's point, OSM's address there and the link's name; its venue
 page is created from that.
 
-The CID is kept as `["i", "gcid:<cid>"]` (our namespace, not NIP-73); the Google Maps link
+The CID is kept as `["i", "gcid:<cid>"]` ([our namespace](./NOSTR_CONVENTIONS.md#external-ids-i-tags), not NIP-73); the Google Maps link
 (`https://maps.google.com/?cid=…`) is worked out from it when shown. Venue pages are also found by
 it, so a page created without OSM is filled from OSM once a post picks the OSM place with the same
 link. Short share links (`maps.app.goo.gl`) only Google can open: the author pastes the full link.
@@ -474,7 +476,10 @@ A `venue` field with `metadata.wikiEntity` also creates the venue's wiki page fr
 when a review (or a wiki page, e.g. a brewery's location) is published, or updates it when OSM has
 a newer version of the place; only for an exact place, not a city or country. The review or page
 links to it with an `a` tag. The author sees what will happen, an editable slug and an opt-out
-checkbox next to the publish button. This runs when `<nostr-post-composer auto-publish>` or
+checkbox next to the publish button: a page is one more event to sign, and without it the post
+keeps the venue's own tags, so a page made later still finds it. `metadata.requirePage: true`
+removes the opt-out (the manifest requires the page); `linkOnly` fields always require it, as their
+post has nothing but the page's link. This runs when `<nostr-post-composer auto-publish>` or
 `<nostr-wiki-composer auto-publish>` publishes; apps that publish `nostr-post-submit` or
 `nostr-wiki-submit` themselves call `runBeforePublish` (see the
 [composer docs](./USAGE_GUIDE.md#nostr-post-composer)).
@@ -489,6 +494,11 @@ Updates replace only these fields; fields without a source (e.g. the article) be
 community and are kept. The entity carries every external ID as an `i` tag (`osm:node:123`), a
 geohash with its prefixes (`g`), and `["source", "OpenStreetMap", <copyright URL>, "node/123/v42"]`
 for attribution and the imported version.
+
+The venue's page is found by its external IDs. When none of them finds it (the venue was picked from
+another source, e.g. Google while the page came from OSM, or from a duplicate OSM entry), a venue
+page nearby (within 300 m) with the same name is used, compared without case, accents, spaces and
+the title's "(qualifier)": the post links it as it is, without syncing another element's OSM data.
 
 Bitcoin payments are OSM tags too, the data [BTC Map](https://btcmap.org) shows: `currency:XBT`,
 `payment:lightning`, `payment:onchain`, `payment:lightning_contactless`, `check_date:currency:XBT`.

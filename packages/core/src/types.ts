@@ -188,6 +188,11 @@ export interface NostrPostManifest {
    * user's lists (e.g. `venue` for `venue-entity-v1`).
    */
   listType?: string;
+  /**
+   * Field ids in the order views show them (e.g. the rating above the text); fields not
+   * listed follow in manifest order. Without it, views follow the manifest's field order.
+   */
+  viewOrder?: string[];
   metadata?: {
     name?: string;
     description?: string;

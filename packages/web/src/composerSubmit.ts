@@ -13,14 +13,16 @@ import {
   type NostrPostManifest,
   STANDARD_KIND1_POST_MANIFEST,
 } from '@nostr-post/core/types';
+import { publishBlockers, waitForPublishBlockers } from '@nostr-post/plugins/activity';
 import { publishSummaries, runAfterPublish, runPublishHooks } from '@nostr-post/plugins/publish';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
+import { requestSignIn } from '@nostr-post/plugins/signIn';
 import { html, type TemplateResult } from 'lit';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { parseExtraTags } from './composerForm';
 import type { ComposerMessages } from './composerMessages';
 import { applyReplyTargetToBundle } from './composerReply';
-import { getUserRelays, type SignedEvent, signAndPublish } from './signer';
+import { getPublicKey, getUserRelays, type SignedEvent, signAndPublish } from './signer';
 
 // ---------------------------------------------------------------------------
 // Addressable-event helpers
@@ -104,6 +106,7 @@ export const validateAndCoordinate = (
     replyToPubkey?: string;
     rootEventId?: string;
     rootPubkey?: string;
+    rootAddress?: string;
   }
 ):
   | { bundle: EventBundle; addressableDTag: string | undefined }
@@ -154,6 +157,7 @@ export const validateAndCoordinate = (
     replyToPubkey: opts.replyToPubkey,
     rootEventId: opts.rootEventId,
     rootPubkey: opts.rootPubkey,
+    rootAddress: opts.rootAddress,
   });
 
   const parsedExtraTags = parseExtraTags(opts.extraTags);
@@ -218,6 +222,34 @@ export const withTags = (bundle: EventBundle, tags: [string, ...string[]][]): Ev
 // Sign-and-publish bundle
 // ---------------------------------------------------------------------------
 
+/**
+ * Who publishes: the composer's `pubkey`, else (auto-publish) the signer's. Undefined when no one
+ * is signed in; the app is then asked to sign the user in (`requestSignIn`)
+ */
+export const signedInPubkey = async (
+  pubkey: string | undefined,
+  autoPublish: boolean
+): Promise<string | undefined> => {
+  const signer = !pubkey && autoPublish ? await getPublicKey().catch(() => undefined) : undefined;
+  const result = pubkey ?? signer;
+  if (!result) requestSignIn('publish');
+  return result;
+};
+
+type BundleEvent = EventBundle['events'][number];
+
+/** A bundle's events in signing order: a note (kind 1) first, so the others can link to it */
+export const bundleSigningOrder = (events: readonly BundleEvent[]): BundleEvent[] =>
+  [...events].sort((a, b) => Number(b.kind === 1) - Number(a.kind === 1));
+
+/**
+ * An event of a bundle (e.g. the kind-30078 copy of a note) linked to the bundle's first event:
+ * `["e", <id>]` without a NIP-10 marker, and never on a note, so no client shows it as a reply.
+ * `<nostr-post-view>` finds an event's copies by it (`#e`)
+ */
+export const linkToPrimary = (event: BundleEvent, primaryEventId: string): BundleEvent =>
+  event.kind === 1 ? event : { ...event, tags: [...event.tags, ['e', primaryEventId]] };
+
 export const signAndPublishBundle = async (
   bundle: EventBundle,
   relays: string[] | undefined
@@ -226,19 +258,11 @@ export const signAndPublishBundle = async (
   const signedEvents: SignedEvent[] = [];
   let primaryEventId: string | undefined;
 
-  for (let i = 0; i < bundle.events.length; i++) {
-    const unsignedEvent = bundle.events[i];
-
-    if (i > 0 && primaryEventId) {
-      unsignedEvent.tags = [...unsignedEvent.tags, ['e', primaryEventId, '', 'root']];
-    }
-
+  for (const event of bundleSigningOrder(bundle.events)) {
+    const unsignedEvent = primaryEventId ? linkToPrimary(event, primaryEventId) : event;
     const { signedEvent, publishResults } = await signAndPublish(unsignedEvent, resolvedRelays);
     signedEvents.push(signedEvent);
-
-    if (i === 0) {
-      primaryEventId = signedEvent.id;
-    }
+    primaryEventId ??= signedEvent.id;
 
     if (publishResults.success === 0) {
       throw new Error(
@@ -248,6 +272,21 @@ export const signAndPublishBundle = async (
   }
 
   return signedEvents;
+};
+
+/**
+ * Wait for running uploads that add to the form (activities with `blocksPublish`, e.g. a photo
+ * whose link goes into the text), so the post has them. Throws when one of them failed; a
+ * failed upload no longer blocks, so publishing again posts without it.
+ */
+export const waitForUploads = async (
+  messages: ComposerMessages,
+  onStep: (step: string) => void
+): Promise<void> => {
+  if (publishBlockers().length === 0) return;
+  onStep(messages.stepUploads);
+  const failed = await waitForPublishBlockers();
+  if (failed.length > 0) throw new Error(messages.uploadsFailed(failed.map((a) => a.label)));
 };
 
 /** Rejects with `message` when `promise` hasn't settled after `ms` */
@@ -322,6 +361,17 @@ export const publishWithHooks = async (
   });
   return { events, afterPublishErrors };
 };
+
+/** What the composer says after publishing: success, and after-publish steps that failed */
+export const publishedNotice = (
+  published: PublishWithHooksResult,
+  m: ComposerMessages
+): { success: string; error?: string } => ({
+  success: published.events.length ? m.published(published.events.length) : m.doneWithoutPost,
+  error: published.afterPublishErrors.length
+    ? m.afterPublishFailed(published.afterPublishErrors.map((e) => e.message))
+    : undefined,
+});
 
 /** Labels of the fields with a validation error, in manifest order */
 export const invalidFieldLabels = (

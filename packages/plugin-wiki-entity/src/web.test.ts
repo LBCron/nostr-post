@@ -61,7 +61,7 @@ async function pickerWithQuery(query: string, metadata: Record<string, unknown>)
 }
 
 describe('<wiki-entity-picker> create', () => {
-  it('opens a prefilled composer and selects the published entity', async () => {
+  it('opens a prefilled composer whose page is picked, to publish with the post', async () => {
     registerEntityManifest(breweryManifest);
     const { picker, p } = await pickerWithQuery('Moonshine', {
       entityManifest: 'brewery-entity-test',
@@ -86,28 +86,34 @@ describe('<wiki-entity-picker> create', () => {
     );
     expect(outer).not.toHaveBeenCalled();
 
-    const signedEvent = {
-      id: 'e1',
-      pubkey: 'pk1',
-      sig: 's',
-      kind: 30818,
-      created_at: 1,
-      content: '',
-      tags: [
-        ['d', 'moonshine-(brewery)'],
-        ['title', 'Moonshine (Brewery)'],
-      ],
-    };
+    // The dialog doesn't publish: its form becomes the entity, created with the post
     composer.dispatchEvent(
-      new CustomEvent('nostr-wiki-published', {
-        detail: { dTag: 'moonshine-(brewery)', results: { signedEvent } },
+      new CustomEvent('nostr-wiki-submit', {
+        detail: {
+          event: {
+            tags: [
+              ['d', 'moonshine-(brewery)'],
+              ['title', 'Moonshine (Brewery)'],
+              ['i', 'https://moonshine.example.com'],
+            ],
+          },
+          formData: { name: 'Moonshine', website: 'https://moonshine.example.com' },
+        },
         bubbles: true,
         composed: true,
       })
     );
     await picker.updateComplete;
 
-    expect(picker.value).toMatchObject({ dTag: 'moonshine-(brewery)', resolvedPubkey: 'pk1' });
+    expect(picker.value).toEqual({
+      dTag: '',
+      resolvedPubkey: '',
+      externalIds: ['https://moonshine.example.com'],
+      displayName: 'Moonshine',
+      unlinked: true,
+      prefill: { name: 'Moonshine', website: 'https://moonshine.example.com' },
+      createPage: true,
+    });
     expect(outer).toHaveBeenCalledTimes(1);
     expect(picker.shadowRoot?.querySelector('nostr-wiki-composer')).toBeNull();
     document.body.removeEventListener('np-value-changed', outer);
@@ -202,5 +208,50 @@ describe('<wiki-entity-picker> result details and preview', () => {
     // happy-dom mis-renders this re-render (verified in Chrome), so check the state it drives
     // biome-ignore lint/suspicious/noExplicitAny: reading private state in a test
     expect((picker as any)._previewDTag).toBe('bitcoin-beer');
+  });
+});
+
+describe('<wiki-entity-picker> unlinked entities', () => {
+  it('shows them with "Create page"; the created page takes their place with their links', async () => {
+    registerEntityManifest(breweryManifest);
+    const picker = document.createElement('wiki-entity-picker') as WikiEntityPicker;
+    picker.field = {
+      id: 'brewery',
+      metadata: { entityManifest: 'brewery-entity-test', multiple: true },
+    };
+    const unlinked = {
+      dTag: '',
+      resolvedPubkey: '',
+      externalIds: ['https://www.instagram.com/moon'],
+      displayName: 'Moonshine',
+      unlinked: true as const,
+      prefill: { name: 'Moonshine' },
+    };
+    // A nameless unlinked value only keeps an event's links: not shown
+    const links = { dTag: '', resolvedPubkey: '', externalIds: ['x'], unlinked: true as const };
+    picker.value = [unlinked, links];
+    document.body.appendChild(picker);
+    await picker.updateComplete;
+    const chips = picker.shadowRoot?.querySelectorAll('.selected') ?? [];
+    expect(chips.length).toBe(1);
+    expect(chips[0]?.textContent).toContain('no page yet');
+
+    picker.shadowRoot?.querySelector<HTMLButtonElement>('.chip-create')?.click();
+    // biome-ignore lint/suspicious/noExplicitAny: driving private state in a test
+    const p = picker as any;
+    expect(p._creating.prefill).toEqual({ name: 'Moonshine' });
+    p._onEntityCreated(
+      new CustomEvent('created', { detail: { dTag: 'moonshine-brewery', pubkey: 'pk' } })
+    );
+    expect(picker.value).toEqual([
+      links,
+      {
+        dTag: 'moonshine-brewery',
+        resolvedPubkey: 'pk',
+        externalIds: ['https://www.instagram.com/moon'],
+        displayName: 'moonshine-brewery',
+      },
+    ]);
+    picker.remove();
   });
 });

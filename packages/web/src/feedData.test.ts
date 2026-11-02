@@ -1,5 +1,6 @@
+import { STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
 import { describe, expect, it } from 'vitest';
-import { buildReplyTags } from './composerReply';
+import { applyReplyTargetToBundle, buildReply, buildReplyTags } from './composerReply';
 import { buildFeedFilters, interactionFilters } from './feedData';
 import { buildReplyTarget, buildThreads } from './feedStandard';
 import type { SignedEvent } from './signer';
@@ -28,16 +29,62 @@ describe('comments on addressable events', () => {
   const v2 = sign({ ...v1, id: '2'.repeat(64), created_at: 2 });
   const address = `31922:${author}:fest`;
 
-  it('replies name the root by address too', () => {
+  it('comments on an addressable event are NIP-22 comments naming it by address', () => {
     const target = buildReplyTarget(v1);
     expect(target.rootAddress).toBe(address);
-    expect(buildReplyTags(target)).toContainEqual(['a', address, '', 'root']);
+    const reply = buildReply(target);
+    expect(reply?.kind).toBe(1111);
+    expect(reply?.tags).toEqual([
+      ['A', address],
+      ['K', '31922'],
+      ['P', author],
+      ['a', address],
+      ['e', v1.id, '', author],
+      ['k', '31922'],
+      ['p', author],
+    ]);
+  });
+
+  it('a reply to a comment names the comment as parent', () => {
+    const comment = sign({
+      id: '3'.repeat(64),
+      kind: 1111,
+      pubkey: 'c'.repeat(64),
+      created_at: 3,
+      content: 'Nice',
+      tags: buildReplyTags(buildReplyTarget(v1)),
+    });
+    const reply = buildReply(buildReplyTarget(comment, v1));
+    expect(reply?.kind).toBe(1111);
+    expect(reply?.tags).toEqual([
+      ['A', address],
+      ['K', '31922'],
+      ['P', author],
+      ['e', comment.id, '', comment.pubkey],
+      ['k', '1111'],
+      ['p', comment.pubkey],
+    ]);
+  });
+
+  it('a bundle replying to an addressable event becomes a comment; to a note, a kind-1 reply', () => {
+    const note = sign({ ...v1, id: '4'.repeat(64), kind: 1, tags: [] });
+    const bundle = {
+      events: [{ kind: 1, created_at: 5, content: 'Hi', tags: [], pubkey: '' }],
+      manifest: STANDARD_KIND1_POST_MANIFEST,
+    };
+    expect(applyReplyTargetToBundle(bundle, buildReplyTarget(v1)).events[0]?.kind).toBe(1111);
+    const toNote = applyReplyTargetToBundle(bundle, buildReplyTarget(note)).events[0];
+    expect(toNote?.kind).toBe(1);
+    expect(toNote?.tags).toEqual([
+      ['e', note.id, '', 'root'],
+      ['p', author],
+    ]);
   });
 
   it('threads a comment on an earlier version under the current one', () => {
     const comment = sign({
       id: '3'.repeat(64),
-      kind: 1,
+      kind: 1111,
       pubkey: 'c'.repeat(64),
       created_at: 3,
       content: 'update:title:New',
@@ -51,7 +98,7 @@ describe('comments on addressable events', () => {
   it('fetches comments by id and by address', () => {
     expect(interactionFilters([v2], { comments: true, reactions: true })).toEqual([
       { kinds: [1], '#e': [v2.id], limit: 50 },
-      { kinds: [1], '#a': [address], limit: 50 },
+      { kinds: [1111], '#A': [address], limit: 50 },
       { kinds: [7], '#e': [v2.id], limit: 50 },
     ]);
   });

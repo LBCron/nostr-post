@@ -2,9 +2,10 @@
  * @nostr-post/core - Update-comment parsing and event patching
  *
  * Pure functions for parsing `update:{fieldId}:{value}` comment lines and
- * applying them to Nostr events.  No Lit or plugin-registry dependencies.
+ * applying them to Nostr events. Update comments are kind-1 replies or NIP-22 comments (`./comments`).  No Lit or plugin-registry dependencies.
  */
 
+import { isCommentKind } from './comments';
 import { matchFieldOption } from './enumOptions';
 import { getFieldsByKind, isStructuredContentKind } from './manifestMappings';
 import type { DisplayableEvent, NostrPostManifest, PostField } from './types';
@@ -158,7 +159,7 @@ const applySingleUpdateComment = (
   fieldsById: Map<string, PostField>,
   interactionEvent: DisplayableEvent
 ): DisplayableEvent => {
-  if (interactionEvent.kind !== 1) return event;
+  if (!isCommentKind(interactionEvent.kind)) return event;
 
   const lines = interactionEvent.content.split('\n');
   let current = event;
@@ -247,6 +248,8 @@ export const suggestedUpdates = (
 ): DisplayableEvent[] => {
   const editors = eventEditors(event, extraEditors);
   return (interactionEvents ?? [])
-    .filter((ie) => ie.kind === 1 && !editors.has(ie.pubkey) && isUpdateComment(ie.content))
+    .filter(
+      (ie) => isCommentKind(ie.kind) && !editors.has(ie.pubkey) && isUpdateComment(ie.content)
+    )
     .sort((a, b) => b.created_at - a.created_at);
 };

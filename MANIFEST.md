@@ -208,7 +208,7 @@ styles, mapped to `t` for posts and wiki entities; the beer entity extends it an
 | `hashtag`            | `string` | `maxTags` (20), `suggestions`, `autoExtract` (from the `attachTo` field, default `true`)                                                                                                                                       |
 | `media`              | `string` | `accept` (MIME types), `maxSize` (bytes, after shrinking), `maxFiles`, `uploadUrl`, `allowUrl`, `allowUpload`, `urlAutoExtract`, `quality` (`low`, `mid`: default, `full`: how much photos are shrunk on the device before upload, until the user picks; their pick is remembered), `qualityChoice` (`false`: no choice, always `quality`)                                                                                                                 |
 | `reference`          | `string` | `urlDedupeMode` (`'normalized'` \| `'exact'` \| `'origin-path'`)                                                                                                                                                               |
-| `identifier`         | `string` | `prefix` (NIP-73 namespace, e.g. `isbn`)                                                                                                                                                                                       |
+| `identifier`         | `string` | `prefix` (`i` tag namespace, e.g. NIP-73 `isbn`; others are [our own](./NOSTR_CONVENTIONS.md#external-ids-i-tags))                                                                                                                                                                                       |
 | `geo`                | `geo`    | `precision` (geohash length, default 6), `defaultZoom`, `allowSearch`                                                                                                                                                          |
 | `date`               | `date`   | `precision` (`'day'` default \| `'time'`), on kinds other than NIP-52 calendar events, see [dates](#dates)                                                                                                                      |
 | `embed`              | `string` | `multiple` (several links). Links show as players (YouTube, Spotify, SoundCloud, Vimeo, Bandcamp player links), others as links |
@@ -443,7 +443,7 @@ point. When OSM doesn't have it, the author clicks the place on the map (it zoom
 point, without setting it), and the venue gets the author's point, OSM's address there and the link's name; its venue
 page is created from that.
 
-The CID is kept as `["i", "gcid:<cid>"]` (our namespace, not NIP-73); the Google Maps link
+The CID is kept as `["i", "gcid:<cid>"]` ([our namespace](./NOSTR_CONVENTIONS.md#external-ids-i-tags), not NIP-73); the Google Maps link
 (`https://maps.google.com/?cid=…`) is worked out from it when shown. Venue pages are also found by
 it, so a page created without OSM is filled from OSM once a post picks the OSM place with the same
 link. Short share links (`maps.app.goo.gl`) only Google can open: the author pastes the full link.

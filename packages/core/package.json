@@ -69,6 +69,10 @@
     "./textNormalize": {
       "types": "./dist/textNormalize.d.ts",
       "import": "./dist/textNormalize.js"
+    },
+    "./comments": {
+      "types": "./dist/comments.d.ts",
+      "import": "./dist/comments.js"
     }
   },
   "scripts": {

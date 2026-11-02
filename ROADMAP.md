@@ -43,6 +43,13 @@
 - [ ] allow to share NIP-78 data to Kind 1 events (for better compatibility with existing clients)
 - [ ] manifest definition in manifest, manifest UI editing tool as plugins
 - [ ] fix width jumping of manifest editor while loading data/showing json
+- [ ] Interoperability with other clients (what we write beyond the NIPs: [NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md)):
+  - [x] A post published as two kinds (`kinds: [1, 30078]`) linked the second event to the first with
+        `["e", <id>, "", "root"]`: NIP-10's reply marker, so a kind 1 that wasn't first showed as a reply.
+        Now the note is signed first and the others link to it with a plain `["e", <id>]`
+  - [x] Comments on addressable events were kind 1 with an `a` root tag; now NIP-22 comments (kind 1111,
+        `A`/`K`/`P`), kind-1 replies only on notes
+  - [ ] Write the NIP-73 `k` tag next to each `i` tag (`["k", "iso3166"]`, `["k", "web"]`)
 
 ### Phase 2: Domain Scenarios (Planned)
 

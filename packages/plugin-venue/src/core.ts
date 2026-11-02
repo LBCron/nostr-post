@@ -6,8 +6,8 @@
  *
  * Produces multiple Nostr tags from a single field:
  *   - ["g", geohash]      → NIP-52 geohash (+ prefix tags for relay filtering)
- *   - ["i", "osm:..."]    → NIP-73 external content ID for OSM venue
- *   - ["i", "gplace:..."] → NIP-73 external content ID for Google Places
+ *   - ["i", "osm:..."]    → OSM venue ID (`i` tag as in NIP-73; `osm:` is our namespace)
+ *   - ["i", "gplace:..."] → Google Places ID (our namespace, not NIP-73)
  *   - ["location", "..."] → Human-readable address (NIP-52 convention)
  *
  * No DOM dependencies — safe for SSR/Node.
@@ -132,11 +132,11 @@ export interface NominatimResult {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/** Build the NIP-73 `i` tag value for an OSM entity. */
+/** Build the `i` tag value for an OSM entity (our `osm:` namespace, see NOSTR_CONVENTIONS.md). */
 export const osmIdentifier = (osmType: string, osmId: string | number): string =>
   `osm:${osmType}:${osmId}`;
 
-/** Build the NIP-73 `i` tag value for a Google Place. */
+/** Build the `i` tag value for a Google Place (our `gplace:` namespace, see NOSTR_CONVENTIONS.md). */
 export const googlePlaceIdentifier = (placeId: string): string => `gplace:${placeId}`;
 
 /** Build an OSM URL from type + id. */
@@ -385,19 +385,19 @@ export const venuePlugin: NostrUIPlugin = {
     const venue = value as VenueData;
     const tags: [string, ...string[]][] = [];
 
-    // NIP-73: OSM venue identity
+    // OSM venue identity (our `osm:` namespace)
     if (venue.osmType && venue.osmId) {
       tags.push(['i', osmIdentifier(venue.osmType, venue.osmId)]);
     }
 
-    // NIP-73: Google Places identity
+    // Google Places identity (our `gplace:` namespace)
     if (venue.googlePlaceId) {
       tags.push(['i', googlePlaceIdentifier(venue.googlePlaceId)]);
     }
     // A pasted Google Maps link: its CID (the link is worked out from it when shown)
     if (venue.googleCid) tags.push(['i', googleCidIdentifier(venue.googleCid)]);
 
-    // NIP-73: country (every level) and Wikidata identity
+    // Country (NIP-73 `iso3166:`, every level) and Wikidata identity (our `wikidata:` namespace)
     if (venue.countryCode) tags.push(['i', `iso3166:${venue.countryCode}`]);
     if (venue.wikidata) tags.push(['i', `wikidata:${venue.wikidata}`]);
 
@@ -446,7 +446,7 @@ export const venuePlugin: NostrUIPlugin = {
     const { lat, lon } = geohash ? decodeGeohash(geohash) : { lat: 0, lon: 0 };
     const venue: VenueData = { geohash, lat, lon };
 
-    // Extract NIP-73 identifiers
+    // Extract `i` tag identifiers
     for (const tag of tags) {
       if (tag[0] !== 'i' || !tag[1]) continue;
 

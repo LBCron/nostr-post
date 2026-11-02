@@ -1,3 +1,4 @@
+import { commentRootOf } from '@nostr-post/core/comments';
 import { filterLatestAddressableEvents } from '@nostr-post/core/nip33';
 import {
   type NostrPostManifest,
@@ -23,10 +24,6 @@ export const addressOf = (event: SignedEvent): string | undefined => {
     : undefined;
 };
 
-/** The address a reply's `a` root tag names, if it has one */
-const getRootAddress = (event: SignedEvent): string | undefined =>
-  event.tags.find((tag) => tag[0] === 'a' && tag[3] === 'root')?.[1];
-
 export interface FeedThread {
   root: SignedEvent;
   replies: SignedEvent[];
@@ -49,7 +46,8 @@ const getRootTagValue = (event: SignedEvent): string | undefined => {
 
 const isReactionEvent = (event: SignedEvent): boolean => event.kind === 7;
 
-const isReplyEvent = (event: SignedEvent): boolean => event.kind === 1 && !!getRootTagValue(event);
+/** A kind-1 reply or a NIP-22 comment (`commentRootOf`) */
+const isReplyEvent = (event: SignedEvent): boolean => commentRootOf(event) !== undefined;
 
 const insertUniqueEvent = (events: SignedEvent[], nextEvent: SignedEvent): SignedEvent[] => {
   if (events.some((event) => event.id === nextEvent.id)) return events;
@@ -72,8 +70,9 @@ export const mergeUniqueEvents = (
 };
 
 export const buildReplyTarget = (event: SignedEvent, rootEvent?: SignedEvent): ReplyTarget => {
-  const resolvedRootId = getRootTagValue(event) ?? rootEvent?.id ?? event.id;
-  const rootAddress = addressOf(rootEvent ?? event) ?? getRootAddress(event);
+  const commentRoot = commentRootOf(event);
+  const resolvedRootId = commentRoot?.id ?? rootEvent?.id ?? event.id;
+  const rootAddress = addressOf(rootEvent ?? event) ?? commentRoot?.address;
   return {
     replyToEventId: event.id,
     replyToPubkey: event.pubkey,
@@ -115,10 +114,9 @@ export const buildThreads = (
     })
   );
   const currentRootId = (reply: SignedEvent): string | undefined => {
-    const rootId = getRootTagValue(reply);
-    if (rootId && primaryIds.has(rootId)) return rootId;
-    const address = getRootAddress(reply);
-    return address ? rootIdByAddress.get(address) : undefined;
+    const root = commentRootOf(reply);
+    if (root?.id && primaryIds.has(root.id)) return root.id;
+    return root?.address ? rootIdByAddress.get(root.address) : undefined;
   };
   const repliesByRoot = new Map<string, SignedEvent[]>();
   const reactionsByTarget = new Map<string, SignedEvent[]>();

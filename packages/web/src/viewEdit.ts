@@ -7,11 +7,11 @@
  * for the post's editors and shows as a suggestion otherwise.
  */
 
+import { commentTags, isAddressableKind } from '@nostr-post/core/comments';
 import type {
   DisplayableEvent,
   EventBundle,
   NostrPostManifest,
-  NostrTag,
   UnsignedNostrEvent,
 } from '@nostr-post/core/types';
 import type { TemplateResult } from 'lit';
@@ -68,8 +68,6 @@ export function renderEditButton(
     </button>
   `;
 }
-
-const isAddressableKind = (kind: number): boolean => kind >= 30000 && kind < 40000;
 
 const addressOf = (event: DisplayableEvent): string =>
   `${event.kind}:${event.pubkey}:${event.tags.find((t) => t[0] === 'd')?.[1] ?? ''}`;
@@ -150,19 +148,20 @@ export async function handleInlineEditSubmit(
 
   try {
     const relays = await getUserRelays();
+    // A kind-1 reply to a note, a NIP-22 comment on anything else; on an addressable event it
+    // follows the event to its next versions
+    const comment = commentTags({
+      rootEventId: eventId,
+      rootKind: originalEvent.kind,
+      rootPubkey: originalEvent.pubkey,
+      rootAddress: isAddressableKind(originalEvent.kind) ? addressOf(originalEvent) : undefined,
+    });
     const unsignedEvent: UnsignedNostrEvent = {
-      kind: 1,
+      kind: comment.kind,
       created_at: Math.floor(Date.now() / 1000),
       pubkey: '',
       content: updateContent,
-      tags: [
-        ['e', eventId, '', 'root'],
-        // An addressable event's comments follow it to its next versions
-        ...(isAddressableKind(originalEvent.kind)
-          ? [['a', addressOf(originalEvent), '', 'root'] as NostrTag]
-          : []),
-        ['p', originalEvent.pubkey],
-      ],
+      tags: comment.tags,
     };
     await signAndPublish(unsignedEvent, relays);
     onComposerClose();

@@ -276,7 +276,7 @@ Create and publish Nostr posts.
 - `exclude-fields`, `readonly-fields` - JSON arrays of field IDs
 - `extra-tags` - Extra tags added to the post
 - `default-format-id`, `hide-publish-format-selector` - Publish format choice
-- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address`, `show-reply-target`, `editable-reply-target` - Replies
+- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111), `show-reply-target`, `editable-reply-target` - Replies
 
 **Properties:**
 
@@ -367,10 +367,10 @@ Set `editable` to show an "Edit" button. The button's behaviour depends on the e
 
 | Event kind                    | Edit mechanism                                                                                                                                                                                                                                                                                                                                     |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Addressable** (30000–39999) | Opens an inline composer pre-filled with current values. For the event's author, on submit the component publishes a replacement event (NIP-33 overwrite). Anyone else's changes are published as an update comment, as for kind 1 (with the event's `a` tag, so it stays with the next versions): applied for the event's editors, a suggestion otherwise. |
+| **Addressable** (30000–39999) | Opens an inline composer pre-filled with current values. For the event's author, on submit the component publishes a replacement event (NIP-33 overwrite). Anyone else's changes are published as an update comment, a NIP-22 comment (kind 1111) naming the event's address, so it stays with the next versions: applied for the event's editors, a suggestion otherwise. |
 | **Kind 1**                    | Opens an inline composer pre-filled with current values. On submit the component publishes a kind-1 _update-comment_ reply in the format `update:{fieldId}:{value}` (one changed field per line). The view applies these comments client-side so the post appears updated, while the comment remains visible as plain text in other Nostr clients. |
 
-Update comments apply when the event's editors wrote them (`eventEditors`): its author, the people it names in `p` tags with an editor role (`host`, `co-host`, `organizer`, `editor`, as NIP-52 events list organizers), and the view's `trustedEditors` (e.g. the maintainer of the calendar an agenda shows). Others' update comments are suggested changes (`suggestedUpdates`): the view lists them with who suggested what, and each viewer can show the event with one applied ("Show with this change", only for them, nothing is published; `applyUpdateCommentsToEvent`'s `accepted`). Comments on addressable events also carry the event's address (`["a", address, "", "root"]`; the composer's `root-address`), so they stay with the event when it's republished.
+Update comments apply when the event's editors wrote them (`eventEditors`): its author, the people it names in `p` tags with an editor role (`host`, `co-host`, `organizer`, `editor`, as NIP-52 events list organizers), and the view's `trustedEditors` (e.g. the maintainer of the calendar an agenda shows). Others' update comments are suggested changes (`suggestedUpdates`): the view lists them with who suggested what, and each viewer can show the event with one applied ("Show with this change", only for them, nothing is published; `applyUpdateCommentsToEvent`'s `accepted`). Comments on a note are kind-1 replies (NIP-10); on any other event NIP-22 comments (kind 1111), which on an addressable event name its address (`A`; the composer's `root-address`), so they stay with the event when it's republished. See [NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md#comments).
 
 When the user clicks "Edit", a cancelable `nostr-post-edit-request` CustomEvent is dispatched:
 
@@ -464,7 +464,7 @@ Display a feed of Nostr events. Filters go straight into the relay `REQ` (see
 - `filter-tags` - Tag filters as a string (e.g. `"#g:u09tvw"`); `tagFilters` takes an object
 - `manifest-ref` - Address of a published manifest to render posts with
 - `show-tags` (or `show-kind`) - Show each post's collapsed "All data" section
-- `comments-enabled`, `reactions-enabled` - Standard kind 1 comments and reactions
+- `comments-enabled`, `reactions-enabled` - Comments (kind-1 replies to notes, NIP-22 comments on other kinds) and reactions
 - `exclude-fields` - JSON array of field IDs to hide
 - `editable` - Edit button on the author's addressable posts
 
@@ -1304,7 +1304,7 @@ Search and select venues (wraps geo, adds OSM integration).
 **Tag Format:**
 
 - Location: `["g", "u09tvw"]` + NIP-52 prefixes
-- Identity: `["i", "osm:node:12345", ""]` (NIP-73 external ID)
+- Identity: `["i", "osm:node:12345", ""]` (`i` tag; `osm:` is our namespace, not NIP-73)
 - Address: `["location", "123 Main St, City"]`
 
 **Features:**
@@ -1538,7 +1538,7 @@ export const venue = {
 | **NIP-07** | Nostr Sign-in Flow        | Full - Browser extension signing              |
 | **NIP-23** | Kind 30023 (Long-form)    | Full - Article/Blog posting                   |
 | **NIP-52** | Relay Hints with Geohash  | Full - Geo plugin emits prefix tags           |
-| **NIP-73** | External Identity         | Full - Venue plugin uses `i` tags for OSM IDs |
+| **NIP-73** | External Identity         | Partial - `iso3166:` and URLs; OSM IDs use our own `osm:` namespace, no `k` tags |
 | **NIP-78** | Application-Specific Data | Full - Manifest storage & discovery           |
 | **NIP-98** | HTTP File Server Auth     | Full - Media plugin uses for nostr.build      |
 

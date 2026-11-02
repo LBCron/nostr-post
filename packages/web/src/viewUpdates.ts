@@ -20,6 +20,7 @@ export {
   UPDATE_COMMENT_PATTERN,
 } from '@nostr-post/core/eventUpdates';
 
+import { isCommentKind } from '@nostr-post/core/comments';
 import {
   isUpdateComment,
   parseUpdateComment,
@@ -52,7 +53,7 @@ export const renderUpdateComments = (
   // applyUpdateCommentsToEvent.
   const updates: { fieldId: string; rawValue: string }[] = [];
   for (const e of interactionEvents) {
-    if (e.kind !== 1 || !editors.has(e.pubkey) || !isUpdateComment(e.content)) continue;
+    if (!isCommentKind(e.kind) || !editors.has(e.pubkey) || !isUpdateComment(e.content)) continue;
     for (const line of e.content.split('\n')) {
       const parsed = parseUpdateComment(line);
       if (parsed) updates.push(parsed);

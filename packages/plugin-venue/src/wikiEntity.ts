@@ -96,7 +96,7 @@ export function mergeOsmFields(
   return merged;
 }
 
-/** External identifiers of a venue as NIP-73 `i` values */
+/** External identifiers of a venue as `i` values (`osm:`, `gplace:`, `gcid:`: our namespaces) */
 /**
  * Whether the field always creates/updates the venue's page: the manifest requires it
  * (`metadata.requirePage`), or the post has nothing else for the venue (`linkOnly`: only the

@@ -1,3 +1,4 @@
+import { COMMENT_KIND } from '@nostr-post/core/comments';
 import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import type { FetchFilter } from '@nostr-post/signer';
@@ -190,11 +191,16 @@ export const interactionFilters = (
   const ids = events.map((event) => event.id);
   if (ids.length === 0) return [];
   const addresses = events.flatMap((event) => addressOf(event) ?? []);
+  // Other events that aren't notes get NIP-22 comments by id
+  const otherIds = events.filter((e) => e.kind !== 1 && !addressOf(e)).map((e) => e.id);
   const limit = Math.max(ids.length * 10, 50);
   const filters: FetchFilter[] = [];
   if (options.comments) {
+    // Kind-1 replies to notes (NIP-10)
     filters.push({ kinds: [1], '#e': ids, limit });
-    if (addresses.length > 0) filters.push({ kinds: [1], '#a': addresses, limit });
+    // NIP-22 comments on any version of an addressable event
+    if (addresses.length > 0) filters.push({ kinds: [COMMENT_KIND], '#A': addresses, limit });
+    if (otherIds.length > 0) filters.push({ kinds: [COMMENT_KIND], '#E': otherIds, limit });
   }
   if (options.reactions) filters.push({ kinds: [7], '#e': ids, limit });
   return filters;

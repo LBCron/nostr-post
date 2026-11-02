@@ -223,9 +223,10 @@ Built on standardized Nostr Improvement Proposals:
 | ---------- | ------------------------- | ----------------------------- |
 | **NIP-01** | Base protocol             | All events build on this      |
 | **NIP-07** | Browser extension signing | `window.nostr.signEvent()`    |
+| **NIP-22** | Comments (kind 1111)      | Comments on events other than notes |
 | **NIP-23** | Kind 30023 (articles)     | Long-form content             |
 | **NIP-52** | Geohash prefix tags       | Relay-side location filtering |
-| **NIP-73** | External identity tags    | OSM place IDs                 |
+| **NIP-73** | External identity tags    | Countries, profile URLs; OSM IDs in our own `osm:` namespace ([conventions](./NOSTR_CONVENTIONS.md)) |
 | **NIP-78** | Manifest storage          | Kind 30078 structured data    |
 | **NIP-98** | HTTP file server auth     | nostr.build upload            |
 
@@ -367,7 +368,7 @@ Tag values the text already shows (`r` URLs, `t` hashtags) aren't repeated below
 
 `<nostr-post-composer>` extended reply context API:
 
-- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: replies get its `a` tag too)
+- `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111, naming it by address)
 - `show-reply-target` to show current reply target
 - `editable-reply-target` to allow editing reply target directly in the composer
 
@@ -562,6 +563,7 @@ nostr-post/
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Comprehensive guide for contributors
 - **[Architecture](./ARCHITECTURE.md)** - System design and technical architecture
 - **[Plugins](./PLUGINS.md)** - Creating and using custom plugins
+- **[Nostr Conventions](./NOSTR_CONVENTIONS.md)** - Our tags and formats beyond the NIPs
 
 ## 🎯 Roadmap
 
@@ -600,6 +602,7 @@ pnpm format
 | **[PLUGINS.md](./PLUGINS.md)**                     | Creating custom UI plugins                                           |
 | **[INTEGRATION.md](./INTEGRATION.md)**             | Using in other projects, Vercel deployment, venue review app example |
 | **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)**     | Technical implementation summary                                     |
+| **[NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md)** | Our tags and formats beyond the NIPs, and what other clients see     |
 
 ## 🤝 Contributing
 

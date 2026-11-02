@@ -221,6 +221,20 @@ export const withTags = (bundle: EventBundle, tags: [string, ...string[]][]): Ev
 // Sign-and-publish bundle
 // ---------------------------------------------------------------------------
 
+type BundleEvent = EventBundle['events'][number];
+
+/** A bundle's events in signing order: a note (kind 1) first, so the others can link to it */
+export const bundleSigningOrder = (events: readonly BundleEvent[]): BundleEvent[] =>
+  [...events].sort((a, b) => Number(b.kind === 1) - Number(a.kind === 1));
+
+/**
+ * An event of a bundle (e.g. the kind-30078 copy of a note) linked to the bundle's first event:
+ * `["e", <id>]` without a NIP-10 marker, and never on a note, so no client shows it as a reply.
+ * `<nostr-post-view>` finds an event's copies by it (`#e`)
+ */
+export const linkToPrimary = (event: BundleEvent, primaryEventId: string): BundleEvent =>
+  event.kind === 1 ? event : { ...event, tags: [...event.tags, ['e', primaryEventId]] };
+
 export const signAndPublishBundle = async (
   bundle: EventBundle,
   relays: string[] | undefined
@@ -229,19 +243,11 @@ export const signAndPublishBundle = async (
   const signedEvents: SignedEvent[] = [];
   let primaryEventId: string | undefined;
 
-  for (let i = 0; i < bundle.events.length; i++) {
-    const unsignedEvent = bundle.events[i];
-
-    if (i > 0 && primaryEventId) {
-      unsignedEvent.tags = [...unsignedEvent.tags, ['e', primaryEventId, '', 'root']];
-    }
-
+  for (const event of bundleSigningOrder(bundle.events)) {
+    const unsignedEvent = primaryEventId ? linkToPrimary(event, primaryEventId) : event;
     const { signedEvent, publishResults } = await signAndPublish(unsignedEvent, resolvedRelays);
     signedEvents.push(signedEvent);
-
-    if (i === 0) {
-      primaryEventId = signedEvent.id;
-    }
+    primaryEventId ??= signedEvent.id;
 
     if (publishResults.success === 0) {
       throw new Error(

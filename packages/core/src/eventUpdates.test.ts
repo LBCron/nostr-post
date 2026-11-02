@@ -135,6 +135,18 @@ describe('applyUpdateCommentsToEvent', () => {
     expect(result.content).toBe('new review');
   });
 
+  it('applies an update comment that is a NIP-22 comment (kind 1111)', () => {
+    const event = makeEvent({ content: 'old review' });
+    const ie = interactionEvent('update:review:new review', { kind: 1111 });
+    expect(applyUpdateCommentsToEvent(event, MANIFEST, [ie]).content).toBe('new review');
+  });
+
+  it('ignores update lines in events that are not comments', () => {
+    const event = makeEvent({ content: 'old review' });
+    const ie = interactionEvent('update:review:new review', { kind: 30023 });
+    expect(applyUpdateCommentsToEvent(event, MANIFEST, [ie]).content).toBe('old review');
+  });
+
   it('applies a tag update from a same-author update comment', () => {
     const event = makeEvent({ tags: [['rating', '3']] });
     const ie = interactionEvent('update:rating:5');

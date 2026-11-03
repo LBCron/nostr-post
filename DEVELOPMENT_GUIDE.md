@@ -371,6 +371,16 @@ pnpm format
 pnpm typecheck
 ```
 
+### 4. Continuous Integration and Dependency Updates
+
+- **CI** (`.github/workflows/ci.yml`): every pull request and every push to `main` runs
+  `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm build`, `pnpm typecheck`, `pnpm test` and
+  `pnpm test:e2e`. Run the same before pushing.
+- **Dependabot** (`.github/dependabot.yml`): weekly PRs for npm updates of the root and every
+  workspace (minor and patch updates grouped into one PR, a PR per major update), monthly for the
+  workflows' actions; labelled `dependencies`. CI checks each. Security alerts and security-fix PRs
+  are switched on in the repository settings (Code security).
+
 ## Manifest Examples
 
 ### Example 1: Restaurant Review

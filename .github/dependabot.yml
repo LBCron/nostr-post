@@ -1,0 +1,37 @@
+# Dependency updates. Security alerts and security-fix PRs are switched on in the repository
+# settings (Code security); this file adds regular version updates.
+version: 2
+updates:
+  # npm packages of the root and every pnpm workspace (pnpm-workspace.yaml)
+  - package-ecosystem: npm
+    directories:
+      - "/"
+      - "/packages/*"
+      - "/examples/*"
+      - "/tools/*"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    labels: [dependencies]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Minor and patch updates together, in one PR a week; majors get a PR each
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Workspace packages depend on each other with workspace:*
+      - dependency-name: "@nostr-post/*"
+
+  # Actions used by the workflows
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels: [dependencies]
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        patterns: ["*"]

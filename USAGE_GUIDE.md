@@ -464,7 +464,7 @@ Display a feed of Nostr events. Filters go straight into the relay `REQ` (see
 - `filter-tags` - Tag filters as a string (e.g. `"#g:u09tvw"`); `tagFilters` takes an object
 - `manifest-ref` - Address of a published manifest to render posts with
 - `show-tags` (or `show-kind`) - Show each post's collapsed "All data" section
-- `comments-enabled`, `reactions-enabled` - Comments (kind-1 replies to notes, NIP-22 comments on other kinds) and reactions
+- `comments-enabled`, `reactions-enabled` - Comments (kind-1 replies to notes, NIP-22 comments on other kinds) and reactions (NIP-25, with `k` and, on addressable events, `a`)
 - `exclude-fields` - JSON array of field IDs to hide
 - `editable` - Edit button on the author's addressable posts
 

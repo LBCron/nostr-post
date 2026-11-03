@@ -2,7 +2,7 @@ import { STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
 import { describe, expect, it } from 'vitest';
 import { applyReplyTargetToBundle, buildReply, buildReplyTags } from './composerReply';
 import { buildFeedFilters, interactionFilters } from './feedData';
-import { buildReplyTarget, buildThreads } from './feedStandard';
+import { buildReactionEvent, buildReplyTarget, buildThreads } from './feedStandard';
 import type { SignedEvent } from './signer';
 
 const author = 'b'.repeat(64);
@@ -95,11 +95,38 @@ describe('comments on addressable events', () => {
     expect(thread?.replies.map((r) => r.id)).toEqual([comment.id]);
   });
 
-  it('fetches comments by id and by address', () => {
+  it('fetches comments and reactions by id and by address', () => {
     expect(interactionFilters([v2], { comments: true, reactions: true })).toEqual([
       { kinds: [1], '#e': [v2.id], limit: 50 },
       { kinds: [1111], '#A': [address], limit: 50 },
       { kinds: [7], '#e': [v2.id], limit: 50 },
+      { kinds: [7], '#a': [address], limit: 50 },
     ]);
+  });
+
+  it('a reaction names the kind and, on an addressable event, its address (NIP-25)', () => {
+    expect(buildReactionEvent(v1, '+', 'c'.repeat(64)).tags).toEqual([
+      ['e', v1.id],
+      ['p', author],
+      ['a', address],
+      ['k', '31922'],
+    ]);
+    const note = sign({ ...v1, id: '4'.repeat(64), kind: 1, tags: [] });
+    expect(buildReactionEvent(note, '+', 'c'.repeat(64)).tags).toEqual([
+      ['e', note.id],
+      ['p', author],
+      ['k', '1'],
+    ]);
+  });
+
+  it('counts a reaction to an earlier version for the current one, once', () => {
+    const like = sign({
+      ...buildReactionEvent(v1, '+', 'c'.repeat(64)),
+      id: '6'.repeat(64),
+      pubkey: 'c'.repeat(64),
+    });
+    const [thread] = buildThreads([v1, v2], [like, like]);
+    expect(thread?.root.id).toBe(v2.id);
+    expect(thread?.reactions.map((r) => r.id)).toEqual([like.id]);
   });
 });

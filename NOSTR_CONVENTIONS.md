@@ -53,8 +53,10 @@ IDs. We also write our own namespaces:
 | `wikidata:Q<id>`             | venue field (cities, countries) | A Wikidata item                                        |
 | `<prefix>:<id>`              | `identifier` field            | Any prefix a manifest sets (`metadata.prefix`), e.g. the examples' `gtin`, `ean`, `upc`, `asin` |
 
-NIP-73 also asks for a `k` tag with each `i` tag (`["k", "isbn"]`); we don't write them yet
-([#63](https://github.com/saintego/nostr-post/issues/63)).
+Each kind of `i` tag on an event also gets NIP-73's `k` tag (`@nostr-post/core/nip73`): a URL is
+`web`, a hashtag `#`, any other ID its prefix (`iso3166:CZ` → `iso3166`), our own namespaces
+included (`osm:node:123` → `osm:node`, `gcid:…` → `gcid`). Posts get them from the coordinator,
+wiki pages from `manifestToWikiEvent` and the venue hub.
 
 Geohashes are `g` tags with every prefix (`u2fk`, `u2fkb`, …), as NIP-52 suggests, on kind 1 and
 wiki pages too.
@@ -112,6 +114,13 @@ Standard (`@nostr-post/core/comments`):
 - On anything else (calendar events, wiki pages, kind-30078 posts): NIP-22 comments (kind 1111). On
   an addressable event the root is its address (`A`), so comments stay with it when it's republished
   as a new version, and the feed asks for `#A`.
+
+## Reactions (NIP-25)
+
+Standard: kind 7 with the reacted event's `e`, `p` and kind (`k`), and on an addressable event its
+address (`a`), so likes stay with it when it's republished; the feed asks for `#a` too and counts
+likes on earlier versions for the current one. Likes we published before have no `a` or `k` tag:
+they stay with the version they liked.
 
 ## Lists (NIP-51)
 

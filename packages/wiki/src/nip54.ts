@@ -1,5 +1,6 @@
 import { parse, renderDjot } from '@djot/djot';
 import { fieldOptionLabel, matchFieldOption } from '@nostr-post/core/enumOptions';
+import { withExternalIdKinds } from '@nostr-post/core/nip73';
 import { manifestLabelTags } from '@nostr-post/core/nip78';
 import type {
   NostrPostManifest,
@@ -312,10 +313,11 @@ export function manifestToWikiEvent(
   return {
     kind: WIKI_KIND,
     created_at: config.createdAt ?? Math.floor(Date.now() / 1000),
-    tags: [
+    // NIP-73: a `k` tag per kind of the page's `i` tags
+    tags: withExternalIdKinds([
       ['d', dTag],
       ...uniqueTags([...parts.tags.filter((t) => t[0] !== 'd'), ...manifestTags(manifest, config)]),
-    ],
+    ]),
     content: [tablePart, prosePart].filter(Boolean).join('\n\n'),
     pubkey: config.pubkey ?? '',
   };

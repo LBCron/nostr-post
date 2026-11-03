@@ -538,7 +538,7 @@ const articleManifest: NostrPostManifest = {
 - [x] Example Next.js app
 - [x] Example React (Vite) app
 
-Open work is tracked in [ROADMAP.md](./ROADMAP.md).
+Open work is tracked in [GitHub Issues](https://github.com/saintego/nostr-post/issues).
 
 ## Key Design Decisions
 
@@ -558,7 +558,7 @@ Open work is tracked in [ROADMAP.md](./ROADMAP.md).
 
 ## Next Steps
 
-See [ROADMAP.md](./ROADMAP.md).
+See the open [GitHub Issues](https://github.com/saintego/nostr-post/issues).
 
 ---
 

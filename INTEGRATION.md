@@ -625,7 +625,7 @@ content: {
 - [x] Geohash with NIP-52 prefix tags (relay filtering)
 - [x] OSM venue identity via NIP-73 tags
 
-Open items are tracked in [ROADMAP.md](./ROADMAP.md#venue-reviews-from-integrationmd).
+Open items are tracked in [GitHub Issues](https://github.com/saintego/nostr-post/issues?q=is%3Aopen+label%3Avenue-reviews) (label `venue-reviews`).
 
 ---
 

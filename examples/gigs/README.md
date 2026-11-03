@@ -67,4 +67,4 @@ The code is in `src/`:
 
 Everything else comes from the packages. Run it with `pnpm --filter gigs dev`, or as in PR
 previews with `pnpm preview:pages` and open `/examples/gigs/`. Planned work is in
-[ROADMAP.md](../../ROADMAP.md) ("Gig platform example").
+[#60](https://github.com/saintego/nostr-post/issues/60) ("Gig platform example") and its sub-issues.

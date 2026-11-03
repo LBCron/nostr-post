@@ -13,7 +13,7 @@ The package has two entry points:
   components (`<np-list-save>`, `<np-list-view>` and the list field's input), built on the logic.
 
 Using only the logic, you never import `/web`. (Lit is still installed with the package as a
-dependency; making it optional is on the [roadmap](../../ROADMAP.md).)
+dependency; making it optional is [#225](https://github.com/saintego/nostr-post/issues/225).)
 
 ## What it does
 

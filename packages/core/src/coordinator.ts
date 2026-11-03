@@ -18,6 +18,7 @@ import {
   isStructuredContentKind,
   type ResolvedPostField,
 } from './manifestMappings';
+import { withExternalIdKinds } from './nip73';
 import { manifestLabelTags } from './nip78';
 import { plainTextContent, refAddresses, structuredContentValue } from './postRoles';
 import type {
@@ -277,7 +278,8 @@ const createEventForKind = (
   return {
     kind,
     created_at: config.createdAt || Math.floor(Date.now() / 1000),
-    tags: dedupeTags(tags),
+    // NIP-73: a `k` tag per kind of the event's `i` tags (e.g. a venue's `iso3166:CZ`)
+    tags: withExternalIdKinds(dedupeTags(tags)),
     content,
     pubkey: config.pubkey || '',
   };

@@ -202,6 +202,10 @@ export const interactionFilters = (
     if (addresses.length > 0) filters.push({ kinds: [COMMENT_KIND], '#A': addresses, limit });
     if (otherIds.length > 0) filters.push({ kinds: [COMMENT_KIND], '#E': otherIds, limit });
   }
-  if (options.reactions) filters.push({ kinds: [7], '#e': ids, limit });
+  if (options.reactions) {
+    filters.push({ kinds: [7], '#e': ids, limit });
+    // NIP-25 reactions to any version of an addressable event
+    if (addresses.length > 0) filters.push({ kinds: [7], '#a': addresses, limit });
+  }
   return filters;
 };

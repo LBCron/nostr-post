@@ -82,11 +82,16 @@ export const buildReplyTarget = (event: SignedEvent, rootEvent?: SignedEvent): R
   };
 };
 
+/**
+ * A reaction (NIP-25, kind 7) to `event`: `e` and `p`, the reacted event's kind (`k`) and, for an
+ * addressable event, its address (`a`), so the reaction stays with it across its versions
+ */
 export const buildReactionEvent = (
   event: SignedEvent,
   reaction: string,
   pubkey: string
 ): UnsignedNostrEvent => {
+  const address = addressOf(event);
   return {
     kind: 7,
     created_at: Math.floor(Date.now() / 1000),
@@ -95,8 +100,34 @@ export const buildReactionEvent = (
     tags: [
       ['e', event.id],
       ['p', event.pubkey],
+      ...(address ? [['a', address] as [string, string]] : []),
+      ['k', String(event.kind)],
     ],
   };
+};
+
+/** Adds `event` to the list under `key`, once */
+const addOnce = (
+  lists: Map<string, SignedEvent[]>,
+  key: string | undefined,
+  event: SignedEvent
+): void => {
+  if (!key) return;
+  const list = lists.get(key) ?? [];
+  if (!list.some((e) => e.id === event.id)) list.push(event);
+  lists.set(key, list);
+};
+
+/** The current version a reaction is for: its `e` event, else the event its `a` address names now */
+const reactionTargetId = (
+  reaction: SignedEvent,
+  primaryIds: ReadonlySet<string>,
+  rootIdByAddress: ReadonlyMap<string, string>
+): string | undefined => {
+  const id = getFirstTagValue(reaction, 'e');
+  if (id && primaryIds.has(id)) return id;
+  const address = getFirstTagValue(reaction, 'a');
+  return (address && rootIdByAddress.get(address)) || id;
 };
 
 export const buildThreads = (
@@ -123,23 +154,11 @@ export const buildThreads = (
 
   for (const event of allEvents) {
     if (isReactionEvent(event)) {
-      const targetId = getFirstTagValue(event, 'e');
-      if (!targetId) continue;
-      const reactions = reactionsByTarget.get(targetId) ?? [];
-      reactions.push(event);
-      reactionsByTarget.set(targetId, reactions);
-      continue;
-    }
-
-    if (!isReplyEvent(event)) continue;
-
-    const rootId = currentRootId(event);
-    if (!rootId || rootId === event.id) continue;
-
-    const replies = repliesByRoot.get(rootId) ?? [];
-    if (!replies.some((reply) => reply.id === event.id)) {
-      replies.push(event);
-      repliesByRoot.set(rootId, replies);
+      // A reaction to an earlier version of an addressable event counts for the current one
+      addOnce(reactionsByTarget, reactionTargetId(event, primaryIds, rootIdByAddress), event);
+    } else if (isReplyEvent(event)) {
+      const rootId = currentRootId(event);
+      if (rootId !== event.id) addOnce(repliesByRoot, rootId, event);
     }
   }
 

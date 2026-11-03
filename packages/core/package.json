@@ -70,6 +70,10 @@
       "types": "./dist/textNormalize.d.ts",
       "import": "./dist/textNormalize.js"
     },
+    "./nip73": {
+      "types": "./dist/nip73.d.ts",
+      "import": "./dist/nip73.js"
+    },
     "./comments": {
       "types": "./dist/comments.d.ts",
       "import": "./dist/comments.js"

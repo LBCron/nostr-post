@@ -3,6 +3,7 @@
  * the post to it. Used by the venue plugin's beforePublish hook.
  */
 
+import { withExternalIdKinds } from '@nostr-post/core/nip73';
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import { fetchEvents, getPublishRelays, publishToRelays, signEvent } from '@nostr-post/signer';
 import {
@@ -189,10 +190,10 @@ export async function syncVenueEntity(venue: VenueData, field: PostField): Promi
   const manifestRef = typeof ref === 'string' && ref.startsWith('30078:') ? ref : undefined;
   const unsigned = manifestToWikiEvent(manifest, data, { dTag, title, manifestRef });
   // Hub tags: identifiers, area, address, OSM attribution with the synced version
-  unsigned.tags = addMissingTags(unsigned.tags as Tag[], [
-    ...venueEntityTags(venue, osm),
-    ...keepTags,
-  ]);
+  // NIP-73: the `k` tags of the hub's `i` tags too
+  unsigned.tags = withExternalIdKinds(
+    addMissingTags(unsigned.tags as Tag[], [...venueEntityTags(venue, osm), ...keepTags])
+  );
 
   const signed = await signEvent(unsigned);
   const results = await publishToRelays(signed, await getPublishRelays(signed.pubkey, relays));

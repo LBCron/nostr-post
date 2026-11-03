@@ -1,3 +1,8 @@
+> **Obsolete.** Work is tracked in [GitHub Issues](https://github.com/saintego/nostr-post/issues) now. Every item below is an issue
+> labelled [`roadmap`](https://github.com/saintego/nostr-post/issues?q=label%3Aroadmap) (done items closed, nested items as sub-issues).
+> This file is kept for a while in case an item was missed or imported wrongly, and isn't updated
+> anymore; deleting it is [#251](https://github.com/saintego/nostr-post/issues/251).
+
 ## 🎯 Roadmap
 
 ### Phase 1: Core Engine

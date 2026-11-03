@@ -567,7 +567,7 @@ nostr-post/
 
 ## 🎯 Roadmap
 
-See [ROADMAP.md](./ROADMAP.md) for the full feature plan and status checklist.
+Planned and finished work is tracked in [GitHub Issues](https://github.com/saintego/nostr-post/issues).
 
 ## 🚀 Getting Started
 

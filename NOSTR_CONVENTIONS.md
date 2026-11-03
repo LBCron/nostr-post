@@ -54,7 +54,7 @@ IDs. We also write our own namespaces:
 | `<prefix>:<id>`              | `identifier` field            | Any prefix a manifest sets (`metadata.prefix`), e.g. the examples' `gtin`, `ean`, `upc`, `asin` |
 
 NIP-73 also asks for a `k` tag with each `i` tag (`["k", "isbn"]`); we don't write them yet
-([ROADMAP.md](./ROADMAP.md)).
+([#63](https://github.com/saintego/nostr-post/issues/63)).
 
 Geohashes are `g` tags with every prefix (`u2fk`, `u2fkb`, …), as NIP-52 suggests, on kind 1 and
 wiki pages too.
@@ -124,7 +124,7 @@ lists created by name, or a manifest's fixed `dTag`. Other clients show them as 
 - **`D` tags on all-day events (31922):** one per day, as on timed events, so a `#D` query finds
   both kinds. NIP-52 defines `D` only for timed events (31923); other clients ignore the extra tags.
   Other clients' all-day events have no `D` tags, so a date query doesn't find them
-  ([ROADMAP.md](./ROADMAP.md)).
+  (calendars name them instead, [#81](https://github.com/saintego/nostr-post/issues/81)).
 - **d-tag `ics:<UID>`** for events imported from iCalendar, so importing the same file again
   updates them instead of adding copies.
 - **RSVP (31925) d-tag:** the calendar event's address, so one RSVP per person and event; NIP-52

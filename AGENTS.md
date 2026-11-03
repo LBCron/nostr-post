@@ -12,14 +12,14 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
 ### Files
 
 - Keep source files under 500 lines. When a change would push a file over, split it into
-  focused modules first. Files already over the limit are tracked in ROADMAP.md: don't grow them.
+  focused modules first. Files already over the limit are tracked in issues: don't grow them.
 
 ### File names
 
 - Files are camelCase: `composerField.ts`, `enumOptions.test.ts`, `beerStyleBjcp2021.json`.
 - React components are PascalCase, named after the component: `OptionsEditor.tsx`.
 - Tool config files keep their tool's name (`vitest.config.ts`, `next.config.js`).
-- Kebab-case source files from before this rule are listed in ROADMAP.md for renaming; name new
+- Kebab-case source files from before this rule are listed in an issue for renaming; name new
   files next to them in camelCase.
 
 ### Exports
@@ -126,27 +126,36 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
   of the manifest and of each field, not in a README.
 - When a change alters behaviour a doc describes, fix that doc. Don't add new docs for it;
   extend the existing one.
-- Docs describe what exists. Planned work goes to ROADMAP.md.
+- Docs describe what exists. Planned work goes to GitHub Issues.
 
-## Look ahead with ROADMAP.md
+## Look ahead with GitHub Issues
 
-- Before starting a change, read the ROADMAP.md items it touches or that build on the same code.
-- If an open item would need a different data model, API or file layout than the simplest version
+Open work is tracked in the repository's [GitHub Issues](https://github.com/saintego/nostr-post/issues):
+one issue per piece of work, labels for the area (`core`, `domains`, `wiki`, `venue-reviews`,
+`tooling`), sub-issues for the parts of a larger item.
+
+- Before starting a change, read the open issues it touches or that build on the same code
+  (search the issues, and the sub-issues of the area's larger items).
+- If an open issue would need a different data model, API or file layout than the simplest version
   of your change, say so before building: offer the future-ready version (what it prepares, what it
   costs now) or the simple one, and let the user choose. Don't silently build either.
 - When the future-ready version costs little (a field name, a parameter, a module boundary), prepare
-  it and mention which item it prepares.
+  it and mention which issue it prepares.
 
-## Keep ROADMAP.md in sync
+## Keep the issues in sync
 
-ROADMAP.md is the single list of open work. Other docs (DEVELOPMENT_GUIDE.md, INTEGRATION.md,
-READMEs) link to it instead of keeping their own TODO lists.
+GitHub Issues are the single list of open work. Docs (DEVELOPMENT_GUIDE.md, INTEGRATION.md,
+READMEs) link to issues instead of keeping their own TODO lists. ROADMAP.md is obsolete: kept for
+a while as the record from before issues (its items are the issues labelled `roadmap`), not
+updated anymore.
 
-- When a change completes a roadmap item, check it off (`- [x]`) in the same commit.
-- When a change completes part of an item, update the item's text to say what's left.
-- When you find new work (a bug you didn't fix, a follow-up, a TODO comment you add),
-  add it to the fitting ROADMAP.md section rather than to another doc.
-- Don't delete finished items; checked items record what's done.
+- A PR that completes an issue says `Closes #<number>` in its description, so merging closes it.
+- When a change completes part of an issue, comment on the issue (or edit it) to say what's left.
+- When you find new work (a bug you didn't fix, a follow-up, a TODO comment you add), open an issue
+  for it, with the area's label (a sub-issue of the larger item it belongs to), rather than adding
+  it to a doc; a TODO comment names the issue (`TODO(#123)`). Ask the user before opening issues
+  outside the change at hand.
+- Don't delete issues; closed ones record what's done.
 
 ## Commits
 

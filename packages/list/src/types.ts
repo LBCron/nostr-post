@@ -22,7 +22,7 @@ export interface ListEvent {
 /**
  * Something saved in a list: an `a` tag (an addressable event, e.g. a wiki entity
  * `30818:<pubkey>:<d-tag>`) or an `e` tag (an event id).
- * Private (encrypted) items aren't read yet; see ROADMAP.md.
+ * Private (encrypted) items aren't read yet; see issue #34.
  */
 export interface ListItem {
   tag: 'a' | 'e';

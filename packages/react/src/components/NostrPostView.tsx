@@ -18,6 +18,8 @@ interface NostrPostViewElement extends HTMLElement {
   showTags?: boolean;
   showId?: boolean;
   editable?: boolean;
+  hideMenu?: boolean;
+  menuMessages?: Partial<import('@nostr-post/web').PostMenuMessages>;
   excludeFields?: string[];
 }
 
@@ -54,6 +56,10 @@ export interface NostrPostViewProps {
   showId?: boolean;
   /** Show Edit button for addressable events (kinds 30000-39999) */
   editable?: boolean;
+  /** Without the "⋯" menu (copy npub, naddr/nevent, JSON; raw data) */
+  hideMenu?: boolean;
+  /** Overrides of the "⋯" menu's text (e.g. translations) */
+  menuMessages?: Partial<import('@nostr-post/web').PostMenuMessages>;
   /** Called when the user clicks Edit on an addressable event */
   onEditRequest?: (event: SignedEvent, dTag: string | undefined) => void;
   /** Field IDs to exclude from the rendered view */
@@ -78,6 +84,8 @@ export function NostrPostView({
   showTags = false,
   showId = false,
   editable = false,
+  hideMenu = false,
+  menuMessages,
   onEditRequest,
   excludeFields,
   className = '',
@@ -101,6 +109,8 @@ export function NostrPostView({
     element.showTags = showTags;
     element.showId = showId;
     element.editable = editable;
+    element.hideMenu = hideMenu;
+    element.menuMessages = menuMessages;
     element.excludeFields = excludeFields;
   }, [
     event,
@@ -111,6 +121,8 @@ export function NostrPostView({
     showTags,
     showId,
     editable,
+    hideMenu,
+    menuMessages,
     excludeFields,
   ]);
 

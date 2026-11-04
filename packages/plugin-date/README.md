@@ -39,8 +39,9 @@ relays can return them by day as well.
 | `datePlugin`                                | The plugin: `validate`, `serializeValue`, `extraTags`, `resolveFromTags`          |
 | `datePrecision(field, activeKinds?)`        | `'day'` or `'time'` for the kind the field writes                                 |
 | `calendarExtraTags(value, precision)`       | `end`, time zone and `D` tags of a calendar event                                 |
-| `dateValueFromTags(tags, tagName?)`         | A `DateValue` from an event's tags (`start`, `end`, `start_tzid`)                 |
-| `formatDateValue(value, locale?)`           | Text in the locale, e.g. `Oct 21, 2026, 7:00 PM – 9:00 PM`                         |
+| `dateValueFromTags(tags, tagName?)`         | A `DateValue` from an event's tags (`start`, `end`, `start_tzid`); a timed event without `start_tzid` gets no `tzid` (read in the viewer's zone) |
+| `formatDateValue(value, locale?)`           | Text in the locale, in the value's own zone, e.g. `Oct 21, 2026, 7:00 PM – 9:00 PM` |
+| `dateDisplay(value, { locale?, viewerZone? })`, `formatValueIn(value, locale?, zone?)` | How a value reads: in its own zone (`zone`), plus `viewerText` (the viewer's time) when theirs is another; `inViewerZone` for a timed value without a zone |
 | `dayNumbers(value, precision)`              | The `D` tag values                                                                |
 | `wallToUnix(wall, tzid)`, `unixToWall(unix, tzid)` | Wall-clock time ↔ unix seconds in a time zone (DST aware, `Intl` only)    |
 | `valueTimeZone(value)`, `defaultTimeZone()`, `isValidTimeZone(tzid)`, `timeZones()` | Time zone helpers; `timeZones()` lists the zones the runtime knows |
@@ -63,6 +64,9 @@ loads it by itself for manifests with `uiPlugin: 'date'`.
   optional end that can't be set before the start (`min`, and a message while it is), `.error`
   (the composer's error; the input's own message hides while it shows). Dispatches
   `np-value-changed`.
-- `<np-date-view>`: the value in the viewer's locale, with the time zone of timed values.
+- `<np-date-view>`: the value in the viewer's locale. A timed value reads in its own zone (an
+  event's `start_tzid`: the venue's time for every reader), labelled with it, and "Your time: …"
+  below when the viewer's zone is another; a timed value without a zone reads in the viewer's,
+  labelled "your time" (`dateDisplay`).
 
 Both take `messages` (`Partial<DateMessages>`, defaults in `DEFAULT_DATE_MESSAGES`) for translations.

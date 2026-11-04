@@ -148,7 +148,7 @@ const geminiAnswer = (response: {
 
 /**
  * Asks Google Gemini (its key from Google AI Studio). The answer follows `gigSchema()` through
- * `responseJsonSchema`. A busy model (503, 429) is retried twice by the SDK, then the next of
+ * `responseJsonSchema`, with high thinking. A busy model (503, 429) is retried twice by the SDK, then the next of
  * `GEMINI_MODELS` is asked. A blocked prompt or answer throws with Gemini's reason.
  */
 export async function askGemini({
@@ -159,7 +159,10 @@ export async function askGemini({
   onStatus,
   models = GEMINI_MODELS,
 }: AskOptions & { models?: string[] }): Promise<string> {
-  const [{ GoogleGenAI }] = await Promise.all([import('@google/genai'), loadGigPlugins()]);
+  const [{ GoogleGenAI, ThinkingLevel }] = await Promise.all([
+    import('@google/genai'),
+    loadGigPlugins(),
+  ]);
   const client = new GoogleGenAI({
     apiKey,
     httpOptions: {
@@ -176,7 +179,12 @@ export async function askGemini({
       ],
     },
   ];
-  const config = { responseMimeType: 'application/json', responseJsonSchema: gigSchema() };
+  const config = {
+    responseMimeType: 'application/json',
+    responseJsonSchema: gigSchema(),
+    // The default thinking reads posts much worse (#262): as the chat app's "high"
+    thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
+  };
   let failure: unknown;
   for (const [i, model] of models.entries()) {
     if (i > 0) onStatus?.(`Gemini is busy, asking ${model}…`);

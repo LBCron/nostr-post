@@ -22,7 +22,6 @@ import {
   dayNumbers,
   defaultTimeZone,
   endsBeforeStart,
-  hasTime,
   isDateValue,
   isValidTimeZone,
   parseStoredAllDayEnd,
@@ -30,8 +29,8 @@ import {
   serializeAllDayEnd,
   serializeWall,
   valueTimeZone,
-  wallToUnix,
 } from './dateValue';
+import { formatValueIn } from './dateDisplay';
 
 /** NIP-52 date-based (all-day) calendar event */
 export const ALL_DAY_EVENT_KIND = 31922;
@@ -90,8 +89,12 @@ export const dateValueFromTags = (tags: string[][], tagName = 'start'): DateValu
   const rawStart = tagValue(tags, tagName);
   if (rawStart === undefined) return undefined;
   const allDay = !/^\d+$/.test(rawStart.trim());
-  const tzid = allDay ? undefined : (tagValue(tags, 'start_tzid') ?? defaultTimeZone());
-  const start = parseStoredDate(rawStart, tzid);
+  // A timed event without `start_tzid` (other clients may leave it out) has no zone: it reads in
+  // the viewer's, and says so (`dateDisplay`)
+  const ownZone = allDay ? undefined : tagValue(tags, 'start_tzid');
+  const tzid = ownZone && isValidTimeZone(ownZone) ? ownZone : undefined;
+  const readZone = allDay ? undefined : (tzid ?? defaultTimeZone());
+  const start = parseStoredDate(rawStart, readZone);
   if (!start) return undefined;
   const value: DateValue = tzid ? { start, tzid } : { start };
   const rawEnd = tagName === 'start' ? tagValue(tags, 'end') : undefined;
@@ -101,34 +104,13 @@ export const dateValueFromTags = (tags: string[][], tagName = 'start'): DateValu
       : allDay
         ? parseStoredAllDayEnd(rawEnd)
         : // Shown in the start's zone: the value has one time zone
-          parseStoredDate(rawEnd, tzid);
+          parseStoredDate(rawEnd, readZone);
   return end ? { ...value, end } : value;
 };
 
-const formatWall = (wall: string, tzid: string, locale?: string): string => {
-  if (!hasTime(wall)) {
-    const unix = wallToUnix(wall, 'UTC');
-    return unix === undefined
-      ? wall
-      : new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-          new Date(unix * 1000)
-        );
-  }
-  const unix = wallToUnix(wall, tzid);
-  return unix === undefined
-    ? wall
-    : new Intl.DateTimeFormat(locale, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        timeZone: tzid,
-      }).format(new Date(unix * 1000));
-};
-
-/** A value as text in the locale, e.g. "Oct 21, 2026, 7:00 PM – 9:00 PM" */
-export const formatDateValue = (value: DateValue, locale?: string): string => {
-  const start = formatWall(value.start, valueTimeZone(value), locale);
-  return value.end ? `${start} – ${formatWall(value.end, valueTimeZone(value), locale)}` : start;
-};
+/** A value as text in the locale, in its own zone, e.g. "Oct 21, 2026, 7:00 PM – 9:00 PM" */
+export const formatDateValue = (value: DateValue, locale?: string): string =>
+  formatValueIn(value, locale);
 
 const fieldError = (field: PostField, message: string, code: string): ValidationError => ({
   field: field.id,
@@ -204,7 +186,8 @@ export const datePlugin: NostrUIPlugin = {
       },
       tzid: {
         anyOf: [{ type: 'string' }, { type: 'null' }],
-        description: 'IANA time zone of the place, e.g. America/Bogota',
+        description:
+          "IANA time zone of the place, e.g. America/Bogota: from the place's city or country when the text doesn't name a zone",
       },
     },
     required: ['start', 'end', 'tzid'],

@@ -69,6 +69,12 @@ const { events } = await publishWithHooks({
 | `loadProfilesForEvents`, `authorDisplayName`, `displayNameForPubkey`, `truncatePubkey` | Author names |
 | `getUserRelays()`, `getDefaultRelays()` | The signed-in user's relays to publish to |
 
+## A post's raw data
+
+| Export | Does |
+| --- | --- |
+| `rawEventData(event, relays?)`, `RawEventData` | What a post's "⋯" menu copies and shows: the author's npub, kind, d tag, tags, an naddr (addressable) or nevent with relay hints, the relays it was found on (default: `relaysSeenOn`, `@nostr-post/signer`), the JSON and the signature |
+
 ## Editing with update comments
 
 | Export | Does |

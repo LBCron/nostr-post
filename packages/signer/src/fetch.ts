@@ -24,6 +24,17 @@ function matchesTagFilter(event: SignedEvent, key: string, values: unknown): boo
   return event.tags.some((t) => t[0] === key.slice(1) && wanted.includes(t[1]));
 }
 
+// Module state: where each fetched event was found, for relay hints and raw-data views
+const seenOn = new Map<string, string[]>();
+
+const noteSeenOn = (id: string, relayUrl: string) => {
+  const relays = seenOn.get(id) ?? [];
+  if (!relays.includes(relayUrl)) seenOn.set(id, [...relays, relayUrl]);
+};
+
+/** The relays an event was fetched from in this session, in the order it came; [] if none */
+export const relaysSeenOn = (id: string): string[] => seenOn.get(id) ?? [];
+
 /**
  * Fetch events from a single relay. Events that don't match any of the
  * filters are dropped (see matchesFilter). In dry-run mode, logged events
@@ -56,8 +67,9 @@ export function fetchEventsFromRelay(
       ws.send(JSON.stringify(['REQ', subId, ...filters]));
     };
 
-    const acceptEvent = (ev: SignedEvent) => {
+    const acceptEvent = (ev: SignedEvent, fromRelay = false) => {
       if (!filters.some((f) => matchesFilter(ev, f))) return;
+      if (fromRelay) noteSeenOn(ev.id, relayUrl);
       events.push(ev);
       // Notify progressive listeners
       try {
@@ -78,7 +90,7 @@ export function fetchEventsFromRelay(
       try {
         const data = JSON.parse(msg.data);
         if (data[0] === 'EVENT' && data[1] === subId) {
-          acceptEvent(data[2] as SignedEvent);
+          acceptEvent(data[2] as SignedEvent, true);
         } else if (data[0] === 'CLOSED' && data[1] === subId) {
           // The relay refused or ended the subscription (e.g. an unsupported filter)
           clearTimeout(timeout);

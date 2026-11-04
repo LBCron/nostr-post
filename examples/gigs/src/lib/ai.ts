@@ -45,7 +45,8 @@ export const gigPrompt = (
   { today = new Date().toISOString().slice(0, 10), suggestLinks = false } = {}
 ): string =>
   `Extract the event from this post about a concert or party. Today is ${today}: a date without a
-year is the next one. Use only what the post says; null when it doesn't say.${suggestLinks ? SUGGEST_LINKS : ''}
+year is the next one. Use only what the post says; null when it doesn't say. The time zone is
+the venue's, from its city or country, even when the post doesn't name it.${suggestLinks ? SUGGEST_LINKS : ''}
 Answer with JSON only, no other text, valid against this JSON Schema:
 ${JSON.stringify(gigSchema())}
 

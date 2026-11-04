@@ -347,6 +347,11 @@ Display a single Nostr event with automatic field rendering based on manifest.
   ID, creation time, all tags and raw content (boolean). Fields are always shown in the manifest's
   format; this adds the full view for whoever needs it
 - `editable` - Show an "Edit" button on the event (boolean, see [Inline Editing](#inline-editing))
+- `hide-menu` - Without the "⋯" menu in the header. The menu copies the author's npub, the post's
+  naddr (addressable) or nevent (with the relays it was found on) and its JSON, and opens a raw-data
+  panel: author, kind, d tag, every tag, the naddr/nevent, the relays, the JSON and the signature
+  (`<nostr-post-menu>`, its data from `rawEventData` in `@nostr-post/posts`). `menuMessages`
+  (property) overrides its text (`DEFAULT_POST_MENU_MESSAGES`)
 
 **Properties:**
 
@@ -468,6 +473,7 @@ Display a feed of Nostr events. Filters go straight into the relay `REQ` (see
 - `comments-enabled`, `reactions-enabled` - Comments (kind-1 replies to notes, NIP-22 comments on other kinds) and reactions (NIP-25, with `k` and, on addressable events, `a`)
 - `exclude-fields` - JSON array of field IDs to hide
 - `editable` - Edit button on the author's addressable posts
+- `hide-menu` - Posts without their "⋯" menu (see `<nostr-post-view>`); `menuMessages` overrides its text
 
 **Properties:**
 
@@ -1049,6 +1055,8 @@ Display a feed of events.
   manifest?: NostrPostManifest;
   /** Show an "Edit" button on each post in the feed */
   editable?: boolean;
+  /** Posts without their "⋯" menu (copy npub, naddr/nevent, JSON; raw data) */
+  hideMenu?: boolean;
   /**
    * Called when the user clicks Edit on a post.
    * When provided, the built-in inline composer is suppressed so you can

@@ -11,6 +11,7 @@ import {
 import { html, type TemplateResult } from 'lit';
 import { renderReactionSummary } from './feedActions';
 import { isReplyComposerOpen, renderReplies } from './feedComments';
+import type { PostMenuMessages } from './postMenuMessages';
 import type { SignedEvent } from './signer';
 
 export interface FeedThreadContext {
@@ -22,6 +23,9 @@ export interface FeedThreadContext {
   showTags?: boolean;
   /** Besides the author and the organizers it names: whose update comments apply */
   trustedEditors?: string[];
+  /** Posts without their "⋯" menu */
+  hideMenu?: boolean;
+  menuMessages?: Partial<PostMenuMessages>;
   activeReplyTarget?: ReplyTarget;
   displayName: (pubkey: string) => string;
   renderEventActions: (event: SignedEvent, rootEvent?: SignedEvent) => TemplateResult;
@@ -57,6 +61,8 @@ export const renderFeedThread = (thread: FeedThread, ctx: FeedThreadContext): Te
         .showKind=${ctx.showKind}
         .showTags=${ctx.showTags}
         .trustedEditors=${ctx.trustedEditors}
+        ?hide-menu=${ctx.hideMenu}
+        .menuMessages=${ctx.menuMessages}
       ></nostr-post-view>
       ${renderReactionSummary(reactionSummaryWithAuthors)}
       ${ctx.renderEventActions(thread.root, thread.root)}
@@ -84,7 +90,8 @@ export const renderFeedThread = (thread: FeedThread, ctx: FeedThreadContext): Te
         thread.replies,
         ctx.commentManifest,
         ctx.excludeFields,
-        ctx.renderEventActions
+        ctx.renderEventActions,
+        ctx
       )}
     </div>
   `;

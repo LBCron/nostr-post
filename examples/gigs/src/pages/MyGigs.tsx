@@ -1,6 +1,7 @@
 /**
  * The signed-in user's gigs: the ones they added (their events), and the ones they're going to
- * (their RSVPs: Going, Maybe, or both). Agendas from today on, like the browse page.
+ * (their RSVPs: Going, Maybe, or both). Agendas from today on, at the venues' times, like the
+ * browse page.
  */
 
 import { answersByAddress, fetchRsvpsBy, type RsvpStatus } from '@nostr-post/calendar';
@@ -77,6 +78,7 @@ export function MyGigs() {
         manifest={GIG_MANIFEST}
         authors={authors}
         eventHref={eventLink}
+        eventZones
         editable
       />
       <h3>I'm going</h3>
@@ -110,6 +112,7 @@ export function MyGigs() {
           manifest={GIG_MANIFEST}
           addresses={addresses}
           eventHref={eventLink}
+          eventZones
         />
       )}
     </>

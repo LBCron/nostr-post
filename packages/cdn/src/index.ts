@@ -50,7 +50,7 @@ export {
 export { coordinateEvents, validateFormData } from '@nostr-post/core/coordinator';
 
 // NIP-19 addresses (`kind:pubkey:d-tag` ↔ `naddr1…`), e.g. for links to an event
-export { encodeNaddr, decodeNaddr } from '@nostr-post/core/nip19';
+export { encodeNaddr, decodeNaddr, encodeNevent } from '@nostr-post/core/nip19';
 
 // Plugin registry
 export { pluginRegistry } from '@nostr-post/plugins/registry';
@@ -156,6 +156,7 @@ export {
   hasNostrSigner,
   fetchEvents,
   fetchEventsFromRelay,
+  relaysSeenOn,
   fetchProfile,
   fetchProfiles,
   fetchUserRelays,
@@ -193,6 +194,8 @@ export {
   publishWithHooks,
   signAndPublishBundle,
   withTags,
+  rawEventData,
+  type RawEventData,
   type NostrPostSubmitDetail,
   DEFAULT_PUBLISH_MESSAGES,
   type PublishMessages,

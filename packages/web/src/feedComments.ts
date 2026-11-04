@@ -1,11 +1,9 @@
+import { isUpdateComment } from '@nostr-post/core/eventUpdates';
 import type { NostrPostManifest } from '@nostr-post/core/types';
+import { loadProfilesForEvents, mergeUniqueEvents, type ReplyTarget } from '@nostr-post/posts';
+import type { NostrProfile } from '@nostr-post/signer';
 import { html, type TemplateResult } from 'lit';
-import type { ReplyTarget } from './feedStandard';
-import { mergeUniqueEvents } from './feedStandard';
 import type { SignedEvent } from './signer';
-import type { NostrProfile } from './userProfile';
-import { loadProfilesForEvents } from './userProfile';
-import { isUpdateComment } from './viewUpdates';
 
 export const extractPublishedEvents = (eventDetail: unknown): SignedEvent[] => {
   if (Array.isArray(eventDetail)) return eventDetail as SignedEvent[];

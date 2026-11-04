@@ -3,11 +3,14 @@
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
+import {
+  type FeedThread,
+  type ReplyTarget,
+  summarizeReactionsWithAuthors,
+} from '@nostr-post/posts';
 import { html, type TemplateResult } from 'lit';
 import { renderReactionSummary } from './feedActions';
 import { isReplyComposerOpen, renderReplies } from './feedComments';
-import { summarizeReactionsWithAuthors } from './feedReactions';
-import type { FeedThread, ReplyTarget } from './feedStandard';
 import type { SignedEvent } from './signer';
 
 export interface FeedThreadContext {

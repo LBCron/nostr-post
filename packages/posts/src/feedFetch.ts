@@ -4,9 +4,14 @@
  * relay list lookup doesn't hold up the first events.
  */
 
-import { DEFAULT_RELAYS, type FetchFilter, fetchEvents, fetchUserRelays } from '@nostr-post/signer';
-import { mergeUniqueEventsById } from './feedData';
-import type { SignedEvent } from './signer';
+import {
+  DEFAULT_RELAYS,
+  type FetchFilter,
+  fetchEvents,
+  fetchUserRelays,
+  type SignedEvent,
+} from '@nostr-post/signer';
+import { mergeUniqueEventsById } from './feedFilters';
 
 /** Above this many authors, the feed skips per-author relay list lookups */
 export const MAX_AUTHOR_RELAY_LOOKUPS = 10;

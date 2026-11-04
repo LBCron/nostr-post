@@ -6,34 +6,32 @@
 
 import { getActiveKinds, getSelectablePublishFormats } from '@nostr-post/core/manifestMappings';
 import { type NostrPostManifest, STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
+import {
+  buildInitialFormData,
+  hasReplyTarget,
+  invalidFieldLabels,
+  isFieldReadonly,
+  type NostrPostSubmitDetail,
+  publishWithHooks,
+  type ReplyTarget,
+  signedInPubkey,
+  updateReplyTargetValue,
+  type ValidationResult,
+  validateAndCoordinate,
+  waitForUploads,
+} from '@nostr-post/posts';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
 import type { FieldRenderContext } from './composerField';
 import { renderFieldList } from './composerFieldList';
-import { buildInitialFormData, isFieldReadonly, renderHiddenFieldErrors } from './composerForm';
+import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import {
-  hasReplyTarget,
-  type ReplyTarget,
-  renderReplyTargetPanel,
-  updateReplyTargetValue,
-} from './composerReply';
+import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
-import {
-  invalidFieldLabels,
-  type NostrPostSubmitDetail,
-  publishedNotice,
-  publishWithHooks,
-  renderPublishSummaries,
-  renderSubmitArea,
-  signedInPubkey,
-  type ValidationResult,
-  validateAndCoordinate,
-  waitForUploads,
-} from './composerSubmit';
+import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
 import './composerElement';
 import { ensurePluginsForManifest } from './pluginAutoLoad';
 import { fetchManifestByATag, SIGNING_EVENT, type SignedEvent, type SigningDetail } from './signer';

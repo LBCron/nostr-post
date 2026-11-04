@@ -5,16 +5,8 @@ import {
   STANDARD_KIND1_POST_MANIFEST,
   type UnsignedNostrEvent,
 } from '@nostr-post/core/types';
-import type { SignedEvent } from './signer';
-
-export interface ReplyTarget {
-  replyToEventId?: string;
-  replyToPubkey?: string;
-  rootEventId?: string;
-  rootPubkey?: string;
-  /** The root's address when it's addressable */
-  rootAddress?: string;
-}
+import type { SignedEvent } from '@nostr-post/signer';
+import type { ReplyTarget } from './replies';
 
 /** An addressable event's address (`kind:pubkey:d`); undefined for other events */
 export const addressOf = (event: SignedEvent): string | undefined => {

@@ -3,9 +3,9 @@
  * cached by the signer (`fetchProfile`, `fetchProfiles`); this module only formats them.
  */
 
-import { fetchProfiles, type NostrProfile, type SignedEvent } from './signer';
+import { fetchProfiles, type NostrProfile, type SignedEvent } from '@nostr-post/signer';
 
-export type { NostrProfile } from './signer';
+export type { NostrProfile } from '@nostr-post/signer';
 
 export const truncatePubkey = (
   pubkey: string,

@@ -1,7 +1,7 @@
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
+import { isExcludedButPrefilled, isFieldExcluded } from '@nostr-post/posts';
 import type { FieldRenderContext } from './composerField';
 import { renderExpandableField, renderField } from './composerField';
-import { isExcludedButPrefilled, isFieldExcluded } from './composerForm';
 
 export const renderFieldList = (
   manifest: NostrPostManifest,

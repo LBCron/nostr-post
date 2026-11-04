@@ -15,6 +15,7 @@ nostr-post provides a manifest-driven architecture for creating and viewing comp
 | **@nostr-post/core**    | Headless logic       | Server-side, custom implementations |
 | **@nostr-post/signer**  | Signing & publishing | Browser-based signing with NIP-07   |
 | **@nostr-post/plugins** | Plugin system        | Creating custom UI plugins          |
+| **@nostr-post/posts**   | Posts without a UI   | Your own UI: publish, threads, feeds ([README](./packages/posts/README.md)) |
 | **@nostr-post/web**     | Web Components       | Any web project, framework-agnostic |
 | **@nostr-post/react**   | React components     | React, Next.js applications         |
 

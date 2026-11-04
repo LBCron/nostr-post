@@ -6,6 +6,11 @@
  * secondary events (e.g. kind 30078 NIP-78 structured data) shown as one post.
  */
 
+import {
+  applyUpdateCommentsToEvent,
+  eventEditors,
+  suggestedUpdates,
+} from '@nostr-post/core/eventUpdates';
 import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
 import {
   mentionedPubkeys,
@@ -17,6 +22,8 @@ import {
   type NostrPostManifest,
   STANDARD_KIND1_POST_MANIFEST,
 } from '@nostr-post/core/types';
+import { authorDisplayName, truncatePubkey } from '@nostr-post/posts';
+import type { NostrProfile } from '@nostr-post/signer';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
@@ -29,7 +36,6 @@ import {
   fetchProfiles,
   getPublicKey,
 } from './signer';
-import { authorDisplayName, type NostrProfile, truncatePubkey } from './userProfile';
 import { renderEventActions } from './viewActions';
 import { DEFAULT_NOSTR_LINK_BASE, renderNoteContent } from './viewContent';
 import {
@@ -53,12 +59,7 @@ import {
   type SuggestionMessages,
 } from './viewSuggestions';
 import { renderTagPlugins } from './viewTagPlugins';
-import {
-  applyUpdateCommentsToEvent,
-  eventEditors,
-  renderUpdateComments,
-  suggestedUpdates,
-} from './viewUpdates';
+import { renderUpdateComments } from './viewUpdates';
 
 /** Event type that can be either unsigned or signed — re-exported from core for convenience */
 export type { DisplayableEvent } from '@nostr-post/core/types';

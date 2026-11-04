@@ -1,9 +1,9 @@
 import { STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
+import type { SignedEvent } from '@nostr-post/signer';
 import { describe, expect, it } from 'vitest';
-import { applyReplyTargetToBundle, buildReply, buildReplyTags } from './composerReply';
-import { buildFeedFilters, interactionFilters } from './feedData';
-import { buildReactionEvent, buildReplyTarget, buildThreads } from './feedStandard';
-import type { SignedEvent } from './signer';
+import { buildFeedFilters, interactionFilters } from './feedFilters';
+import { applyReplyTargetToBundle, buildReply, buildReplyTags } from './replies';
+import { buildReactionEvent, buildReplyTarget, buildThreads } from './threads';
 
 const author = 'b'.repeat(64);
 

@@ -307,7 +307,13 @@ export interface FetchFilter {
 /**
  * Fetch events from a single relay
  */
-export { fetchEventsFromRelay, fetchEvents, matchesFilter, DEFAULT_RELAYS } from './fetch';
+export {
+  DEFAULT_RELAYS,
+  fetchEvents,
+  fetchEventsFromRelay,
+  matchesFilter,
+  relaysSeenOn,
+} from './fetch';
 
 export {
   type DryRunChangeDetail,

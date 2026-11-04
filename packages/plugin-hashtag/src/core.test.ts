@@ -37,6 +37,10 @@ describe('normalizeTag', () => {
 });
 
 describe('extractHashtags', () => {
+  it('leaves out numbers, e.g. "Volume #1"', () => {
+    expect(extractHashtags('AMORE ET MORTE #1, #2026 #death-metal')).toEqual(['death-metal']);
+  });
+
   it('should extract hashtags from text', () => {
     const tags = extractHashtags('Check out #nostr and #bitcoin!');
     expect(tags).toEqual(['nostr', 'bitcoin']);

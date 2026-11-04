@@ -28,6 +28,8 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
 import { ensurePluginsForManifest } from './pluginAutoLoad';
+import { renderPostMenu } from './postMenu';
+import type { PostMenuMessages } from './postMenuMessages';
 import {
   type EventManifest,
   fetchEvents,
@@ -151,6 +153,14 @@ export class NostrPostView extends NostrPostElement {
 
   @property({ type: Array, attribute: 'exclude-fields' })
   excludeFields?: string[];
+
+  /** Without the "⋯" menu (copy npub, naddr/nevent, JSON; raw data) in the header */
+  @property({ type: Boolean, attribute: 'hide-menu' })
+  hideMenu?: boolean;
+
+  /** Overrides of the "⋯" menu's text (e.g. translations) */
+  @property({ attribute: false })
+  menuMessages?: Partial<PostMenuMessages>;
 
   /** Manifest resolved via auto-fetch from NIP-78 `a` tag */
   @state()
@@ -424,6 +434,7 @@ export class NostrPostView extends NostrPostElement {
             >${this.formatTimestamp(created_at)}</span
           >
           ${renderEventActions(event, this.effectiveManifest)}
+          ${this.hideMenu ? '' : renderPostMenu(event, this.menuMessages)}
         </div>
 
         <div class="view-content">

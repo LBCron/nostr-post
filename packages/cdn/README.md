@@ -34,6 +34,7 @@ Loading the bundle automatically registers every custom element:
 | Composer  | `<nostr-post-composer>` |
 | View      | `<nostr-post-view>`     |
 | Feed      | `<nostr-post-feed>`     |
+| Post menu | `<nostr-post-menu>` (the "⋯" menu of every post; `hide-menu` on the view or feed turns it off) |
 
 The plugins and their UI elements are also registered:
 
@@ -156,7 +157,8 @@ The bundle re-exports utilities for advanced usage:
 
 **NIP-19**
 
-- `encodeNaddr(address)`, `decodeNaddr(naddr)`: an address (`kind:pubkey:d-tag`) as `naddr1…` and back
+- `encodeNaddr(address, relays?)`, `decodeNaddr(naddr)`: an address (`kind:pubkey:d-tag`) as `naddr1…` and back
+- `encodeNevent(id, { relays, author, kind })`: an event id as `nevent1…`
 
 **Signing & Relays**
 
@@ -167,7 +169,7 @@ The bundle re-exports utilities for advanced usage:
 - `RELAYS_PENDING_EVENT` (`'nostr-post:relays-pending'`): `window` gets it while events are still
   being sent to relays and when the last send ends (detail `{ pending, sent, failed }`);
   `getRelaysPending()` reads it. `<np-activity>` shows it
-- `getPublicKey`, `hasNostrSigner`, `fetchEvents`, `fetchEventsFromRelay`
+- `getPublicKey`, `hasNostrSigner`, `fetchEvents`, `fetchEventsFromRelay`, `relaysSeenOn(id)` (the relays an event was fetched from this session)
 - `getUserRelays`, `getDefaultRelays`
 - `setDryRun(on)`, `isDryRun()`: test mode. Events are still signed, but publishing only logs them
   (every relay reports success), and reads (`fetchEvents`, feeds, pickers) also return logged
@@ -237,6 +239,9 @@ The bundle re-exports utilities for advanced usage:
   `runPublishHooks` returned; returns the errors of those that failed
 - `extractPrefillFromEvent(event, manifest)`: an event's values as form data, to edit it in a
   composer (`prefill`, with the event's `dTag`)
+- `rawEventData(event, relays?)`: what a post's "⋯" menu (`<nostr-post-menu>`) copies and shows:
+  npub, kind, d tag, tags, naddr/nevent with relay hints, the relays it was found on
+  (`relaysSeenOn(id)`), JSON, signature
 
 **Posts without the components** (see [@nostr-post/posts](../posts/README.md))
 

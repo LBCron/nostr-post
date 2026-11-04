@@ -64,7 +64,7 @@ a month grid can use the same functions with a month as the window.
 | Export                                   | Does                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------ |
 | `eventsToIcs(events, name?)`             | An `.ics` file (RFC 5545) of calendar events: UID = the event's address, all-day dates or UTC times, title, description, location, link |
-| `icsToDrafts(text, viewerZone?)`         | The entries of an `.ics` file (e.g. a Facebook events export) as drafts: `{ uid, dTag, allDay, formData, private }`, `formData` for CALENDAR_EVENT_MANIFEST (title, when, place, link, description). `CLASS:PRIVATE` entries are flagged, not left out |
+| `icsToDrafts(text, viewerZone?)`         | The entries of an `.ics` file (e.g. a Facebook events export) as drafts: `{ uid, dTag, allDay, formData, private }`, `formData` for CALENDAR_EVENT_MANIFEST (title, when, place, link, description). `CLASS:PRIVATE` entries are flagged, not left out. UTC times and unknown zones are read in the calendar's `X-WR-TIMEZONE`, else in `viewerZone` |
 | `icsDTag(uid)`                           | `ics:<UID>`: publishing a draft with it replaces the event on a later import instead of adding a copy |
 | `draftFormatId(draft)`, `draftKind(draft)` | The publish format (`all-day` / `timed`) and kind of a draft            |
 | `fetchEventsAsIcs(addresses, options?)`  | The `.ics` of events loaded from relays by address                       |

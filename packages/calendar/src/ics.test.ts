@@ -120,6 +120,18 @@ describe('icsToDrafts', () => {
     expect(icsDTag(' e2@facebook.com ')).toBe('ics:e2@facebook.com');
   });
 
+  it("reads UTC times in the calendar's zone (X-WR-TIMEZONE), not the importer's", () => {
+    const ics = eventsToIcs([timed]).replace(
+      'VERSION:2.0',
+      'VERSION:2.0\r\nX-WR-TIMEZONE:Europe/Berlin'
+    );
+    expect(icsToDrafts(ics, 'Asia/Bangkok')[0]?.formData.when).toEqual({
+      start: '2026-10-21T19:00',
+      end: '2026-10-21T21:00',
+      tzid: 'Europe/Berlin',
+    });
+  });
+
   it('reads UTC times in the viewer zone, and round-trips its own export', () => {
     const [back] = icsToDrafts(eventsToIcs([timed]), 'Europe/Prague');
     expect(back?.formData.when).toEqual({

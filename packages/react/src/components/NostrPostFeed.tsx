@@ -31,6 +31,8 @@ interface NostrPostFeedElement extends HTMLElement {
   reactionsEnabled?: boolean;
   reactionOptions?: string[];
   editable?: boolean;
+  hideMenu?: boolean;
+  menuMessages?: Partial<import('@nostr-post/web').PostMenuMessages>;
   layout?: import('@nostr-post/web').FeedLayout;
   trustedEditors?: string[];
   messages?: Partial<import('@nostr-post/web').FeedMessages>;
@@ -101,6 +103,10 @@ export interface NostrPostFeedProps {
   reactionOptions?: string[];
   /** Show Edit button on addressable events (30000-39999) */
   editable?: boolean;
+  /** Posts without their "⋯" menu (copy npub, naddr/nevent, JSON; raw data) */
+  hideMenu?: boolean;
+  /** Overrides of the posts' "⋯" menu text (e.g. translations) */
+  menuMessages?: Partial<import('@nostr-post/web').PostMenuMessages>;
   /** How the posts are laid out (e.g. @nostr-post/calendar's agenda); default one under another */
   layout?: import('@nostr-post/web').FeedLayout;
   /** Whose update comments apply besides each post's author and named editors */
@@ -154,6 +160,8 @@ export const NostrPostFeed = forwardRef<NostrPostFeedElement, NostrPostFeedProps
       reactionsEnabled = true,
       reactionOptions,
       editable = false,
+      hideMenu = false,
+      menuMessages,
       onEditRequest,
       className = '',
       dark,
@@ -192,6 +200,8 @@ export const NostrPostFeed = forwardRef<NostrPostFeedElement, NostrPostFeedProps
       element.reactionsEnabled = reactionsEnabled;
       element.reactionOptions = reactionOptions;
       element.editable = editable;
+      element.hideMenu = hideMenu;
+      element.menuMessages = menuMessages;
       element.layout = layout;
       element.trustedEditors = trustedEditors;
       element.messages = messages;

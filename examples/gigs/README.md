@@ -33,7 +33,7 @@ players, RSVP, `.ics` import and export.
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link
   the page (`a` tag) or one of its profiles (`i` tag), so gigs added before the page show too.
 - **Add a gig** (`#/add`): paste a post's text and its poster → AI reads it (Claude or Google Gemini
-  with your own API key, called from the browser; Gemini's key from Google AI Studio has a free
+  with your own API key, called from the browser; Gemini with high thinking; Gemini's key from Google AI Studio has a free
   tier, on which Google may use what you send to improve its products; a busy Gemini is tried
   again, then its lighter model; or a prompt you copy to any AI) → a preview of the event, a
   hint when it seems to be on Nostr already → the composer, prefilled, to correct and publish.

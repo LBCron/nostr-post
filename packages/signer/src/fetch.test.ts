@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchEventsFromRelay, matchesFilter } from './fetch';
+import { fetchEventsFromRelay, matchesFilter, relaysSeenOn } from './fetch';
 import type { SignedEvent } from './index';
 
 const event: SignedEvent = {
@@ -59,6 +59,35 @@ describe('fetchEventsFromRelay', () => {
     const started = Date.now();
     await expect(fetchEventsFromRelay('wss://r', { kinds: [1] })).resolves.toEqual([]);
     expect(Date.now() - started).toBeLessThan(1000);
+    vi.unstubAllGlobals();
+  });
+
+  it('remembers the relays each event was found on', async () => {
+    const found = { ...event, id: 'f'.repeat(64) };
+    // A relay that answers every REQ with `found`, then EOSE
+    class AnsweringRelay {
+      onopen?: () => void;
+      onmessage?: (message: { data: string }) => void;
+      onerror?: () => void;
+      constructor() {
+        setTimeout(() => this.onopen?.(), 0);
+      }
+      send(data: string) {
+        const [type, subId] = JSON.parse(data) as [string, string];
+        if (type !== 'REQ') return;
+        setTimeout(() => {
+          this.onmessage?.({ data: JSON.stringify(['EVENT', subId, found]) });
+          this.onmessage?.({ data: JSON.stringify(['EOSE', subId]) });
+        }, 0);
+      }
+      close() {}
+    }
+    vi.stubGlobal('WebSocket', AnsweringRelay);
+    await fetchEventsFromRelay('wss://a', { kinds: [found.kind] });
+    await fetchEventsFromRelay('wss://b', { kinds: [found.kind] });
+    await fetchEventsFromRelay('wss://a', { kinds: [found.kind] });
+    expect(relaysSeenOn(found.id)).toEqual(['wss://a', 'wss://b']);
+    expect(relaysSeenOn('0'.repeat(64))).toEqual([]);
     vi.unstubAllGlobals();
   });
 });

@@ -1,7 +1,8 @@
 /**
  * @nostr-post/core - NIP-19 entities (bech32), without dependencies
  *
- * Encodes and decodes `naddr` addresses, and reads the pubkey of `npub` / `nprofile`.
+ * Encodes and decodes `naddr` addresses, encodes `nevent` and `npub`, and reads the pubkey of
+ * `npub` / `nprofile`.
  */
 
 const CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -79,19 +80,51 @@ const fromUtf8 = (bytes: number[]): string => {
   return String.fromCodePoint(...points);
 };
 
-/** An address (`<kind>:<pubkey>:<d-tag>`) as a NIP-19 `naddr` */
-export function encodeNaddr(address: string): string | undefined {
+const tlv = (type: number, value: number[]) => [type, value.length, ...value];
+
+const kindBytes = (kind: number) => [
+  (kind >>> 24) & 255,
+  (kind >>> 16) & 255,
+  (kind >>> 8) & 255,
+  kind & 255,
+];
+
+/** Relay hints (TLV type 1), at most a few so the entity stays short */
+const relayTlv = (relays: string[] = []) => relays.slice(0, 3).flatMap((r) => tlv(1, utf8(r)));
+
+/**
+ * An address (`<kind>:<pubkey>:<d-tag>`) as a NIP-19 `naddr`, with up to three relays where
+ * it can be found
+ */
+export function encodeNaddr(address: string, relays?: string[]): string | undefined {
   const match = address.match(/^(\d+):([0-9a-f]{64}):(.*)$/);
   if (!match) return undefined;
   const [, kind, pubkey, identifier] = match as unknown as [string, string, string, string];
-  const tlv = (type: number, value: number[]) => [type, value.length, ...value];
-  const k = Number(kind);
   const bytes = [
     ...tlv(0, utf8(identifier)),
+    ...relayTlv(relays),
     ...tlv(2, hexBytes(pubkey)),
-    ...tlv(3, [(k >>> 24) & 255, (k >>> 16) & 255, (k >>> 8) & 255, k & 255]),
+    ...tlv(3, kindBytes(Number(kind))),
   ];
   return encodeBech32('naddr', bytes);
+}
+
+/**
+ * An event id as a NIP-19 `nevent`, with up to three relays where it can be found, and its
+ * author and kind when given; undefined for anything but a 64-character hex id
+ */
+export function encodeNevent(
+  id: string,
+  { relays, author, kind }: { relays?: string[]; author?: string; kind?: number } = {}
+): string | undefined {
+  if (!/^[0-9a-f]{64}$/.test(id)) return undefined;
+  const bytes = [
+    ...tlv(0, hexBytes(id)),
+    ...relayTlv(relays),
+    ...(author && /^[0-9a-f]{64}$/.test(author) ? tlv(2, hexBytes(author)) : []),
+    ...(kind === undefined ? [] : tlv(3, kindBytes(kind))),
+  ];
+  return encodeBech32('nevent', bytes);
 }
 
 /** Bytes as a NIP-19 entity with `prefix` (`npub`, `naddr`, …) */

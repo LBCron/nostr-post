@@ -34,6 +34,7 @@ import { handleCommentPublished as handleCommentPublishedDetail } from './feedCo
 import { DEFAULT_FEED_MESSAGES, type FeedMessages } from './feedMessages';
 import { feedStyle } from './feedStyle';
 import { type FeedLayout, type FeedThreadContext, renderFeedThread } from './feedThread';
+import type { PostMenuMessages } from './postMenuMessages';
 import type { SignedEvent } from './signer';
 import './composer';
 import './view';
@@ -154,6 +155,14 @@ export class NostrPostFeed extends NostrPostElement {
   /** When true, shows an Edit button on addressable events (30000-39999). */
   @property({ type: Boolean })
   editable?: boolean;
+
+  /** Posts without their "⋯" menu (copy npub, naddr/nevent, JSON; raw data) */
+  @property({ type: Boolean, attribute: 'hide-menu' })
+  hideMenu?: boolean;
+
+  /** Overrides of the posts' "⋯" menu text (e.g. translations) */
+  @property({ attribute: false })
+  menuMessages?: Partial<PostMenuMessages>;
 
   @property({ type: Array })
   filters?: FetchFilter[];
@@ -432,6 +441,8 @@ export class NostrPostFeed extends NostrPostElement {
       showTags: this.showTags,
       activeReplyTarget: this.activeReplyTarget,
       trustedEditors: this.trustedEditors,
+      hideMenu: this.hideMenu,
+      menuMessages: this.menuMessages,
       displayName: (pubkey) => this.displayName(pubkey),
       renderEventActions: (event, rootEvent) => this.renderEventActions(event, rootEvent),
       onCommentPublished: (event) => this.handleCommentPublished(event),

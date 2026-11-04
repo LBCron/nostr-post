@@ -3,6 +3,7 @@ import type { NostrPostManifest } from '@nostr-post/core/types';
 import { loadProfilesForEvents, mergeUniqueEvents, type ReplyTarget } from '@nostr-post/posts';
 import type { NostrProfile } from '@nostr-post/signer';
 import { html, type TemplateResult } from 'lit';
+import type { PostMenuMessages } from './postMenuMessages';
 import type { SignedEvent } from './signer';
 
 export const extractPublishedEvents = (eventDetail: unknown): SignedEvent[] => {
@@ -34,7 +35,8 @@ export const renderReplies = (
   replies: SignedEvent[],
   commentManifest: NostrPostManifest | undefined,
   excludeFields: string[] | undefined,
-  renderEventActions: (event: SignedEvent, rootEvent?: SignedEvent) => TemplateResult
+  renderEventActions: (event: SignedEvent, rootEvent?: SignedEvent) => TemplateResult,
+  menu: { hideMenu?: boolean; menuMessages?: Partial<PostMenuMessages> } = {}
 ): TemplateResult | '' => {
   const visibleReplies = replies.filter((r) => !isUpdateComment(r.content));
   if (visibleReplies.length === 0) return '';
@@ -49,6 +51,8 @@ export const renderReplies = (
               .event=${reply}
               .manifest=${commentManifest}
               .excludeFields=${excludeFields}
+              ?hide-menu=${menu.hideMenu}
+              .menuMessages=${menu.menuMessages}
             ></nostr-post-view>
             ${renderEventActions(reply, root)}
           </div>

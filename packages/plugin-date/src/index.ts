@@ -14,6 +14,7 @@ export {
   formatDateValue,
   TIMED_EVENT_KIND,
 } from './core';
+export { type DateDisplay, dateDisplay, formatValueIn } from './dateDisplay';
 export {
   type DatePrecision,
   type DateValue,

@@ -1,19 +1,22 @@
 /**
  * @nostr-post/plugin-date - <np-date-view>
  *
- * Read-only date display in the viewer's locale, with the time zone of timed values.
- * Accepts .value (DateValue) and .field (PostField).
+ * Read-only date display in the viewer's locale. A timed value reads in its own zone (an
+ * event's `start_tzid`, the venue's time), labelled with it, and in the viewer's zone below
+ * when theirs is another; a timed value without a zone reads in the viewer's, labelled so
+ * (`dateDisplay`). Accepts .value (DateValue), .field (PostField) and .messages.
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { formatDateValue } from '../core';
-import { type DateValue, hasTime, isDateValue } from '../dateValue';
+import { dateDisplay } from '../dateDisplay';
+import { type DateValue, isDateValue } from '../dateValue';
+import { type DateMessages, DEFAULT_DATE_MESSAGES } from './dateMessages';
 
 @customElement('np-date-view')
 export class NpDateView extends LitElement {
-  static styles = css`
+  static override styles = css`
     :host {
       display: block;
     }
@@ -22,27 +25,35 @@ export class NpDateView extends LitElement {
       padding: 0.25rem 0;
     }
 
-    .tz {
-      margin-left: 0.375rem;
+    .tz,
+    .viewer {
       font-size: 0.8125rem;
       color: #6b7280;
     }
 
-    :host-context(.dark) .tz {
+    .tz {
+      margin-left: 0.375rem;
+    }
+
+    :host-context(.dark) .tz,
+    :host-context(.dark) .viewer {
       color: #9ca3af;
     }
   `;
 
   @property({ type: Object }) value?: DateValue;
   @property({ type: Object }) field?: PostField;
+  /** Overrides of DEFAULT_DATE_MESSAGES (e.g. translations) */
+  @property({ type: Object }) messages: Partial<DateMessages> = {};
 
-  render() {
+  override render() {
     if (!isDateValue(this.value)) return html``;
-    const { tzid, start } = this.value;
+    const m = { ...DEFAULT_DATE_MESSAGES, ...this.messages };
+    const shown = dateDisplay(this.value);
+    const label = shown.zone ?? (shown.inViewerZone ? m.inYourTime : undefined);
     return html`<div class="date">
-      ${formatDateValue(this.value)}${
-        hasTime(start) && tzid ? html`<span class="tz">${tzid}</span>` : ''
-      }
+      ${shown.text}${label ? html`<span class="tz">${label}</span>` : nothing}
+      ${shown.viewerText ? html`<div class="viewer">${m.yourTime(shown.viewerText)}</div>` : nothing}
     </div>`;
   }
 }

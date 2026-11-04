@@ -116,3 +116,4 @@ export {
   extractPrefillFromEvent,
   formatPrefillAsUpdateComment,
 } from './updates';
+export { type RawEventData, rawEventData } from './rawEvent';

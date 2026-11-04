@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeNaddr, decodeProfile, encodeNaddr } from './nip19';
+import { decodeNaddr, decodeProfile, encodeNaddr, encodeNevent } from './nip19';
 
 const pubkey = '6a19c89b2694b307aae6dc40256264071a47bdad89d8ddae6d1ab7139a94015d';
 const npub = 'npub1dgvu3xexjjes02hxm3qz2cnyqudy00dd38vdmtndr2m38x55q9wss4r3ue';
@@ -33,5 +33,25 @@ describe('naddr', () => {
 
   it('rejects an npub', () => {
     expect(decodeNaddr(npub)).toBeUndefined();
+  });
+});
+
+describe('nevent / naddr with relays', () => {
+  // Both decoded by nostr-tools to the same id/address, relay, author and kind
+  it('encodes an nevent with relay, author and kind', () => {
+    expect(
+      encodeNevent('a'.repeat(64), { relays: ['wss://r.x.com'], author: pubkey, kind: 31923 })
+    ).toBe(
+      'nevent1qqs242424242424242424242424242424242424242424242424242spp4mhxue69uhhytnc9e3k7mgzyp4pnjymy62txpa2umwyqftzvsr353aa4kya3hdwd5dtwyu6jsq46qcyqqq8evcuq3l79'
+    );
+    expect(encodeNevent('not-an-id')).toBeUndefined();
+  });
+
+  it('encodes an naddr with a relay, still read back as the address', () => {
+    const naddr = encodeNaddr(`31923:${pubkey}:gig`, ['wss://r.x.com']);
+    expect(naddr).toBe(
+      'naddr1qqpkw6t8qyxhwumn8ghj7u3w0qhxxmmdqgsx5xwgnvnffvc84tndcsp9vfjqwxj8hkkcnkxa4ek34dcnn22qzhgrqsqqql9nrapam2'
+    );
+    expect(decodeNaddr(naddr ?? '')).toBe(`31923:${pubkey}:gig`);
   });
 });

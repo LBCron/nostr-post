@@ -175,7 +175,7 @@ const readDate = (property: IcsProperty, viewerZone: string): IcsDate | undefine
   const [, y, mo, d, h, mi, , utc] = time;
   const wall = `${y}-${mo}-${d}T${h}:${mi}`;
   if (utc) {
-    // UTC: shown in the viewer's zone
+    // UTC: in the calendar's zone, else the viewer's
     const unix = Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi)) / 1000;
     return { wall: unixToWall(unix, viewerZone) ?? wall, tzid: viewerZone };
   }
@@ -251,10 +251,23 @@ const veventBlocks = (text: string): IcsProperty[][] => {
 
 /**
  * The events of an `.ics` file as drafts, in file order. Entries without a UID or start are
- * left out; recurring entries (RRULE) come as their first occurrence.
+ * left out; recurring entries (RRULE) come as their first occurrence. UTC times and unknown
+ * zones are read in the calendar's zone (`X-WR-TIMEZONE`, e.g. a venue's calendar), else in
+ * `viewerZone`.
  */
-export const icsToDrafts = (text: string, viewerZone = defaultTimeZone()): IcsDraft[] =>
-  veventBlocks(text).flatMap((block) => draftFrom(block, viewerZone) ?? []);
+export const icsToDrafts = (text: string, viewerZone = defaultTimeZone()): IcsDraft[] => {
+  const zone = calendarZone(text) ?? viewerZone;
+  return veventBlocks(text).flatMap((block) => draftFrom(block, zone) ?? []);
+};
+
+/** The calendar's own zone (`X-WR-TIMEZONE`), if the runtime knows it */
+const calendarZone = (text: string): string | undefined => {
+  const zone = unfold(text)
+    .map(parseProperty)
+    .find((property) => property?.name === 'X-WR-TIMEZONE')
+    ?.value.trim();
+  return zone && isValidTimeZone(zone) ? zone : undefined;
+};
 
 /** The publish format of CALENDAR_EVENT_MANIFEST for a draft */
 export const draftFormatId = (draft: IcsDraft): 'all-day' | 'timed' =>

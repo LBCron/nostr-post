@@ -13,6 +13,10 @@ export interface DateMessages {
   endBeforeStart: string;
   /** Shown while the time zone isn't one the browser knows; the typed zone follows */
   unknownTimeZone: (tzid: string) => string;
+  /** <np-date-view>: the same time in the viewer's zone, next to the event's own */
+  yourTime: (time: string) => string;
+  /** <np-date-view>: a time without a zone of its own, shown in the viewer's */
+  inYourTime: string;
 }
 
 export const DEFAULT_DATE_MESSAGES: DateMessages = {
@@ -23,4 +27,6 @@ export const DEFAULT_DATE_MESSAGES: DateMessages = {
   timeZone: 'Time zone',
   endBeforeStart: 'The end is before the start',
   unknownTimeZone: (tzid) => `Unknown time zone: ${tzid}. Pick one from the list`,
+  yourTime: (time) => `Your time: ${time}`,
+  inYourTime: 'your time',
 };

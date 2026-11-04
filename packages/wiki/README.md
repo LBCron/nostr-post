@@ -335,6 +335,8 @@ const reviews = await fetchEvents({ "#a": aTags });
 ### `<nostr-wiki-view>`
 
 Displays a resolved wiki entity as a read-only infobox and its article, with:
+- each infobox field shown as on posts: by its plugin's view element (`viewTagName`: links as players,
+  a venue with its map, stars, hashtags), else the plugin's `formatValue`, else as text;
 - a Links row: external IDs (OpenStreetMap, Google Maps, …), `r` URL tags and the manifest's
   [derived links](../../MANIFEST.md#derived-links);
 - the attribution line from a `source` tag;

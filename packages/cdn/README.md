@@ -142,7 +142,9 @@ The bundle re-exports utilities for advanced usage:
   `windowDates(window)`, `shiftWindow(window, steps)`, `AgendaWindow`
 - Months: `monthWindow(month)`, `monthGrid(month)`, `shiftMonth(month, steps)`, `formatMonth(month)`
 - RSVP (kind 31925): `fetchRsvps(addresses)`, `publishRsvp(address, status)`,
-  `summarizeRsvps(events, address)`, `rsvpEvent(address, status, pubkey)`, `RsvpStatus`
+  `summarizeRsvps(events, address)`, `rsvpEvent(address, status, pubkey)`, `RsvpStatus`;
+  `rsvpsByFilter(pubkey)`, `fetchRsvpsBy(pubkey)`, `answersByAddress(events)`: one person's answers
+  by event address
 - Calendars (kind 31924): `fetchCalendarItems(address)` (a calendar's event addresses),
   `calendarEventFilters(addresses)`; edited with the list functions and `{ listKind: CALENDAR_LISTS }`
 - iCalendar: `eventsToIcs(events, name?)`, `icsToDrafts(text)` (an `.ics` file as drafts for

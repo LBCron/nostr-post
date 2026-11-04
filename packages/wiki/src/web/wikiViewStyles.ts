@@ -44,7 +44,8 @@ export const viewStyles = css`
   /* ── Infobox table ── */
   dl.wiki-infobox {
     display: grid;
-    grid-template-columns: minmax(80px, auto) 1fr;
+    /* minmax(0, …): a wide value (a player, a map) can't widen the page */
+    grid-template-columns: minmax(80px, auto) minmax(0, 1fr);
     margin: 0;
     padding: 0;
     border-bottom: 1px solid var(--nl-border, #e5e7eb);
@@ -78,7 +79,10 @@ export const viewStyles = css`
     font-size: 0.875rem;
     display: flex;
     align-items: center;
+    min-width: 0;
   }
+  /* A plugin's view (players, a map, a list) takes the row's width */
+  .wiki-field dd > * { flex: 1; min-width: 0; }
 
   /* ── Prose ── */
   .wiki-prose {

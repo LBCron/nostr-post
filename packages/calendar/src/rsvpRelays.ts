@@ -14,7 +14,7 @@ import {
   type SignedEvent,
   signAndPublish,
 } from '@nostr-post/signer';
-import { type RsvpStatus, rsvpEvent, rsvpFilter } from './rsvp';
+import { type RsvpStatus, rsvpEvent, rsvpFilter, rsvpsByFilter } from './rsvp';
 
 export interface RsvpRelayOptions {
   /** Relays to read from and publish to besides the user's own; default DEFAULT_RELAYS */
@@ -27,6 +27,13 @@ export const fetchRsvps = (
   options: RsvpRelayOptions = {}
 ): Promise<SignedEvent[]> =>
   fetchEvents(rsvpFilter(addresses), options.relays ?? DEFAULT_RELAYS, { waitForAll: true });
+
+/** One person's RSVPs (`answersByAddress` gives their answer to each event) */
+export const fetchRsvpsBy = (
+  pubkey: string,
+  options: RsvpRelayOptions = {}
+): Promise<SignedEvent[]> =>
+  fetchEvents(rsvpsByFilter(pubkey), options.relays ?? DEFAULT_RELAYS, { waitForAll: true });
 
 /** Signs (asking the signer for the user) and publishes the user's answer to an event */
 export async function publishRsvp(

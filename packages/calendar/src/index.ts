@@ -61,11 +61,13 @@ export {
   type RsvpSummary,
   rsvpEvent,
   rsvpFilter,
+  answersByAddress,
+  rsvpsByFilter,
   summarizeRsvps,
   type UnsignedRsvp,
   withAnswer,
 } from './rsvp';
-export { fetchRsvps, publishRsvp, type RsvpRelayOptions } from './rsvpRelays';
+export { fetchRsvps, fetchRsvpsBy, publishRsvp, type RsvpRelayOptions } from './rsvpRelays';
 export {
   type EventDraft,
   type SimilarEvent,

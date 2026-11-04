@@ -32,11 +32,14 @@ export const normalizeTag = (raw: string): string =>
     .replace(/[^\w\u0080-\uffff-]/g, '')
     .trim();
 
-/** Extract #hashtags from a text string. */
+/** Only digits (and dashes): a number like "#1" or "#2026", not a hashtag */
+const isNumber = (tag: string): boolean => /^[\d-]+$/.test(tag);
+
+/** Extract #hashtags from a text string; numbers ("Volume #1") aren't hashtags */
 export const extractHashtags = (text: string): string[] => {
   const matches = text.match(/#[\w\u0080-\uffff][\w\u0080-\uffff-]*/g);
   if (!matches) return [];
-  return [...new Set(matches.map(normalizeTag).filter(Boolean))];
+  return [...new Set(matches.map(normalizeTag).filter((tag) => tag && !isNumber(tag)))];
 };
 
 export const hashtagPlugin: NostrUIPlugin = {

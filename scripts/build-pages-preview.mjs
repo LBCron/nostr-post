@@ -4,6 +4,10 @@ import { join } from 'node:path';
 
 const root = process.cwd();
 const deployDir = join(root, '.pages-local');
+// The site's path on its host: '' for a site at the root (PR previews, `pnpm preview:pages`),
+// '/nostr-post' for GitHub Pages (saintego.github.io/nostr-post/). Only the Next.js apps need it;
+// the other apps and pages use relative paths.
+const basePath = (process.env.PAGES_BASE_PATH ?? '').replace(/\/$/, '');
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -39,12 +43,12 @@ run('pnpm', ['--filter', 'react-demo', 'build']);
 run('pnpm', ['--filter', 'gigs', 'build']);
 run('pnpm', ['--filter', 'nextjs-demo', 'build'], {
   env: {
-    NOSTR_POST_BASE_PATH: '/examples/nextjs-demo',
+    NOSTR_POST_BASE_PATH: `${basePath}/examples/nextjs-demo`,
   },
 });
 run('pnpm', ['--filter', 'manifest-creator', 'build'], {
   env: {
-    NOSTR_POST_BASE_PATH: '/manifest-creator',
+    NOSTR_POST_BASE_PATH: `${basePath}/manifest-creator`,
   },
 });
 

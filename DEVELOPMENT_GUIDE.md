@@ -376,6 +376,11 @@ pnpm typecheck
 - **CI** (`.github/workflows/ci.yml`): every pull request and every push to `main` runs
   `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm build`, `pnpm typecheck`, `pnpm test` and
   `pnpm test:e2e`. Run the same before pushing.
+- **GitHub Pages** (`.github/workflows/cdn.yml`): every push to `main` deploys `pnpm build:pages`
+  (`scripts/build-pages-preview.mjs`: the CDN bundle, every example and the manifest creator) to
+  saintego.github.io/nostr-post/, with `PAGES_BASE_PATH=/nostr-post` for the Next.js apps. PR
+  previews (`pr-preview.yml`) deploy the same build at an nsite's root, so a new example added to
+  the script shows up in both.
 - **Dependabot** (`.github/dependabot.yml`): weekly PRs for npm updates of the root and every
   workspace (minor and patch updates grouped into one PR, a PR per major update), monthly for the
   workflows' actions; labelled `dependencies`. CI checks each. Security alerts and security-fix PRs

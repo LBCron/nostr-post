@@ -6,10 +6,10 @@
  * only for themselves and only on this page; nothing is published.
  */
 
+import { parseUpdateComment } from '@nostr-post/core/eventUpdates';
 import type { DisplayableEvent } from '@nostr-post/core/types';
+import { truncatePubkey } from '@nostr-post/posts';
 import { html, nothing, type TemplateResult } from 'lit';
-import { truncatePubkey } from './userProfile';
-import { parseUpdateComment } from './viewUpdates';
 
 export interface SuggestionMessages {
   /** The list's summary, e.g. "2 suggested changes" */

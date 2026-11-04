@@ -6,10 +6,10 @@
 import { decodeNaddr } from '@nostr-post/core/nip19';
 import type { NoteToken } from '@nostr-post/core/noteContent';
 import { kindViewFor } from '@nostr-post/plugins/entities';
+import type { NostrProfile } from '@nostr-post/signer';
 import { html, type TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
-import type { NostrProfile } from './userProfile';
 
 /** Where `nostr:` references link to by default (a NIP-19 entity is appended) */
 export const DEFAULT_NOSTR_LINK_BASE = 'https://njump.me/';

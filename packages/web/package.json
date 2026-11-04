@@ -36,12 +36,12 @@
   "license": "MIT",
   "dependencies": {
     "@nostr-post/core": "workspace:*",
+    "@nostr-post/list": "workspace:*",
     "@nostr-post/plugin-date": "workspace:*",
     "@nostr-post/plugin-embed": "workspace:*",
     "@nostr-post/plugin-geo": "workspace:*",
     "@nostr-post/plugin-hashtag": "workspace:*",
     "@nostr-post/plugin-identifier": "workspace:*",
-    "@nostr-post/list": "workspace:*",
     "@nostr-post/plugin-markdown": "workspace:*",
     "@nostr-post/plugin-media": "workspace:*",
     "@nostr-post/plugin-profile": "workspace:*",
@@ -49,6 +49,7 @@
     "@nostr-post/plugin-stars": "workspace:*",
     "@nostr-post/plugin-venue": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/posts": "workspace:*",
     "@nostr-post/signer": "workspace:*",
     "lit": "^3.3.3"
   },

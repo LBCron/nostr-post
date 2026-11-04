@@ -14,10 +14,10 @@ import type {
   NostrPostManifest,
   UnsignedNostrEvent,
 } from '@nostr-post/core/types';
+import { extractPrefillFromEvent, formatPrefillAsUpdateComment } from '@nostr-post/posts';
 import type { TemplateResult } from 'lit';
 import { html, nothing } from 'lit';
 import { getUserRelays, signAndPublish } from './signer';
-import { extractPrefillFromEvent, formatPrefillAsUpdateComment } from './viewUpdates';
 
 /** User-facing text of the edit button and form */
 export interface EditMessages {

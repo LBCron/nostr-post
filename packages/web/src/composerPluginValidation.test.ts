@@ -1,6 +1,6 @@
 import { pluginRegistry } from '@nostr-post/plugins/registry';
+import { validateWithPlugins } from '@nostr-post/posts';
 import { describe, expect, it } from 'vitest';
-import { validateWithPlugins } from './composerSubmit';
 
 const manifest = {
   id: 'event',

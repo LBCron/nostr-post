@@ -5,35 +5,56 @@
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
-import { type FetchFilter, fetchEvents, fetchManifestByATag } from '@nostr-post/signer';
+import {
+  buildFeedFilters,
+  buildInteractionLoadKey,
+  buildReplyTarget,
+  buildThreads,
+  DEFAULT_COMMENT_MANIFEST,
+  DEFAULT_REACTION_OPTIONS,
+  displayNameForPubkey,
+  fetchFeedEvents,
+  interactionFilters,
+  loadProfilesForEvents,
+  mergeUniqueEventsById,
+  publishReaction,
+  type ReplyTarget,
+} from '@nostr-post/posts';
+import {
+  type FetchFilter,
+  fetchEvents,
+  fetchManifestByATag,
+  type NostrProfile,
+} from '@nostr-post/signer';
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
 import { renderEventActions } from './feedActions';
 import { handleCommentPublished as handleCommentPublishedDetail } from './feedComments';
-import {
-  buildFeedFilters,
-  buildInteractionLoadKey,
-  FEED_LOAD_PROPERTIES,
-  interactionFilters,
-  mergeUniqueEventsById,
-} from './feedData';
 import { DEFAULT_FEED_MESSAGES, type FeedMessages } from './feedMessages';
-import { publishReaction } from './feedReactions';
-import { fetchFeedEvents } from './feedRelays';
-import {
-  buildReplyTarget,
-  buildThreads,
-  DEFAULT_COMMENT_MANIFEST,
-  DEFAULT_REACTION_OPTIONS,
-  type ReplyTarget,
-} from './feedStandard';
 import { feedStyle } from './feedStyle';
 import { type FeedLayout, type FeedThreadContext, renderFeedThread } from './feedThread';
 import type { SignedEvent } from './signer';
-import { displayNameForPubkey, loadProfilesForEvents, type NostrProfile } from './userProfile';
 import './composer';
 import './view';
+
+/** <nostr-post-feed> properties that change what it loads */
+export const FEED_LOAD_PROPERTIES = [
+  'authors',
+  'kinds',
+  'ids',
+  'limit',
+  'since',
+  'until',
+  'search',
+  'relays',
+  'manifest',
+  'filterTags',
+  'tagFilters',
+  'filters',
+  'commentsEnabled',
+  'reactionsEnabled',
+];
 
 @customElement('nostr-post-feed')
 export class NostrPostFeed extends NostrPostElement {

@@ -5,7 +5,8 @@
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
-import type { NostrPostSubmitDetail, SignedEvent } from '@nostr-post/web';
+import type { NostrPostSubmitDetail } from '@nostr-post/posts';
+import type { SignedEvent } from '@nostr-post/web';
 import '@nostr-post/web'; // Register web components
 import { useEffect, useRef } from 'react';
 

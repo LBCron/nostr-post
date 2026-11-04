@@ -1,8 +1,12 @@
-import { buildReactionEvent, mergeUniqueEvents } from './feedStandard';
-import type { SignedEvent } from './signer';
-import { getPublicKey, getUserRelays, signAndPublish } from './signer';
-import type { NostrProfile } from './userProfile';
-import { loadProfilesForEvents } from './userProfile';
+import {
+  getPublicKey,
+  type NostrProfile,
+  type SignedEvent,
+  signAndPublish,
+} from '@nostr-post/signer';
+import { loadProfilesForEvents } from './profiles';
+import { getUserRelays } from './relays';
+import { buildReactionEvent, mergeUniqueEvents } from './threads';
 
 export interface ReactionSummaryWithAuthors {
   reaction: string;

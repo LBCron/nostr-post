@@ -1,7 +1,7 @@
 /** Template parts of <nostr-post-feed>: a post's reactions and its action buttons */
 
+import type { ReactionSummaryWithAuthors } from '@nostr-post/posts';
 import { html, type TemplateResult } from 'lit';
-import type { ReactionSummaryWithAuthors } from './feedReactions';
 
 /** Reaction chips with counts and who reacted; nothing without reactions */
 export const renderReactionSummary = (

@@ -185,16 +185,34 @@ export {
   type DryRunChangeDetail,
 } from '@nostr-post/signer';
 
-// Relay helpers (defined in web/signer, re-exported from web)
+// Publishing and reading posts without the components (@nostr-post/posts)
 export {
   getUserRelays,
   getDefaultRelays,
-} from '@nostr-post/web';
+  validateAndCoordinate,
+  publishWithHooks,
+  signAndPublishBundle,
+  withTags,
+  type NostrPostSubmitDetail,
+  DEFAULT_PUBLISH_MESSAGES,
+  type PublishMessages,
+  buildReply,
+  type ReplyTarget,
+  buildReplyTarget,
+  buildThreads,
+  type FeedThread,
+  buildReactionEvent,
+  publishReaction,
+  buildFeedFilters,
+  interactionFilters,
+  fetchFeedEvents,
+  extractPrefillFromEvent,
+  formatPrefillAsUpdateComment,
+  appliedUpdates,
+} from '@nostr-post/posts';
 
 // Publishing a submitted post yourself (composer without auto-publish): plugin hooks
-export { runAfterPublish, runBeforePublish, runPublishHooks, withTags } from '@nostr-post/web';
-// An event's values as form data, e.g. to edit it in a composer
-export { extractPrefillFromEvent } from '@nostr-post/web';
+export { runAfterPublish, runBeforePublish, runPublishHooks } from '@nostr-post/web';
 
 // Composer text (submit button, steps, errors) for overriding via its `messages` property
 export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from '@nostr-post/web';

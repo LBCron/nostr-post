@@ -1,27 +1,8 @@
 import { COMMENT_KIND } from '@nostr-post/core/comments';
 import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
 import type { NostrPostManifest } from '@nostr-post/core/types';
-import type { FetchFilter } from '@nostr-post/signer';
-import { addressOf } from './feedStandard';
-import type { SignedEvent } from './signer';
-
-/** <nostr-post-feed> properties that change what it loads */
-export const FEED_LOAD_PROPERTIES = [
-  'authors',
-  'kinds',
-  'ids',
-  'limit',
-  'since',
-  'until',
-  'search',
-  'relays',
-  'manifest',
-  'filterTags',
-  'tagFilters',
-  'filters',
-  'commentsEnabled',
-  'reactionsEnabled',
-];
+import type { FetchFilter, SignedEvent } from '@nostr-post/signer';
+import { addressOf } from './threads';
 
 export const parseFilterTags = (input?: string): Record<string, string[]> => {
   if (!input) return {};

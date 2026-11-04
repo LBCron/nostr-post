@@ -39,12 +39,13 @@ export {
   colors,
   baseStyles,
   STANDARD_KIND1_POST_MANIFEST,
-  type NostrPostSubmitDetail,
   runAfterPublish,
   runBeforePublish,
   runPublishHooks,
-  withTags,
 } from '@nostr-post/web';
+
+// Publishing a submitted post yourself (the logic, from @nostr-post/posts)
+export { type NostrPostSubmitDetail, withTags } from '@nostr-post/posts';
 
 // Signer utilities (re-exported from @nostr-post/signer)
 export {

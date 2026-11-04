@@ -45,6 +45,11 @@ Use it in plain HTML through the CDN bundle, drop in Web Components, use the Rea
     └────────────┬──────────────────┘
                  │
     ┌────────────▼──────────────────┐
+    │ @nostr-post/posts             │  (Publishing and reading posts,
+    │ publish, threads, feeds       │   no UI: for any UI)
+    └────────────┬──────────────────┘
+                 │
+    ┌────────────▼──────────────────┐
     │ @nostr-post/signer            │  (NIP-07, Relay Publish/Fetch)
     │ @nostr-post/plugins (Registry)│
     └────────────┬──────────────────┘
@@ -76,6 +81,7 @@ This keeps relay I/O in one place and avoids duplicate network requests.
 | **@nostr-post/core**    | ✅ **Complete** | Manifest validation, event coordination, NIP-78 storage               |
 | **@nostr-post/signer**  | ✅ **Complete** | NIP-07 signing, relay publish/fetch                                   |
 | **@nostr-post/plugins** | ✅ **Complete** | Plugin registry + types (extraTags, resolveFromTags)                  |
+| **@nostr-post/posts**   | ✅ **Complete** | Publishing and reading posts without a UI (bundles, threads, feeds) — [README](./packages/posts/README.md) |
 | **@nostr-post/web**     | ✅ **Complete** | Lit web components (composer, view, feed)                             |
 | **@nostr-post/react**   | ✅ **Complete** | React hooks + wrapper components                                      |
 | **@nostr-post/cdn**     | ✅ **Complete** | Single-file CDN bundle (ESM + IIFE, no npm required)                  |

@@ -238,6 +238,15 @@ The bundle re-exports utilities for advanced usage:
 - `extractPrefillFromEvent(event, manifest)`: an event's values as form data, to edit it in a
   composer (`prefill`, with the event's `dTag`)
 
+**Posts without the components** (see [@nostr-post/posts](../posts/README.md))
+
+- `validateAndCoordinate`, `publishWithHooks`, `signAndPublishBundle`, `DEFAULT_PUBLISH_MESSAGES`,
+  `PublishMessages`: publishing a post made with a manifest
+- `buildReply`, `ReplyTarget`, `buildReplyTarget`, `buildThreads`, `FeedThread`,
+  `buildReactionEvent`, `publishReaction`: replies, threads, reactions
+- `buildFeedFilters`, `interactionFilters`, `fetchFeedEvents`: feeds and their interactions
+- `formatPrefillAsUpdateComment`, `appliedUpdates`: editing with update comments
+
 **Wiki (NIP-54)**: see [packages/wiki](../wiki/README.md)
 
 - `WIKI_KIND`, `DEFAULT_WIKI_RELAYS`, `STANDARD_WIKI_MANIFEST`

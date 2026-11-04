@@ -35,6 +35,7 @@ const QUERY_PROPERTIES = [
   'eventZones',
   'kinds',
   'authors',
+  'addresses',
   'tagFilters',
 ];
 
@@ -54,6 +55,8 @@ export class NostrCalendarAgenda extends LitElement {
   @property({ type: Boolean, attribute: 'event-zones' }) eventZones = false;
   /** One calendar (`31924:<pubkey>:<d-tag>`): its events, by address */
   @property() calendar?: string;
+  /** Given events by address (`31922:<pubkey>:<d-tag>`), e.g. the ones the user is going to */
+  @property({ type: Array }) addresses?: string[];
   /** Default 31922 and 31923 */
   @property({ type: Array }) kinds?: number[];
   @property({ type: Array }) authors?: string[];
@@ -105,7 +108,7 @@ export class NostrCalendarAgenda extends LitElement {
               kinds: this.kinds,
               authors: this.authors,
               tagFilters: this.tagFilters,
-              calendarItems: this.calendar ? this._calendarItems : undefined,
+              calendarItems: this.calendar ? this._calendarItems : this.addresses,
             });
     }
   }

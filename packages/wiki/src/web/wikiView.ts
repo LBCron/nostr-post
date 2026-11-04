@@ -1,6 +1,5 @@
-import { fieldOptionLabel } from '@nostr-post/core/enumOptions';
 import { fieldDescription, fieldLabel } from '@nostr-post/core/manifest';
-import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
+import type { NostrPostManifest } from '@nostr-post/core/types';
 import { eventActionsFor } from '@nostr-post/plugins/entities';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import { type EventManifest, fetchEvents, fetchManifestForEvent } from '@nostr-post/signer';
@@ -10,7 +9,6 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { entityLinks } from '../externalIds';
 import { fetchEntityVersions } from '../fetch';
-import { templateText } from '../identity';
 import { manifestLinks } from '../links';
 import {
   DEFAULT_WIKI_RELAYS,
@@ -23,22 +21,13 @@ import { getEntityManifest, resolveEntityManifest } from '../registry';
 import type { WikiEvent, WikiResolverFunction } from '../resolver';
 import { countContributors, defaultResolver, selectNewestEntity } from '../resolver';
 import type { WikiManifest } from '../types';
+import { renderFieldValue } from './wikiFieldValue';
 import { DEFAULT_WIKI_VIEW_MESSAGES, type WikiViewMessages } from './wikiViewMessages';
 import { viewStyles } from './wikiViewStyles';
 import './wikiRelated';
 
 /** Resolving the newest version needs every relay's versions, not the first answer */
 const ALL_RELAYS = { waitForAll: true, relayTimeoutMs: 5000 };
-
-/** A field value as text: lists joined, enum values as their option's label, references as names */
-const displayValue = (f: PostField, value: unknown): string => {
-  const items = Array.isArray(value) ? value : [value];
-  return items
-    .map((v) =>
-      f.type === 'enum' && typeof v === 'string' ? fieldOptionLabel(f, v) : templateText(v)
-    )
-    .join(', ');
-};
 
 @customElement('nostr-wiki-view')
 export class NostrWikiView extends LitElement {
@@ -350,10 +339,7 @@ export class NostrWikiView extends LitElement {
             ${infoFields.map((f) => {
               const value = data[f.id];
               const label = fieldLabel(f);
-              const plugin = pluginRegistry.get(f.uiPlugin);
-              const rendered = plugin?.renderView
-                ? plugin.renderView(value, f)
-                : plugin?.formatValue?.(value) || displayValue(f, value);
+              const rendered = renderFieldValue(f, value);
               return html`
                 <div class="wiki-field">
                   <dt title=${ifDefined(fieldDescription(f))}>${label}</dt>

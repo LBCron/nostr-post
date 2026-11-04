@@ -86,6 +86,7 @@ Ask relays for the candidates with `agendaFilter` for the draft's days, plus `#g
 | `rsvpFilter(addresses)`, `fetchRsvps(addresses, options?)` | Relay filter for, and reading of, the RSVPs to events          |
 | `publishRsvp(address, status, options?)`       | Signs (asks the signer) and publishes the user's answer; a `Result`      |
 | `summarizeRsvps(events, address)`, `withAnswer(summary, pubkey, status)`, `peopleByStatus(summary)` | Counts per status, each person's newest answer; who gave each |
+| `rsvpsByFilter(pubkey)`, `fetchRsvpsBy(pubkey, options?)`, `answersByAddress(events)` | Relay filter for one person's RSVPs, and their newest answer to each event by address (e.g. the events they're going to) |
 | `isCalendarEventAddress(address)`, `RSVP_KIND`, `RSVP_STATUSES` | Checks and constants                                    |
 
 `status` is `accepted`, `tentative` or `declined`.
@@ -139,6 +140,7 @@ on events made with calendar manifests, and the kind view of 31922/31923.
 | `time-zone`          | IANA time zone of the days (default the viewer's) |
 | `event-zones`        | Timed events on the days and at the times of their own zone (`start_tzid`), e.g. a city's gigs in the city's time; the window's days stay in `time-zone` |
 | `calendar`           | One calendar (`31924:…`): its events by address, so also all-day events of clients that write no `D` tags; its maintainer's update comments apply |
+| `addresses`          | Given events by address (`31922:…`, `31923:…`), e.g. the ones the user is going to (`answersByAddress`); like `calendar`, also other clients' all-day events |
 | `kinds`, `authors`, `tagFilters` | Narrow the events, e.g. `{ '#g': ['u09t'], '#t': ['punk'] }` |
 | `relays`, `manifest` (default `CALENDAR_EVENT_MANIFEST`), `editable`, `comments-enabled`, `reactions-enabled` | Passed to the feed |
 | `eventHref`          | `(address) => string`: rows link to the app's page of an event (e.g. `#/event/<naddr>`); without it a row's title opens the event under it |

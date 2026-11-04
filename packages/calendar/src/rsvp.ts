@@ -79,6 +79,30 @@ export const rsvpFilter = (addresses: string[]): { kinds: number[]; '#a': string
 const isStatus = (value: string | undefined): value is RsvpStatus =>
   RSVP_STATUSES.includes(value as RsvpStatus);
 
+/** Relay filter for one person's RSVPs, e.g. to list the events they're going to */
+export const rsvpsByFilter = (pubkey: string): { kinds: number[]; authors: string[] } => ({
+  kinds: [RSVP_KIND],
+  authors: [pubkey],
+});
+
+/**
+ * One person's answers by event address, from their RSVPs: the newest answer to each event
+ * (`a` tag), e.g. to list what they're going to (`accepted`) or might (`tentative`)
+ */
+export const answersByAddress = (events: RsvpLike[]): Map<string, RsvpStatus> => {
+  const newest = new Map<string, { status: RsvpStatus; createdAt: number }>();
+  for (const event of events) {
+    const address = event.tags.find((tag) => tag[0] === 'a' && tag[1])?.[1];
+    const status = event.tags.find((tag) => tag[0] === 'status')?.[1];
+    if (!address || !isCalendarEventAddress(address) || !isStatus(status)) continue;
+    const existing = newest.get(address);
+    if (!existing || event.created_at > existing.createdAt) {
+      newest.set(address, { status, createdAt: event.created_at });
+    }
+  }
+  return new Map([...newest].map(([address, { status }]) => [address, status]));
+};
+
 /** Counts of the RSVPs to `address`, each person's newest answer only */
 export const summarizeRsvps = (events: RsvpLike[], address: string): RsvpSummary => {
   const newest = new Map<string, { status: RsvpStatus; createdAt: number }>();

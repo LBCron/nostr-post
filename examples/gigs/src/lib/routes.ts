@@ -9,6 +9,7 @@ export type Route =
   | { page: 'artist-new'; name?: string }
   | { page: 'artist-edit'; dTag: string; additions?: Record<string, unknown> }
   | { page: 'add' }
+  | { page: 'mine' }
   | { page: 'import' };
 
 /** `?add=<JSON>` of a route, if valid */
@@ -38,6 +39,7 @@ export const routeOf = (hash: string): Route => {
   m = hash.match(/^#\/artist-edit\/([^?]+)(?:\?(.*))?$/);
   if (m) return { page: 'artist-edit', dTag: decode(m[1]), additions: additionsOf(m[2]) };
   if (hash === '#/add') return { page: 'add' };
+  if (hash === '#/mine') return { page: 'mine' };
   if (hash === '#/import') return { page: 'import' };
   return { page: 'browse', query: hash.split('?')[1] ?? '' };
 };

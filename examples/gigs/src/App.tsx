@@ -13,6 +13,7 @@ import { ArtistPage } from './pages/ArtistPage';
 import { Browse } from './pages/Browse';
 import { EventPage } from './pages/EventPage';
 import { ImportIcs } from './pages/ImportIcs';
+import { MyGigs } from './pages/MyGigs';
 
 /** The link's hash, following its changes */
 const useHash = (): string => {
@@ -48,6 +49,8 @@ function Page({ hash }: { hash: string }) {
       return <ArtistComposer dTag={route.dTag} additions={route.additions} />;
     case 'add':
       return <AddGig />;
+    case 'mine':
+      return <MyGigs />;
     case 'import':
       return <ImportIcs />;
     case 'browse':
@@ -64,6 +67,7 @@ export function App() {
         <h1>🎸 Gigs</h1>
         <nav>
           <a href="#/">Browse</a>
+          <a href="#/mine">My gigs</a>
           <a href="#/add">Add a gig</a>
           <a href="#/import">Import .ics</a>
           <a href="#/artist-new">Add an artist</a>

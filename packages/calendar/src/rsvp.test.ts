@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  answersByAddress,
   isCalendarEventAddress,
   peopleByStatus,
   rsvpEvent,
   rsvpFilter,
+  rsvpsByFilter,
   summarizeRsvps,
   withAnswer,
 } from './rsvp';
@@ -93,5 +95,37 @@ describe('summarizeRsvps / withAnswer', () => {
       declined: ['z'],
     });
     expect(peopleByStatus(undefined)).toEqual({ accepted: [], tentative: [], declined: [] });
+  });
+});
+
+describe('rsvpsByFilter / answersByAddress', () => {
+  const me = 'c'.repeat(64);
+  const other = `31922:${author}:fest`;
+  const rsvp = (a: string, status: string, createdAt: number) => ({
+    pubkey: me,
+    created_at: createdAt,
+    tags: [
+      ['d', a],
+      ['a', a],
+      ['status', status],
+    ],
+  });
+
+  it("asks relays for one person's RSVPs", () => {
+    expect(rsvpsByFilter(me)).toEqual({ kinds: [31925], authors: [me] });
+  });
+
+  it('gives the newest answer to each calendar event', () => {
+    const answers = answersByAddress([
+      rsvp(address, 'tentative', 1),
+      rsvp(address, 'accepted', 2),
+      rsvp(other, 'declined', 1),
+      rsvp(`30818:${author}:page`, 'accepted', 1),
+      rsvp(other, 'unknown', 3),
+    ]);
+    expect([...answers]).toEqual([
+      [address, 'accepted'],
+      [other, 'declined'],
+    ]);
   });
 });

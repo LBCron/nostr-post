@@ -25,8 +25,11 @@ players, RSVP, `.ics` import and export.
 - **New performers' pages** are published with the gig, like the venue's: a performer read from a
   post, or filled in with "+ Create" / "Create page" (the dialog's "Add" doesn't publish), gets a
   checkbox next to the publish button; each page is one more event to sign.
+- **My gigs** (`#/mine`, signed in): the gigs you added (`<nostr-calendar-agenda authors>`) and the
+  ones you're going to, from your RSVPs (`fetchRsvpsBy`, `answersByAddress`, the agenda's
+  `addresses`): Going and maybe, Going only, or Maybe only.
 - **Musician** (`#/artist/<d-tag>`, `#/artist-new[/<name>]`, `#/artist-edit/<d-tag>[?add=<JSON>]`):
-  a musician's wiki page (type
+  a musician's wiki page, its links as players (type
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link
   the page (`a` tag) or one of its profiles (`i` tag), so gigs added before the page show too.
 - **Add a gig** (`#/add`): paste a post's text and its poster → AI reads it (Claude or Google Gemini

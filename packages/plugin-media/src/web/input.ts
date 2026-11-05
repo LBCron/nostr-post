@@ -22,11 +22,12 @@ import {
   type MediaPluginConfig,
   toArray,
 } from '../core';
+import { targetHost, uploadTargets } from '../uploadServers';
 import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
 import { DEFAULT_MAX_SIZE, uploadFailureText, uploadQuality } from './upload';
-import { NOSTR_BUILD_UPLOAD, uploadWithRetry } from './uploadRequest';
+import { uploadMedia } from './uploadMedia';
 
 @customElement('np-media-input')
 export class NpMediaInput extends LitElement {
@@ -175,8 +176,8 @@ export class NpMediaInput extends LitElement {
       if (upload.size > this._maxSize) throw new Error(m.tooLarge(this._maxMb));
       this._uploading = `${m.uploading(file.name)}${count}`;
       this._uploadDetail = m.sizes(formatBytes(file.size), formatBytes(upload.size));
-      const url = await uploadWithRetry(upload, {
-        uploadUrl: this._config.uploadUrl,
+      const { url } = await uploadMedia(upload, {
+        config: this._config,
         signal: controller.signal,
         onProgress: (fraction) => {
           this._uploadProgress = Math.round(fraction * 100);
@@ -187,6 +188,10 @@ export class NpMediaInput extends LitElement {
         },
         onRetry: (attempt, attempts) => {
           this._uploading = m.retrying(file.name, attempt, attempts);
+          this._uploadProgress = 0;
+        },
+        onServer: (host) => {
+          this._uploading = m.otherServer(file.name, host);
           this._uploadProgress = 0;
         },
       });
@@ -337,7 +342,9 @@ export class NpMediaInput extends LitElement {
 
   private _renderDropZone() {
     const m = this._m;
-    const host = new URL(this._config.uploadUrl ?? NOSTR_BUILD_UPLOAD).host;
+    // The user's own servers come first once they're known; without them, the field's first
+    const [first] = uploadTargets(this._config);
+    const host = first ? targetHost(first) : '';
     return html`
       <div
         class="drop-zone ${this._dragover ? 'dragover' : ''} ${this._uploading ? 'uploading' : ''}"

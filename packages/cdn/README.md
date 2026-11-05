@@ -211,10 +211,20 @@ The bundle re-exports utilities for advanced usage:
 - `DEFAULT_ACTIVITY_MESSAGES`, `setActivityMessages(messages)`: its text;
   `DEFAULT_MEDIA_MESSAGES`, `setMediaMessages(messages)`: the media upload's text (Add media, photo
   quality, progress, retries)
+- Uploads go to the user's Blossom servers (their kind 10063 list), then a field's
+  `blossomServers`, then nostr.build (NIP-98): the next server is tried when one refuses or fails.
+  A Blossom upload is authorized once per file (a kind 24242 event for its hash), so its retries
+  don't ask the signer again. Location and other metadata are removed from JPEG photos first,
+  unless the field keeps them (`keepMetadata: true`).
+  `uploadMedia(file, { config })` does the same from your own code and returns what's known about
+  the file (url, type, sha256, size, dim); `fetchBlossomServers(pubkey)` reads a user's servers.
 - Uploads cope with a bad connection: one with no progress for 30 s is aborted, and failed
   uploads (no connection, stalled, server error) are tried twice more, after 3 s and 10 s or
-  once the browser is back online; each try signs a new NIP-98 token, so a remote signer may ask
-  again. Running uploads can be cancelled (✕), and publishing then goes on without them
+  once the browser is back online; with nostr.build each try signs a new NIP-98 token, so a remote
+  signer may ask again. Running uploads can be cancelled (✕), and publishing then goes on without
+  them
+- Images from a Blossom server that fail to load are tried on the author's other servers by their
+  hash
 
 **Composer text**
 

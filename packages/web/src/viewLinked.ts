@@ -131,9 +131,9 @@ const getLinkedTagGroupValue = (
   group: string[][],
   tags: string[][]
 ): unknown => {
-  if (plugin?.resolveFromTags) {
-    return plugin.resolveFromTags(tags, field);
-  }
+  // undefined: the plugin leaves this field to the default reading of its tag
+  const resolved = plugin?.resolveFromTags?.(tags, field);
+  if (resolved !== undefined) return resolved;
 
   if (field.uiPlugin === 'geo' && group.length > 1) {
     return group.map((tag) => tag[1]).reduce((a, b) => (a.length >= b.length ? a : b));

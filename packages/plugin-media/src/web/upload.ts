@@ -9,7 +9,8 @@ import type { PostField } from '@nostr-post/plugins/types';
 import type { MediaPluginConfig, MediaQuality } from '../core';
 import { compressImage, preferredQuality } from './compress';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
-import { uploadFailureKind, uploadWithRetry } from './uploadRequest';
+import { uploadMedia } from './uploadMedia';
+import { uploadFailureKind } from './uploadRequest';
 
 /** Largest file uploaded, after shrinking (MediaPluginConfig.maxSize) */
 export const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
@@ -64,8 +65,8 @@ async function uploadOneIntoContent(
       detail: m.sizes(formatBytes(file.size), formatBytes(upload.size)),
       progress: 0,
     });
-    const url = await uploadWithRetry(upload, {
-      uploadUrl: config.uploadUrl,
+    const { url } = await uploadMedia(upload, {
+      config,
       signal: controller.signal,
       onProgress: (progress) => activity.update({ progress }),
       onWait: (offline) =>
@@ -75,6 +76,7 @@ async function uploadOneIntoContent(
         }),
       onRetry: (attempt, attempts) =>
         activity.update({ label: m.retrying(file.name, attempt, attempts), progress: 0 }),
+      onServer: (host) => activity.update({ label: m.otherServer(file.name, host), progress: 0 }),
     });
     injectMediaUrlIntoContent(ctx, targetField.id, url);
     activity.done(m.uploaded(file.name));

@@ -3,10 +3,11 @@
  * references in place, the way other Nostr clients show a kind 1 note.
  */
 
+import { blossomFallbacks, blossomHash } from '@nostr-post/core/blossom';
 import { decodeNaddr } from '@nostr-post/core/nip19';
 import type { NoteToken } from '@nostr-post/core/noteContent';
 import { kindViewFor } from '@nostr-post/plugins/entities';
-import type { NostrProfile } from '@nostr-post/signer';
+import { fetchBlossomServers, type NostrProfile } from '@nostr-post/signer';
 import { html, type TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
@@ -46,6 +47,8 @@ export type NoteContentOptions = {
   nostrLinkBase?: string;
   /** Profiles of mentioned pubkeys, shown as `@name` */
   profiles?: ReadonlyMap<string, NostrProfile>;
+  /** The post's author: their Blossom servers are tried when an image fails to load */
+  author?: string;
 };
 
 /** `@name` for a mentioned profile, else the short NIP-19 id */
@@ -58,6 +61,23 @@ const nostrLabel = (
   return name ? `@${name}` : shortNostrId(token.id);
 };
 
+/**
+ * An image that failed: the same file (by its Blossom hash) on the author's other servers
+ * (their kind 10063 list), one after another
+ */
+const tryOtherServers = async (e: Event, author: string | undefined): Promise<void> => {
+  const img = e.target as HTMLImageElement;
+  const original = img.dataset.original ?? img.getAttribute('src') ?? '';
+  if (!author || !blossomHash(original)) return;
+  img.dataset.original = original;
+  const tried = Number(img.dataset.tried ?? 0);
+  const servers = await fetchBlossomServers(author).catch(() => []);
+  const next = blossomFallbacks(original, servers)[tried];
+  if (!next) return;
+  img.dataset.tried = String(tried + 1);
+  img.src = next;
+};
+
 const renderToken = (token: NoteToken, options: NoteContentOptions): TemplateResult => {
   switch (token.type) {
     case 'text':
@@ -65,7 +85,12 @@ const renderToken = (token: NoteToken, options: NoteContentOptions): TemplateRes
     case 'url':
       if (token.media === 'image') {
         return html`<a class="note-media" href=${token.url} target="_blank" rel="noopener noreferrer"
-          ><img src=${token.url} alt="" loading="lazy" referrerpolicy="no-referrer"
+          ><img
+            src=${token.url}
+            alt=""
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            @error=${(e: Event) => void tryOtherServers(e, options.author)}
         /></a>`;
       }
       if (token.media === 'video') {

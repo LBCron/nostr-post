@@ -68,7 +68,7 @@ pluginRegistry.register({
                 onChange: (value) => {
                   if (isMediaQuality(value)) rememberQuality(value);
                 },
-                hint: m.qualityHint,
+                hint: config.keepMetadata ? m.qualityHintKeepsMetadata : m.qualityHint,
               },
         onClick: ({ targetField, formData, getFormData, onUpdateField }) => {
           const input = document.createElement('input');
@@ -97,8 +97,8 @@ export { NpMediaInput } from './web/input';
 export { NpMediaView } from './web/view';
 export { mediaPlugin } from './core';
 
-// Re-export upload utilities so consumers (e.g. the composer's paste/drop handler)
-// can reuse the shared NIP-98 auth + upload logic without duplicating it.
+// Re-export upload utilities so consumers (e.g. the composer's paste/drop handler) can reuse
+// the shared upload (Blossom, then NIP-96 / nostr.build) without duplicating it.
 export {
   handleMediaPaste,
   handleMediaDrop,
@@ -109,13 +109,27 @@ export {
   uploadToNostrBuild,
   createNip98AuthToken,
   NOSTR_BUILD_UPLOAD,
+  uploadBlossom,
+  uploadNip96,
   uploadWithProgress,
   uploadWithRetry,
   uploadFailureKind,
+  sendUpload,
+  signerPubkey,
+  signWithBrowser,
+  withRetries,
   type UploadFailure,
   type UploadOptions,
   type RetryOptions,
 } from './web/uploadRequest';
+export {
+  BLOSSOM_AUTH_SECONDS,
+  imageDim,
+  type UploadMediaOptions,
+  uploadMedia,
+  withoutMetadata,
+} from './web/uploadMedia';
+export { otherServersOf } from './web/otherServers';
 export { compressImage, preferredQuality, rememberQuality } from './web/compress';
 export {
   DEFAULT_MEDIA_MESSAGES,

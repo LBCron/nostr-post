@@ -21,7 +21,7 @@ Use it in plain HTML through the CDN bundle, drop in Web Components, use the Rea
 ✅ **Automatic coordination** - Forms split into multi-event bundles with NIP-78 linking  
 ✅ **Composable plugins** - Media arrays, geohash locations, markdown editors, hashtags, ratings  
 ✅ **Field-level control** - Visibility, read-only modes, default values, prefill, exclude fields  
-✅ **NIP support** - NIP-01, NIP-07 (signing), NIP-23 (articles), NIP-52 (geohash filtering), NIP-73 (identity tags), NIP-78 (manifest storage), NIP-98 (file upload auth)
+✅ **NIP support** - NIP-01, NIP-07 (signing), NIP-23 (articles), NIP-52 (geohash filtering), NIP-73 (identity tags), NIP-78 (manifest storage), NIP-92 (media metadata), NIP-98 (file upload auth), Blossom (media servers)
 
 ## 🧱 Architecture: The "Lego" System
 
@@ -92,7 +92,7 @@ This keeps relay I/O in one place and avoids duplicate network requests.
 | **plugin-date**         | ✅ **Complete** | Date / date-time input; NIP-52 date and `D` day tags                  |
 | **calendar**            | ✅ **Complete** | NIP-52 calendars: agenda/month, RSVP, calendars, iCalendar            |
 | **plugin-venue**        | ✅ **Complete** | OSM venue search + NIP-73 identity tags, wraps geo                    |
-| **plugin-media**        | ✅ **Complete** | Multi-file upload with NIP-98 auth to nostr.build                     |
+| **plugin-media**        | ✅ **Complete** | Multi-file upload: the user's Blossom servers, then nostr.build        |
 | **plugin-markdown**     | ✅ **Complete** | Markdown editor with live preview                                     |
 | **plugin-hashtag**      | ✅ **Complete** | Hashtag array input with optional auto-extraction via `attachTo`      |
 | **plugin-reference**    | ✅ **Complete** | URL/nostr reference list with optional auto-extraction via `attachTo` |
@@ -178,7 +178,7 @@ Ready-to-use UI components via Web Components or React:
 - **plugin-date** - Date or date and time with time zone (NIP-52 calendar event dates)
 - **plugin-profile** - People picker: search profiles or paste an npub, roles (NIP-52 participants)
 - **plugin-venue** - Business/POI search (Nominatim OSM, NIP-73)
-- **plugin-media** - Photo/video upload (drag-drop, multi-file, NIP-98)
+- **plugin-media** - Photo/video upload (drag-drop, multi-file, Blossom, NIP-98)
 - **plugin-markdown** - Rich text editor with live preview
 - **plugin-hashtag** - Tag arrays with optional auto-extraction via `attachTo`
 - **plugin-reference** - URL/nostr reference list with optional auto-extraction via `attachTo`
@@ -235,6 +235,8 @@ Built on standardized Nostr Improvement Proposals:
 | **NIP-73** | External identity tags    | Countries, profile URLs; OSM IDs in our own `osm:` namespace ([conventions](./NOSTR_CONVENTIONS.md)) |
 | **NIP-78** | Manifest storage          | Kind 30078 structured data    |
 | **NIP-98** | HTTP file server auth     | nostr.build upload            |
+| **NIP-92** | Media metadata (`imeta`)  | Media plugin                  |
+| **Blossom** | Media servers (BUD-01/02/03) | Media plugin upload       |
 
 ## 🏃 Quick Start
 

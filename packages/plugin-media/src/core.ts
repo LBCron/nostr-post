@@ -7,6 +7,8 @@
  */
 
 import type { NostrUIPlugin, PostField, Result, ValidationError } from '@nostr-post/plugins/types';
+import { imetaUrls, mediaImetaTags, readsImeta, writesImeta } from './mediaFiles';
+import { toArray } from './values';
 
 export interface MediaPluginConfig {
   /** Accepted MIME types (default: ['image/*', 'video/*']) */
@@ -15,8 +17,23 @@ export interface MediaPluginConfig {
   maxSize?: number;
   /** Maximum number of files. Default: 10 */
   maxFiles?: number;
-  /** Upload endpoint (default: nostr.build) */
+  /**
+   * NIP-96 / NIP-98 upload endpoint, tried after the Blossom servers (default: nostr.build,
+   * where the server chooses the file's URL)
+   */
   uploadUrl?: string;
+  /**
+   * Blossom servers to upload to (BUD-02: the file's URL is its hash), after the user's own
+   * (their kind 10063 list) and before `uploadUrl`
+   */
+  blossomServers?: string[];
+  /** `false`: don't upload to the user's own Blossom servers (their kind 10063 list) */
+  userServers?: boolean;
+  /**
+   * Also write an `imeta` tag per file (NIP-92: type, hash, size, dimensions) next to the
+   * mapped tag. Fields mapped to the `imeta` tag itself (NIP-68 pictures, kind 20) always do
+   */
+  imeta?: boolean;
   /** Show URL input field (default: true) */
   allowUrl?: boolean;
   /** Show file upload (default: true) */
@@ -38,6 +55,12 @@ export interface MediaPluginConfig {
   quality?: MediaQuality;
   /** Let the user pick the photo quality (default: true) */
   qualityChoice?: boolean;
+  /**
+   * Keep JPEG photos' metadata (EXIF: where and when it was taken, the camera), e.g. for a
+   * photo log. By default it's removed before upload. Shrinking (Low, Medium) drops it anyway:
+   * it's kept at Full quality
+   */
+  keepMetadata?: boolean;
 }
 
 /** How much photos are shrunk on the device before upload: smaller uploads faster */
@@ -116,12 +139,7 @@ export const isImageUrl = (url: string): boolean =>
   /\.(png|jpe?g|gif|webp|svg|avif)(\?|$)/i.test(url) ||
   url.includes('nostr.build');
 
-/** Normalize value to a string array */
-export const toArray = (value: unknown): string[] => {
-  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string');
-  if (typeof value === 'string' && value.length > 0) return [value];
-  return [];
-};
+export { toArray } from './values';
 
 /** Extract image/video URLs from a text string. */
 export const extractMediaUrls = (text: string): string[] => {
@@ -220,10 +238,25 @@ export const mediaPlugin: NostrUIPlugin = {
     return urls.map((u) => (u.startsWith('data:') ? '[uploaded file]' : u)).join(', ');
   },
 
-  /** Serialize array → single string or JSON array */
-  serializeValue: (value: unknown): string => {
+  /**
+   * Serialize array → single string or JSON array. Nothing for the `imeta` tag: `extraTags`
+   * writes whole `imeta` tags
+   */
+  serializeValue: (value: unknown, field?: PostField): string => {
+    if (field && readsImeta(field)) return '';
     const urls = toArray(value);
-    return urls.length === 1 ? urls[0] : JSON.stringify(urls);
+    return urls.length === 1 ? (urls[0] ?? '') : JSON.stringify(urls);
+  },
+
+  /** An `imeta` tag per file (type, hash, size, dimensions as far as known), when the field writes them */
+  extraTags: (value: unknown, field: PostField): [string, ...string[]][] =>
+    writesImeta(field) ? mediaImetaTags(value) : [],
+
+  /** For a field mapped to `imeta`: its files' URLs; otherwise the default reading of its tag */
+  resolveFromTags: (tags: string[][], field: PostField): unknown => {
+    if (!readsImeta(field)) return undefined;
+    const urls = imetaUrls(tags);
+    return urls.length > 0 ? urls : undefined;
   },
 
   /** Deserialize back to array */

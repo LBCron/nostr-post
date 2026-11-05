@@ -4,13 +4,16 @@
  * Read-only media gallery. Renders images inline, videos with controls,
  * and falls back to a link for unrecognized URLs.
  *
- * Accepts .value (string | string[]) and .field (PostField).
+ * Accepts .value (string | string[]), .field (PostField) and .author (the post's pubkey). An
+ * image from a Blossom server that fails to load is tried on the author's other servers (their
+ * kind 10063 list) and the field's `blossomServers`, by its hash.
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
 import { css, html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { isImageUrl, isVideoUrl, toArray } from '../core';
+import { customElement, property, state } from 'lit/decorators.js';
+import { isImageUrl, isVideoUrl, type MediaPluginConfig, toArray } from '../core';
+import { otherServersOf } from './otherServers';
 
 @customElement('np-media-view')
 export class NpMediaView extends LitElement {
@@ -75,6 +78,24 @@ export class NpMediaView extends LitElement {
   @property({ type: Object })
   field: PostField | null = null;
 
+  /** The post's author: their Blossom servers are tried when an image fails */
+  @property({ type: String })
+  author?: string;
+
+  /** The URL shown for an image that failed, by its original URL */
+  @state() _shown = new Map<string, string>();
+  /** Other servers' URLs still to try, by original URL */
+  _alternatives = new Map<string, string[]>();
+
+  async _tryElsewhere(url: string): Promise<void> {
+    if (!this._alternatives.has(url)) {
+      const servers = (this.field?.metadata as MediaPluginConfig | undefined)?.blossomServers;
+      this._alternatives.set(url, await otherServersOf(url, this.author, servers));
+    }
+    const next = this._alternatives.get(url)?.shift();
+    if (next) this._shown = new Map(this._shown).set(url, next);
+  }
+
   render() {
     const urls = toArray(this.value);
 
@@ -97,7 +118,11 @@ export class NpMediaView extends LitElement {
     if (isImageUrl(url)) {
       return html`
         <div class="media-view">
-          <img src=${url} alt="Media" />
+          <img
+            src=${this._shown.get(url) ?? url}
+            alt="Media"
+            @error=${() => void this._tryElsewhere(url)}
+          />
         </div>
       `;
     }

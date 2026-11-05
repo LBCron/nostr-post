@@ -22,3 +22,29 @@ export {
   UPLOAD_RETRY_DELAYS_MS,
   isRetryableUpload,
 } from './core';
+export {
+  blossomResult,
+  blossomUploadUrl,
+  NOSTR_BUILD_UPLOAD,
+  nip96Result,
+  nip98AuthEvent,
+  readNip96Response,
+  targetHost,
+  tryNextServer,
+  type UploadAnswer,
+  type UploadFailure,
+  uploadFailure,
+  uploadFailureKind,
+  type UploadTarget,
+  uploadTargets,
+} from './uploadServers';
+export {
+  imetaUrls,
+  mediaFileOf,
+  mediaImetaTags,
+  readsImeta,
+  rememberMediaFile,
+  writesImeta,
+} from './mediaFiles';
+export { sha256Hex } from './hash';
+export { exifOrientation, stripJpegMetadata } from './exif';

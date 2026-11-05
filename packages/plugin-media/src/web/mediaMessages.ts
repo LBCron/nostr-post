@@ -19,6 +19,8 @@ export interface MediaMessages {
   qualityDescription: (quality: MediaQuality, maxSide?: number) => string;
   /** About all levels, under them */
   qualityHint: string;
+  /** The same, for a field that keeps photos' metadata (`keepMetadata`) */
+  qualityHintKeepsMetadata: string;
   /** While a photo is shrunk on the device */
   preparing: (fileName: string) => string;
   uploading: (fileName: string) => string;
@@ -30,6 +32,8 @@ export interface MediaMessages {
   waitingForConnection: (fileName: string) => string;
   /** Another try: `attempt` of `attempts` */
   retrying: (fileName: string, attempt: number, attempts: number) => string;
+  /** A server refused or failed it: the next one is tried */
+  otherServer: (fileName: string, host: string) => string;
   cancel: string;
   uploaded: (fileName: string) => string;
   uploadFailed: (fileName: string) => string;
@@ -38,7 +42,7 @@ export interface MediaMessages {
   tooLarge: (maxMb: number) => string;
   /** <np-media-input>'s drop zone */
   dropFiles: string;
-  /** Under it: where files go and the size limit */
+  /** Under it: where files go (the first server tried) and the size limit */
   dropHint: (host: string, maxMb: number) => string;
   /** Between the drop zone and the URL input */
   or: string;
@@ -58,16 +62,19 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
     ({
       low: `Up to ${maxSide} px: the smallest file and fastest upload, fine on a phone.`,
       mid: `Up to ${maxSide} px: sharp on most screens, usually a fraction of the original's size.`,
-      full: 'The file as it is: the largest and slowest upload, with all its details.',
+      full: 'The file as it is: the largest and slowest upload.',
     })[quality],
   qualityHint:
-    'Low and Medium shrink photos on your device before uploading and remove details like where they were taken; a photo already smaller is uploaded as it is. Videos and GIFs are never changed.',
+    'Low and Medium shrink photos on your device before uploading. Details like where a photo was taken are removed from JPEG photos at any quality. Videos and GIFs are never changed.',
+  qualityHintKeepsMetadata:
+    'Low and Medium shrink photos on your device before uploading, which removes details like where a photo was taken; Full keeps them. Videos and GIFs are never changed.',
   preparing: (name) => `Preparing ${name}…`,
   uploading: (name) => `Uploading ${name}`,
   sizes: (original, uploaded) => (original === uploaded ? uploaded : `${original} → ${uploaded}`),
   interrupted: (name) => `Upload of ${name} interrupted, trying again…`,
   waitingForConnection: (name) => `Waiting for a connection to upload ${name}…`,
   retrying: (name, attempt, attempts) => `Uploading ${name} (try ${attempt} of ${attempts})`,
+  otherServer: (name, host) => `Uploading ${name} to ${host}…`,
   cancel: 'Cancel upload',
   uploaded: (name) => `${name} added`,
   uploadFailed: (name) => `Couldn't upload ${name}`,

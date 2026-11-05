@@ -19,6 +19,10 @@ export interface MediaFileInfo {
   /** A description for people who can't see it */
   alt?: string;
   blurhash?: string;
+  /** A preview image, e.g. a video's thumbnail (NIP-71) */
+  image?: string;
+  /** Seconds, for videos and audio (NIP-71) */
+  duration?: number;
 }
 
 const FIELDS: [keyof MediaFileInfo, string][] = [
@@ -28,8 +32,13 @@ const FIELDS: [keyof MediaFileInfo, string][] = [
   ['size', 'size'],
   ['dim', 'dim'],
   ['blurhash', 'blurhash'],
+  ['image', 'image'],
+  ['duration', 'duration'],
   ['alt', 'alt'],
 ];
+
+/** Properties stored as numbers */
+const NUMERIC = new Set<keyof MediaFileInfo>(['size', 'duration']);
 
 /** The `imeta` tag of a file: one `<key> <value>` entry per known property */
 export const imetaTag = (info: MediaFileInfo): [string, ...string[]] => [
@@ -60,11 +69,11 @@ export const readImeta = (tag: readonly string[]): MediaFileInfo | undefined => 
   const info: MediaFileInfo = { url };
   for (const [prop, key] of FIELDS) {
     const value = entries.get(key);
-    if (prop === 'url' || prop === 'size' || value === undefined) continue;
-    info[prop] = value;
+    if (prop === 'url' || value === undefined) continue;
+    if (!NUMERIC.has(prop)) (info as unknown as Record<string, string>)[prop] = value;
+    else if (Number.isFinite(Number(value)))
+      (info as unknown as Record<string, number>)[prop] = Number(value);
   }
-  const size = Number(entries.get('size'));
-  if (entries.has('size') && Number.isFinite(size)) info.size = size;
   return info;
 };
 

@@ -170,6 +170,7 @@ kind view of 31922/31923, so a post linking an event (`nostr:naddr…`) shows it
 | `manifest`, `relays` | Default `CALENDAR_EVENT_MANIFEST` and the default relays |
 | `thread`             | The event's own page: also its comments, reactions and update comments (a `<nostr-post-feed>` of the one event) |
 | `editable`           | An Edit button: the author republishes the event, anyone else suggests the changes as an update comment (applied for the event's editors) |
+| `gallery`            | The photos and videos of the event and of everything referencing it, comments included (`<np-media-gallery>`, `@nostr-post/plugin-media`) |
 
 ### Event actions
 

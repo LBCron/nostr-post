@@ -273,9 +273,13 @@ The bundle re-exports utilities for advanced usage:
 - `fetchRelated(dTag, section)`, `filterRelated(events, section, dTag)`, `relatedSnippet(event)`,
   `relatedStats(events, tag)`, `relatedImages(events)`: an entity's
   related items (`wikiConfig.related`, e.g. a brewery's beers), as `<nostr-wiki-related>` lists them
-- `fetchGalleryPhotos(dTag, config)`, `fetchLinkingPosts(dTag, { kinds })`, `galleryPhotos(events)`,
-  `eventPhotos(event)`, `pageLinkValue(page)`: an entity's photos from every post linking it
-  (`wikiConfig.gallery`), as `<nostr-wiki-gallery>` shows them (`hide-gallery` on the view hides it)
+- `fetchLinkingPosts(dTag, { kinds })`, `pageLinkValue(page)`: the posts linking a page (all its
+  versions), and a field value linking it; `wikiConfig.gallery` shows their photos and videos
+  (`hide-gallery` on the view hides it)
+- `eventMedia(event)`, `mediaOfEvents(events)`: the photos and videos of posts, wherever their kind
+  keeps them (`imeta`, `image`, `r`, links, JSON), each file once; `fetchReferences(targets)`: the
+  posts referencing addresses or event ids (comments included); `<np-media-gallery .targets>` shows
+  their media, `<nostr-calendar-event gallery>` an event's
 - `registerEntityCreator({ tagName, matches })`, `entityCreatorFor(manifest)`: a plugin's own "+ Create"
   form in the entity picker for the types it can fill (the venue plugin creates venue pages from OSM)
 - `registerEventAction({ tagName, matches })`, `eventActionsFor(manifest)`: a plugin's control shown with

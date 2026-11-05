@@ -251,7 +251,19 @@ export {
   setMediaMessages,
   type UploadMediaOptions,
   uploadMedia,
+  DEFAULT_MEDIA_GALLERY_MESSAGES,
+  type MediaGalleryMessages,
 } from '@nostr-post/plugin-media/web';
+// Photos and videos of posts (galleries), and the posts referencing events
+export {
+  eventMedia,
+  mediaOfEvents,
+  type MediaItem,
+  PICTURE_KIND,
+  VIDEO_KIND,
+  SHORT_VIDEO_KIND,
+} from '@nostr-post/plugin-media';
+export { fetchReferences, referenceFilters } from '@nostr-post/posts';
 
 // Wiki (NIP-54 kind:30818)
 export {
@@ -287,13 +299,9 @@ export {
   relatedImages,
   relatedSnippet,
   relatedStats,
-  // A page's photos from everything linking it (wikiConfig.gallery)
-  fetchGalleryPhotos,
+  // A page's gallery (wikiConfig.gallery): the posts linking it, a value linking it
   fetchLinkingPosts,
-  galleryPhotos,
-  eventPhotos,
   pageLinkValue,
-  type GalleryPhoto,
   type WikiGalleryConfig,
 } from '@nostr-post/wiki';
 

@@ -5,7 +5,7 @@ import { listField } from '@nostr-post/list';
 import type { WikiManifest } from '@nostr-post/wiki';
 import { BEER_LISTS, SAVE_PLACE_MANIFEST, VENUE_LISTS } from './listExamples';
 import bjcpStyleManifest from './manifests/beerStyleBjcp2021.json';
-import { VENUE_GALLERY, VENUE_PHOTO_MANIFEST } from './manifests/venuePhoto';
+import { VENUE_GALLERY, VENUE_MEDIA_MANIFEST } from './manifests/venueMedia';
 
 export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest> = {
   simple: {
@@ -551,7 +551,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           when: { field: 'bitcoin', equals: 'yes' },
         },
       ],
-      // The photos of everything linking the venue (with "Add photo"), and its reviews
+      // The photos and videos of everything linking the venue (with "Add"), and its reviews
       gallery: VENUE_GALLERY,
       related: [
         {
@@ -747,7 +747,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     fields: [],
   },
   'save-place': SAVE_PLACE_MANIFEST,
-  'venue-photo': VENUE_PHOTO_MANIFEST,
+  'venue-media': VENUE_MEDIA_MANIFEST,
   'venue-review': {
     id: 'venue-review-v1',
     version: '1.0.0',

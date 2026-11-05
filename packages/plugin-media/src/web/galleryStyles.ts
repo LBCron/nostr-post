@@ -1,4 +1,4 @@
-/** Styles of <nostr-wiki-gallery>, light and dark (`.dark` on an ancestor) */
+/** Styles of <np-media-gallery>, light and dark (`.dark` on an ancestor) */
 
 import { css } from 'lit';
 
@@ -31,11 +31,25 @@ export const galleryStyles = css`
     cursor: pointer;
     aspect-ratio: 1;
   }
-  .thumb img {
+  .thumb {
+    position: relative;
+  }
+  .thumb img,
+  .thumb video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+  .badge {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    color: #fff;
+    background: rgb(0 0 0 / 55%);
+    border-radius: 0.25rem;
   }
   .status,
   .byline {
@@ -70,7 +84,8 @@ export const galleryStyles = css`
   .large {
     margin: 0;
   }
-  .large img {
+  .large img,
+  .large video {
     display: block;
     max-width: 100%;
     max-height: 75vh;

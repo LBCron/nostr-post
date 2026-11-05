@@ -199,6 +199,9 @@ importers:
       '@nostr-post/plugin-date':
         specifier: workspace:*
         version: link:../plugin-date
+      '@nostr-post/plugin-media':
+        specifier: workspace:*
+        version: link:../plugin-media
       '@nostr-post/plugin-profile':
         specifier: workspace:*
         version: link:../plugin-profile
@@ -409,6 +412,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/posts':
+        specifier: workspace:*
+        version: link:../posts
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
@@ -663,9 +669,15 @@ importers:
       '@nostr-post/core':
         specifier: workspace:*
         version: link:../core
+      '@nostr-post/plugin-media':
+        specifier: workspace:*
+        version: link:../plugin-media
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/posts':
+        specifier: workspace:*
+        version: link:../posts
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer

@@ -33,4 +33,21 @@ describe('imeta', () => {
       ])
     ).toEqual([{ url: 'https://cdn.example/b.png', type: 'image/png' }]);
   });
+
+  it("reads a video's thumbnail and duration (NIP-71)", () => {
+    expect(
+      readImeta([
+        'imeta',
+        'url https://v.example/a.mp4',
+        'm video/mp4',
+        'image https://v.example/a.jpg',
+        'duration 12.5',
+      ])
+    ).toEqual({
+      url: 'https://v.example/a.mp4',
+      type: 'video/mp4',
+      image: 'https://v.example/a.jpg',
+      duration: 12.5,
+    });
+  });
 });

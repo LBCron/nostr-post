@@ -7,9 +7,9 @@
 
 import { eventUsesManifest } from '@nostr-post/core/nip78';
 import { parsePostRoles } from '@nostr-post/core/postRoles';
+import { mediaOfEvents } from '@nostr-post/plugin-media';
 import { fetchEvents } from '@nostr-post/signer';
 import { fetchEntityVersions } from './fetch';
-import { galleryPhotos } from './gallery';
 import { DEFAULT_WIKI_RELAYS, infoboxRowLinks, WIKI_KIND } from './nip54';
 import { collectEntityATags, defaultResolver, groupByDTag, type WikiEvent } from './resolver';
 
@@ -159,10 +159,11 @@ export function relatedStats(
 
 /**
  * The images of the posts (`imeta`, `image`, image `r` tags, image links in the text), newest
- * post first, each file once
+ * post first, each file once (`mediaOfEvents`, `@nostr-post/plugin-media`)
  */
 export function relatedImages(events: WikiEvent[], max = 12): string[] {
-  return galleryPhotos(events)
-    .map((photo) => photo.url)
+  return mediaOfEvents(events)
+    .filter((item) => item.media === 'image')
+    .map((item) => item.url)
     .slice(0, max);
 }

@@ -10,8 +10,9 @@ players, RSVP, `.ics` import and export.
   page's link (`#/?city=…&g=…&genre=…&view=…&from=…`); "Share" sends it with the shown gigs as text
   (`agendaText`), "Image" as a picture (`agendaImage`), through the device's share sheet or as a
   copy or download.
-- **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions. All of it is
-  the packages' `<nostr-calendar-event thread editable>`, the app only passes the gig manifest:
+- **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions, and the photos
+  and videos of the gig and its comments. All of it is the packages'
+  `<nostr-calendar-event thread editable gallery>`, the app only passes the gig manifest:
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
   comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a

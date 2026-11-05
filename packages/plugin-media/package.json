@@ -33,6 +33,7 @@
   "dependencies": {
     "@nostr-post/core": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/posts": "workspace:*",
     "@nostr-post/signer": "workspace:*",
     "lit": "^3.3.3"
   },

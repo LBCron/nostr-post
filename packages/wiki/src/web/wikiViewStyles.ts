@@ -95,7 +95,7 @@ export const viewStyles = css`
   }
 
   /* ── Photos: the same side padding as the text ── */
-  nostr-wiki-gallery { padding: 0 1.25rem 0.75rem; }
+  np-media-gallery { padding: 0 1.25rem 0.75rem; }
 
   /* ── Contributors ── */
   details.wiki-contributors { border-top: 1px solid var(--nl-border, #e5e7eb); }

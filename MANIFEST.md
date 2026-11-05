@@ -322,28 +322,29 @@ link ids, and only translated labels, shows the pages in another language:
 
 ### Photo gallery
 
-`wikiConfig.gallery` shows the photos of everything linked to the entity on its page, e.g. a venue's
-photo posts, reviews, events and comments, and the page's own photos. Each kind keeps its photos
-elsewhere:
-- `imeta` tags (NIP-92, NIP-68 pictures);
-- `image` / `thumb` tags and image `r` tags;
-- image links in the text, and image URLs in JSON content.
+`wikiConfig.gallery` shows the photos and videos of the page and of everything linked to it, e.g. a
+venue's photo and video posts, reviews, events and comments, in `<np-media-gallery>`
+(`@nostr-post/plugin-media`). Each kind keeps its media elsewhere:
+- `imeta` tags (NIP-92; NIP-68 pictures, kind 20; NIP-71 videos, kinds 21 and 22);
+- `image` / `thumb` tags, and `r` tags of image or video files;
+- image and video links in the text, and their URLs in JSON content.
 
 The same file shows once (by its hash).
 
 ```typescript
-gallery: { add: { manifest: "venue-photo-v1", field: "venue" } }
+gallery: { add: { manifest: "venue-media-v1", field: "venue" } }
 ```
 
 | Key     | Description                                                                                         |
 | ------- | --------------------------------------------------------------------------------------------------- |
-| `label` | The heading (default "Photos")                                                                      |
-| `kinds` | Only these kinds' photos, e.g. `[20, 1]`; default every kind linking the page but other wiki pages  |
-| `limit` | Photos shown at first (12); "Show more" shows more                                                  |
-| `add`   | `{ manifest, field }`: an "Add photo" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest) with `field` linking the page |
+| `label` | The heading (default "Photos and videos")                                                           |
+| `kinds` | Only these kinds' media, e.g. `[20, 21, 1]`; default every kind linking the page but other wiki pages |
+| `limit` | Shown at first (12); "Show more" shows more                                                         |
+| `add`   | `{ manifest, field }`: an "Add" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest) with `field` linking the page |
 
 `<nostr-wiki-view>` shows it unless it has `hide-gallery`. A related section's `gallery: true` still shows
-that section's images on their own.
+that section's images on their own. Other elements show the same gallery: `<nostr-calendar-event gallery>`
+for an event and its comments, or `<np-media-gallery .targets>` for any events.
 
 ### Title and d-tag templates
 

@@ -17,18 +17,7 @@ export {
   relatedSnippet,
   relatedStats,
 } from './related';
-export {
-  eventPhotos,
-  fetchGalleryPhotos,
-  fetchLinkingPosts,
-  GALLERY_POSTS_LIMIT,
-  type GalleryPhoto,
-  galleryPhotos,
-  isImageFileUrl,
-  linkingFilter,
-  pageLinkValue,
-  type WikiGalleryConfig,
-} from './gallery';
+export { fetchLinkingPosts, pageLinkValue, type WikiGalleryConfig } from './gallery';
 export {
   type CreatedEntity,
   type EntityCreator,

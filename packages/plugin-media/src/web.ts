@@ -22,6 +22,7 @@ import {
 // Import web components (side-effect: defines custom elements)
 import './web/input';
 import './web/view';
+import './web/gallery';
 
 import { rememberQuality } from './web/compress';
 import { mediaMessages } from './web/mediaMessages';
@@ -95,6 +96,11 @@ pluginRegistry.register({
 // Re-export components for direct usage
 export { NpMediaInput } from './web/input';
 export { NpMediaView } from './web/view';
+export { NpMediaGallery } from './web/gallery';
+export {
+  DEFAULT_MEDIA_GALLERY_MESSAGES,
+  type MediaGalleryMessages,
+} from './web/galleryMessages';
 export { mediaPlugin } from './core';
 
 // Re-export upload utilities so consumers (e.g. the composer's paste/drop handler) can reuse

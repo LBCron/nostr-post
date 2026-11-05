@@ -277,18 +277,13 @@ export const BEER_REVIEW_MANIFEST: NostrPostManifest = {
 (React: `hideRelated`). `<nostr-wiki-related entity-id .sections>` shows them on their own;
 `fetchRelated(dTag, section)` returns them.
 
-With `wikiConfig.gallery` it shows the page's photos, unless it has `hide-gallery` (React:
-`hideGallery`). The photos come from every post linking the page, whatever its kind or manifest:
-- `imeta` tags (NIP-92, NIP-68 pictures);
-- `image` / `thumb` tags (articles, calendar events) and image `r` tags;
-- image links in the text, and image URLs in JSON content;
-- the page's own photos.
-
-The same file shows once (by its hash). A photo opens large with its description, author, date and a
-link to its post. `add: { manifest, field }` adds an "Add photo" button: that manifest's
-`<nostr-post-composer>` (loaded by the app from `@nostr-post/web`) with `field` linking the page
-(`pageLinkValue`). `<nostr-wiki-gallery entity-id .config .page>` shows it on its own, and
-`fetchGalleryPhotos(dTag, config)` returns the photos (`fetchLinkingPosts` gives the posts).
+With `wikiConfig.gallery` it shows the photos and videos of the page and of every post linking any
+version of it, unless it has `hide-gallery` (React: `hideGallery`). The gallery is `<np-media-gallery>`
+from `@nostr-post/plugin-media`, which reads each kind's media (see
+[MANIFEST.md](../../MANIFEST.md#photo-gallery)). `add: { manifest, field }` adds an "Add" button:
+that manifest's `<nostr-post-composer>` (loaded by the app from `@nostr-post/web`) with `field`
+linking the page (`pageLinkValue(page)`). `fetchLinkingPosts(dTag)` returns the posts linking a
+page, all versions included.
 
 The picker's `metadata` keys (`entityManifest`, `relays`, `minSearchLength`, `emitExtraTags`,
 `multiple`) are listed in [MANIFEST.md](../../MANIFEST.md#plugin-metadata); fields that reference entities in

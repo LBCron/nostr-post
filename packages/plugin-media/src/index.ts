@@ -48,3 +48,14 @@ export {
 } from './mediaFiles';
 export { sha256Hex } from './hash';
 export { exifOrientation, stripJpegMetadata } from './exif';
+export {
+  eventMedia,
+  isImageFileUrl,
+  isVideoFileUrl,
+  type MediaItem,
+  type MediaSource,
+  mediaOfEvents,
+  PICTURE_KIND,
+  SHORT_VIDEO_KIND,
+  VIDEO_KIND,
+} from './eventMedia';

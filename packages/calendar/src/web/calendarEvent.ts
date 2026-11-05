@@ -5,10 +5,13 @@
  * newest version and shows it with the calendar manifest (title, date, place, participants,
  * RSVP, Add to calendar, .ics). The calendar's kind view: a post linking an event
  * (`nostr:naddr…`) shows it like this. With `thread`, an event's own page: its comments,
- * reactions and update comments too (a <nostr-post-feed> of the one event).
+ * reactions and update comments too (a <nostr-post-feed> of the one event). With `gallery`, the
+ * photos and videos of the event and of everything referencing it, comments included
+ * (`<np-media-gallery>`).
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
+import '@nostr-post/plugin-media/web';
 import {
   DEFAULT_RELAYS,
   type FetchFilter,
@@ -44,6 +47,8 @@ export class NostrCalendarEvent extends LitElement {
    * update comment (applied for the event's editors)
    */
   @property({ type: Boolean }) editable = false;
+  /** The photos and videos of the event and its comments (`<np-media-gallery>`) */
+  @property({ type: Boolean }) gallery = false;
 
   @state() _event?: SignedEvent;
   /** The feed's filters: a new array only for a new address (the feed reloads on one) */
@@ -83,6 +88,18 @@ export class NostrCalendarEvent extends LitElement {
   }
 
   override render() {
+    return html`${this._renderEvent()}${this._renderGallery()}`;
+  }
+
+  _renderGallery() {
+    if (!this.gallery || !isCalendarEventAddress(this.address)) return nothing;
+    return html`<np-media-gallery
+      .targets=${[this.address]}
+      .relays=${this.relays ?? DEFAULT_RELAYS}
+    ></np-media-gallery>`;
+  }
+
+  _renderEvent() {
     if (this.thread) {
       return this._filters.length
         ? html`<nostr-post-feed

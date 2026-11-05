@@ -49,6 +49,18 @@ describe('role fields in posts', () => {
     );
   });
 
+  it('write the line of an entity whose page was created when publishing (#275)', () => {
+    // Unlinked (empty d-tag and pubkey) until the publish hook linked its new page
+    const created = {
+      dTag: '',
+      resolvedPubkey: '',
+      unlinked: true,
+      wikiEntity: { pubkey: pk, dTag: 'fordecision-musician' },
+    };
+    expect(roleLines(tasted, [created])[0]).toMatch(/^Tasted at: nostr:naddr1/);
+    expect(roleLines(tasted, [{ dTag: '', resolvedPubkey: '', unlinked: true }])).toEqual([]);
+  });
+
   it('write a mention line and read it back by label, else by order', () => {
     const line = roleLines(tasted, {
       dTag: 'u-fleků-prague-venue',

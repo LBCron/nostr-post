@@ -61,6 +61,11 @@ export interface MediaPluginConfig {
    * it's kept at Full quality
    */
   keepMetadata?: boolean;
+  /**
+   * A description per photo for people who can't see it (`alt` in its `imeta` tag, NIP-92):
+   * an input under each photo
+   */
+  alt?: boolean;
 }
 
 /** How much photos are shrunk on the device before upload: smaller uploads faster */

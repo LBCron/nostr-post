@@ -18,4 +18,6 @@ export {
   type WikiViewMessages,
 } from './wikiViewMessages';
 export { NostrWikiRelated } from './wikiRelated';
+export { NostrWikiGallery } from './wikiGallery';
+export { DEFAULT_WIKI_GALLERY_MESSAGES, type WikiGalleryMessages } from './galleryMessages';
 export { DEFAULT_WIKI_RELATED_MESSAGES, type WikiRelatedMessages } from './relatedMessages';

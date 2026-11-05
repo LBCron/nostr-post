@@ -287,6 +287,14 @@ export {
   relatedImages,
   relatedSnippet,
   relatedStats,
+  // A page's photos from everything linking it (wikiConfig.gallery)
+  fetchGalleryPhotos,
+  fetchLinkingPosts,
+  galleryPhotos,
+  eventPhotos,
+  pageLinkValue,
+  type GalleryPhoto,
+  type WikiGalleryConfig,
 } from '@nostr-post/wiki';
 
 // Wiki entity picker (search, create)

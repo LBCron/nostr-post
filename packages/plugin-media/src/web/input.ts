@@ -22,6 +22,7 @@ import {
   type MediaPluginConfig,
   toArray,
 } from '../core';
+import { mediaFileOf, rememberMediaFile } from '../mediaFiles';
 import { targetHost, uploadTargets } from '../uploadServers';
 import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
@@ -311,6 +312,7 @@ export class NpMediaInput extends LitElement {
       <div class="gallery">
         ${this._urls.map(
           (url, i) => html`
+            <div class="gallery-item">
             <div class="gallery-card">
               ${
                 isImageUrl(url)
@@ -334,10 +336,28 @@ export class NpMediaInput extends LitElement {
                 ×
               </button>
             </div>
+            ${this._config.alt && isImageUrl(url) ? this._renderAlt(url) : nothing}
+            </div>
           `
         )}
       </div>
     `;
+  }
+
+  /** The photo's description, kept for its `imeta` tag (`alt`) */
+  private _renderAlt(url: string) {
+    const m = this._m;
+    return html`<input
+      class="alt-input"
+      type="text"
+      .value=${mediaFileOf(url).alt ?? ''}
+      placeholder=${m.altPlaceholder}
+      aria-label=${m.altLabel}
+      @change=${(e: Event) => {
+        rememberMediaFile({ url, alt: (e.target as HTMLInputElement).value.trim() });
+        this._emitValue([...this._urls]);
+      }}
+    />`;
   }
 
   private _renderDropZone() {

@@ -50,6 +50,9 @@ export interface MediaMessages {
   remove: string;
   /** Files added out of the most allowed */
   fileCount: (count: number, max: number) => string;
+  /** A photo's description (`alt: true`): its label and placeholder */
+  altLabel: string;
+  altPlaceholder: string;
 }
 
 export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
@@ -86,6 +89,8 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   urlPlaceholder: 'Paste a URL and press Enter',
   remove: 'Remove',
   fileCount: (count, max) => `${count}/${max} files`,
+  altLabel: 'Description of the photo',
+  altPlaceholder: 'Describe the photo',
 };
 
 let appMessages: Partial<MediaMessages> = {};

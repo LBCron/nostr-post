@@ -19,6 +19,7 @@ declare module 'react' {
         'entity-id'?: string;
         'entity-i-id'?: string;
         'hide-related'?: boolean;
+        'hide-gallery'?: boolean;
       };
     }
   }
@@ -32,6 +33,8 @@ export interface WikiViewProps {
   relays?: string[];
   /** Don't list the manifest's related items (`wikiConfig.related`) */
   hideRelated?: boolean;
+  /** Don't show the manifest's photo gallery (`wikiConfig.gallery`) */
+  hideGallery?: boolean;
   className?: string;
 }
 
@@ -42,6 +45,7 @@ export function WikiView({
   resolver,
   relays,
   hideRelated,
+  hideGallery,
   className,
 }: WikiViewProps) {
   const ref = useRef<NostrWikiViewElement>(null);
@@ -61,6 +65,7 @@ export function WikiView({
       entity-id={entityId}
       entity-i-id={entityIId}
       hide-related={hideRelated || undefined}
+      hide-gallery={hideGallery || undefined}
     />
   );
 }

@@ -5,6 +5,7 @@ import { listField } from '@nostr-post/list';
 import type { WikiManifest } from '@nostr-post/wiki';
 import { BEER_LISTS, SAVE_PLACE_MANIFEST, VENUE_LISTS } from './listExamples';
 import bjcpStyleManifest from './manifests/beerStyleBjcp2021.json';
+import { VENUE_GALLERY, VENUE_PHOTO_MANIFEST } from './manifests/venuePhoto';
 
 export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest> = {
   simple: {
@@ -550,7 +551,8 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           when: { field: 'bitcoin', equals: 'yes' },
         },
       ],
-      // Listed on the venue's page
+      // The photos of everything linking the venue (with "Add photo"), and its reviews
+      gallery: VENUE_GALLERY,
       related: [
         {
           id: 'reviews',
@@ -558,7 +560,6 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           kinds: [1, 30078],
           manifest: 'venue-review-v1',
           stats: { tag: 'rating', max: 5 },
-          gallery: true,
         },
       ],
     },
@@ -733,7 +734,6 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           label: 'Beer reviews',
           kinds: [1, 30078],
           manifest: 'beer-review-v1',
-          gallery: true,
         },
         {
           id: 'taproom-of',
@@ -747,6 +747,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     fields: [],
   },
   'save-place': SAVE_PLACE_MANIFEST,
+  'venue-photo': VENUE_PHOTO_MANIFEST,
   'venue-review': {
     id: 'venue-review-v1',
     version: '1.0.0',

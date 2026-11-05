@@ -9,6 +9,7 @@ import { eventUsesManifest } from '@nostr-post/core/nip78';
 import { parsePostRoles } from '@nostr-post/core/postRoles';
 import { fetchEvents } from '@nostr-post/signer';
 import { fetchEntityVersions } from './fetch';
+import { galleryPhotos } from './gallery';
 import { DEFAULT_WIKI_RELAYS, infoboxRowLinks, WIKI_KIND } from './nip54';
 import { collectEntityATags, defaultResolver, groupByDTag, type WikiEvent } from './resolver';
 
@@ -156,25 +157,12 @@ export function relatedStats(
   };
 }
 
-const IMAGE_URL = /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i;
-
-/** An `imeta` tag's url when its media type is an image (NIP-92) */
-const imetaImage = (tag: string[]): string | undefined => {
-  const fields = Object.fromEntries(
-    tag.slice(1).map((part) => [part.split(' ')[0], part.slice(part.indexOf(' ') + 1)])
-  );
-  const url = fields.url;
-  if (!url) return undefined;
-  return fields.m?.startsWith('image/') || IMAGE_URL.test(url) ? url : undefined;
-};
-
-/** The images of the posts (`imeta` with an image type, or `r` URLs of image files), newest post first */
+/**
+ * The images of the posts (`imeta`, `image`, image `r` tags, image links in the text), newest
+ * post first, each file once
+ */
 export function relatedImages(events: WikiEvent[], max = 12): string[] {
-  const urls = events.flatMap((e) =>
-    e.tags.flatMap((t) => {
-      if (t[0] === 'imeta') return imetaImage(t) ?? [];
-      return t[0] === 'r' && t[1] && IMAGE_URL.test(t[1]) ? [t[1]] : [];
-    })
-  );
-  return [...new Set(urls)].slice(0, max);
+  return galleryPhotos(events)
+    .map((photo) => photo.url)
+    .slice(0, max);
 }

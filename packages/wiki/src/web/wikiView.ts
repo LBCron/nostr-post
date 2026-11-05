@@ -24,6 +24,7 @@ import type { WikiManifest } from '../types';
 import { renderFieldValue } from './wikiFieldValue';
 import { DEFAULT_WIKI_VIEW_MESSAGES, type WikiViewMessages } from './wikiViewMessages';
 import { viewStyles } from './wikiViewStyles';
+import './wikiGallery';
 import './wikiRelated';
 
 /** Resolving the newest version needs every relay's versions, not the first answer */
@@ -62,6 +63,10 @@ export class NostrWikiView extends LitElement {
   /** Don't list the related items the manifest defines (`wikiConfig.related`) */
   @property({ type: Boolean, attribute: 'hide-related' })
   hideRelated = false;
+
+  /** Don't show the photo gallery the manifest defines (`wikiConfig.gallery`) */
+  @property({ type: Boolean, attribute: 'hide-gallery' })
+  hideGallery = false;
 
   @state() private _loading = false;
   @state() private _error?: string;
@@ -363,11 +368,25 @@ export class NostrWikiView extends LitElement {
               </p>`
             : nothing
         }
+        ${this._renderGallery()}
         ${this._renderRelated()}
         ${this._renderAllData(this._winningEvent)}
         ${this.event ? nothing : this._renderVersionList()}
       </div>
     `;
+  }
+
+  /** The photos of everything linked to the entity (`wikiConfig.gallery`), unless hidden */
+  private _renderGallery() {
+    const config = (this._manifest as WikiManifest).wikiConfig?.gallery;
+    const dTag = this._winningEvent?.tags.find((t) => t[0] === 'd')?.[1];
+    if (this.hideGallery || !config || !dTag) return nothing;
+    return html`<nostr-wiki-gallery
+      .entityId=${dTag}
+      .config=${config}
+      .page=${this._winningEvent}
+      .relays=${this.relays}
+    ></nostr-wiki-gallery>`;
   }
 
   /** The manifest's related items (e.g. a brewery's beers), unless hidden */

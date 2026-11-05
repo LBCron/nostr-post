@@ -13,6 +13,7 @@ import type { PostField } from '@nostr-post/plugins/types';
 import { css, html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { isImageUrl, isVideoUrl, type MediaPluginConfig, toArray } from '../core';
+import { mediaFileOf } from '../mediaFiles';
 import { otherServersOf } from './otherServers';
 
 @customElement('np-media-view')
@@ -120,7 +121,7 @@ export class NpMediaView extends LitElement {
         <div class="media-view">
           <img
             src=${this._shown.get(url) ?? url}
-            alt="Media"
+            alt=${mediaFileOf(url).alt ?? 'Media'}
             @error=${() => void this._tryElsewhere(url)}
           />
         </div>

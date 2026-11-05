@@ -18,6 +18,28 @@ export const mediaInputStyles = css`
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+  .gallery-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 120px;
+  }
+  .alt-input {
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.375rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    color: #1f2937;
+  }
+  :host-context(.dark) .alt-input {
+    border-color: #4b5563;
+    background: #374151;
+    color: #f3f4f6;
+  }
   .gallery-card {
     position: relative;
     border: 1px solid #e5e7eb;

@@ -273,6 +273,9 @@ The bundle re-exports utilities for advanced usage:
 - `fetchRelated(dTag, section)`, `filterRelated(events, section, dTag)`, `relatedSnippet(event)`,
   `relatedStats(events, tag)`, `relatedImages(events)`: an entity's
   related items (`wikiConfig.related`, e.g. a brewery's beers), as `<nostr-wiki-related>` lists them
+- `fetchGalleryPhotos(dTag, config)`, `fetchLinkingPosts(dTag, { kinds })`, `galleryPhotos(events)`,
+  `eventPhotos(event)`, `pageLinkValue(page)`: an entity's photos from every post linking it
+  (`wikiConfig.gallery`), as `<nostr-wiki-gallery>` shows them (`hide-gallery` on the view hides it)
 - `registerEntityCreator({ tagName, matches })`, `entityCreatorFor(manifest)`: a plugin's own "+ Create"
   form in the entity picker for the types it can fill (the venue plugin creates venue pages from OSM)
 - `registerEventAction({ tagName, matches })`, `eventActionsFor(manifest)`: a plugin's control shown with

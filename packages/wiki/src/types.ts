@@ -13,6 +13,7 @@ import type { NostrPostManifest } from '@nostr-post/core/types';
  * Static text (prefixes, suffixes, parenthesised qualifiers) is preserved and
  * normalized alongside field values into the final d-tag.
  */
+import type { WikiGalleryConfig } from './gallery';
 import type { WikiRelatedSection } from './related';
 
 export interface WikiConfig {
@@ -51,6 +52,11 @@ export interface WikiConfig {
    * beer's reviews: events whose `a` tags point at any version of the entity
    */
   related?: WikiRelatedSection[];
+  /**
+   * The photos of everything linked to the entity (its photo posts, reviews, events, comments)
+   * and of its page, with an optional "Add photo" button
+   */
+  gallery?: WikiGalleryConfig;
 }
 
 /**

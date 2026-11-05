@@ -206,7 +206,7 @@ styles, mapped to `t` for posts and wiki entities; the beer entity extends it an
 | `stars`              | `number` | `min`, `max`, `step`, `showNumber`                                                                                                                                                                                             |
 | `markdown`           | `string` | `defaultMode` (`'wysiwyg'` \| `'raw'`), `minLength`, `maxLength`, `minHeight`                                                                                                                                                  |
 | `hashtag`            | `string` | `maxTags` (20), `suggestions`, `autoExtract` (from the `attachTo` field, default `true`)                                                                                                                                       |
-| `media`              | `string` | `accept` (MIME types), `maxSize` (bytes, after shrinking), `maxFiles`, `blossomServers` (Blossom servers to upload to, after the user's own kind 10063 list), `userServers` (`false`: not the user's own servers), `uploadUrl` (NIP-96 endpoint tried last, default nostr.build), `imeta` (`true`: an `imeta` tag per file next to the mapped tag; a field mapped to the `imeta` tag, e.g. NIP-68 pictures, always writes them), `keepMetadata` (`true`: keep JPEG photos' metadata, such as where they were taken; removed by default, and shrinking drops it anyway), `allowUrl`, `allowUpload`, `urlAutoExtract`, `quality` (`low`, `mid`: default, `full`: how much photos are shrunk on the device before upload, until the user picks; their pick is remembered), `qualityChoice` (`false`: no choice, always `quality`)                                                                                                                 |
+| `media`              | `string` | `accept` (MIME types), `maxSize` (bytes, after shrinking), `maxFiles`, `blossomServers` (Blossom servers to upload to, after the user's own kind 10063 list), `userServers` (`false`: not the user's own servers), `uploadUrl` (NIP-96 endpoint tried last, default nostr.build), `imeta` (`true`: an `imeta` tag per file next to the mapped tag; a field mapped to the `imeta` tag, e.g. NIP-68 pictures, always writes them), `keepMetadata` (`true`: keep JPEG photos' metadata, such as where they were taken; removed by default, and shrinking drops it anyway), `alt` (`true`: a description input under each photo, written to its `imeta` tag), `allowUrl`, `allowUpload`, `urlAutoExtract`, `quality` (`low`, `mid`: default, `full`: how much photos are shrunk on the device before upload, until the user picks; their pick is remembered), `qualityChoice` (`false`: no choice, always `quality`)                                                                                                                 |
 | `reference`          | `string` | `urlDedupeMode` (`'normalized'` \| `'exact'` \| `'origin-path'`)                                                                                                                                                               |
 | `identifier`         | `string` | `prefix` (`i` tag namespace, e.g. NIP-73 `isbn`; others are [our own](./NOSTR_CONVENTIONS.md#external-ids-i-tags))                                                                                                                                                                                       |
 | `geo`                | `geo`    | `precision` (geohash length, default 6), `defaultZoom`, `allowSearch`                                                                                                                                                          |
@@ -319,6 +319,31 @@ link ids, and only translated labels, shows the pages in another language:
   fields: [{ id: "name", metadata: { label: "Název" } }],
   wikiConfig: { related: [{ id: "reviews", label: "Recenze", kinds: [1, 30078], manifest: "venue-review-v1" }] } }
 ```
+
+### Photo gallery
+
+`wikiConfig.gallery` shows the photos of everything linked to the entity on its page, e.g. a venue's
+photo posts, reviews, events and comments, and the page's own photos. Each kind keeps its photos
+elsewhere:
+- `imeta` tags (NIP-92, NIP-68 pictures);
+- `image` / `thumb` tags and image `r` tags;
+- image links in the text, and image URLs in JSON content.
+
+The same file shows once (by its hash).
+
+```typescript
+gallery: { add: { manifest: "venue-photo-v1", field: "venue" } }
+```
+
+| Key     | Description                                                                                         |
+| ------- | --------------------------------------------------------------------------------------------------- |
+| `label` | The heading (default "Photos")                                                                      |
+| `kinds` | Only these kinds' photos, e.g. `[20, 1]`; default every kind linking the page but other wiki pages  |
+| `limit` | Photos shown at first (12); "Show more" shows more                                                  |
+| `add`   | `{ manifest, field }`: an "Add photo" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest) with `field` linking the page |
+
+`<nostr-wiki-view>` shows it unless it has `hide-gallery`. A related section's `gallery: true` still shows
+that section's images on their own.
 
 ### Title and d-tag templates
 

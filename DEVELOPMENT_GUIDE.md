@@ -192,7 +192,7 @@ Each plugin package includes: core logic + web component input + web component v
 **View:** <np-media-view> responsive gallery (images + lightbox, videos + controls)  
 **Tags:** Multiple ["r", "https://..."] per field
 
-**Special:** NIP-98 auth for nostr.build upload
+**Special:** Blossom upload to the user's servers (kind 24242 auth, kind 10063 list), then NIP-98 auth for nostr.build; `imeta` tags (NIP-92)
 
 #### 5. **plugin-markdown** ✅
 

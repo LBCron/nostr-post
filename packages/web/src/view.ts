@@ -447,10 +447,12 @@ export class NostrPostView extends NostrPostElement {
                   tags,
                   tokens,
                   excludeFields: this.excludeFields,
+                  author: pubkey,
                   content: content
                     ? renderNoteContent(tokens, {
                         nostrLinkBase: this.nostrLinkBase,
                         profiles: this._mentionProfiles,
+                        author: pubkey,
                       })
                     : nothing,
                 })

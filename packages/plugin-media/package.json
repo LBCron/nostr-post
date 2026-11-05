@@ -31,7 +31,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@nostr-post/core": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/signer": "workspace:*",
     "lit": "^3.3.3"
   },
   "devDependencies": {

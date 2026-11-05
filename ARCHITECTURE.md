@@ -340,3 +340,4 @@ There is no separate "fetch raw" vs "fetch resolved" API — the resolved result
 | **NIP-73** | External identity (`i` tags) | `iso3166:` countries, profile URLs; plus our own `osm:`, `gplace:`, `gcid:`, `wikidata:` ([NOSTR_CONVENTIONS.md](./NOSTR_CONVENTIONS.md#external-ids-i-tags)) |
 | **NIP-78** | Kind 30078 (app data)        | manifestRef links composer to manifest event       |
 | **NIP-98** | HTTP auth (kind 27235)       | plugin-media signs upload to nostr.build           |
+| **Blossom** | Media by hash (kind 24242, 10063) | plugin-media uploads to the user's servers first |

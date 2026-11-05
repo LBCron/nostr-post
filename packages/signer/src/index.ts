@@ -307,6 +307,7 @@ export interface FetchFilter {
 /**
  * Fetch events from a single relay
  */
+export { fetchBlossomServers, newestBlossomServers } from './blossomServers';
 export {
   DEFAULT_RELAYS,
   fetchEvents,

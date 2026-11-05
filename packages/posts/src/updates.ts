@@ -119,11 +119,16 @@ const contentValue = (
   return target.path ? valueAtPath(parsedContent, target.path) : parsedContent[field.id];
 };
 
-/** A tag-mapped field's value: the plugin's resolveFromTags, else one value or all of them */
+/**
+ * A tag-mapped field's value: the plugin's resolveFromTags (null: none), else (also when it
+ * returns undefined) one value or all of them
+ */
 const tagValue = (field: PostField, tagName: string, tags: string[][]): unknown => {
   const plugin = field.uiPlugin ? pluginRegistry.get(field.uiPlugin) : undefined;
-  // Plugins that aggregate multiple tags (e.g. venue: g + i + location)
-  if (plugin?.resolveFromTags) return plugin.resolveFromTags(tags, field) ?? undefined;
+  // Plugins that aggregate multiple tags (e.g. venue: g + i + location); undefined: the default
+  const resolved = plugin?.resolveFromTags?.(tags, field);
+  if (resolved === null) return undefined;
+  if (resolved !== undefined) return resolved;
   const values = tags.filter((t) => t[0] === tagName && t[1]).map((t) => t[1] as string);
   if (values.length > 1) return values;
   const [raw] = values;

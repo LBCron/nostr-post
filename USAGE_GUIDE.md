@@ -1361,7 +1361,9 @@ Upload and manage image and video files with array support.
 - Drag-and-drop file upload
 - Multi-file picker
 - URL paste support
-- NIP-98 authenticated upload to nostr.build
+- Upload to the user's Blossom servers (kind 10063), then nostr.build (NIP-98)
+- `imeta` tags (NIP-92) with `imeta: true`, or mapped to the `imeta` tag (NIP-68 pictures)
+- Location and other metadata removed from JPEG photos (`keepMetadata: true` keeps them)
 - Image gallery with lightbox
 - Video player with controls
 - Auto-detection of image/video types
@@ -1550,6 +1552,7 @@ export const venue = {
 | **NIP-73** | External Identity         | Partial - `iso3166:` and URLs; OSM IDs use our own `osm:` namespace, no `k` tags |
 | **NIP-78** | Application-Specific Data | Full - Manifest storage & discovery           |
 | **NIP-98** | HTTP File Server Auth     | Full - Media plugin uses for nostr.build      |
+| **NIP-92** | Media metadata (`imeta`)  | Full - Media plugin writes and reads them     |
 
 **NIP-78 Usage Example:**
 
@@ -2009,7 +2012,7 @@ The NIP-98 authentication header might be missing or invalid.
 **Solution:**
 
 ```typescript
-// Media plugin automatically handles NIP-98 signing
+// Media plugin automatically signs uploads (Blossom: kind 24242, nostr.build: NIP-98)
 // If upload fails:
 // 1. Ensure NIP-07 extension is connected
 // 2. Check that nostr.build is accessible

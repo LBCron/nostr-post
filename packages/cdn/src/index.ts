@@ -156,6 +156,7 @@ export {
   hasNostrSigner,
   fetchEvents,
   fetchEventsFromRelay,
+  fetchBlossomServers,
   relaysSeenOn,
   fetchProfile,
   fetchProfiles,
@@ -242,11 +243,14 @@ export {
   DEFAULT_ACTIVITY_MESSAGES,
   setActivityMessages,
 } from '@nostr-post/web';
-// Media upload text (the text field's Add media, photo quality, progress)
+// Media upload (the user's Blossom servers, then nostr.build) and its text (Add media, photo
+// quality, progress)
 export {
   DEFAULT_MEDIA_MESSAGES,
   type MediaMessages,
   setMediaMessages,
+  type UploadMediaOptions,
+  uploadMedia,
 } from '@nostr-post/plugin-media/web';
 
 // Wiki (NIP-54 kind:30818)

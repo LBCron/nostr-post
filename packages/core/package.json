@@ -77,6 +77,14 @@
     "./comments": {
       "types": "./dist/comments.d.ts",
       "import": "./dist/comments.js"
+    },
+    "./blossom": {
+      "types": "./dist/blossom.d.ts",
+      "import": "./dist/blossom.js"
+    },
+    "./imeta": {
+      "types": "./dist/imeta.d.ts",
+      "import": "./dist/imeta.js"
     }
   },
   "scripts": {

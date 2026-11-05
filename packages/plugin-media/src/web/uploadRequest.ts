@@ -1,87 +1,76 @@
 /**
- * The upload request of @nostr-post/plugin-media: NIP-98 auth, progress, cancelling, and
- * coping with a bad connection. An upload with no progress for a while is aborted (mobile
+ * The upload requests of @nostr-post/plugin-media, in the browser: progress, cancelling, and
+ * coping with a bad connection. A request with no progress for a while is aborted (mobile
  * browsers can leave a dropped request hanging for minutes) and tried again, after the
- * connection is back.
+ * connection is back. Building the requests and reading the answers is the main entry's
+ * (`uploadServers.ts`); signing goes through the browser's signer (`window.nostr`).
  */
 
+import { nostrAuthorization } from '@nostr-post/core/blossom';
+import { isRetryableUpload, UPLOAD_RETRY_DELAYS_MS, UPLOAD_STALL_MS } from '../core';
 import {
-  isRetryableUpload,
-  UPLOAD_RETRY_DELAYS_MS,
-  UPLOAD_STALL_MS,
-  type UploadFailureKind,
-} from '../core';
+  blossomResult,
+  blossomUploadUrl,
+  NOSTR_BUILD_UPLOAD,
+  nip96Result,
+  nip98AuthEvent,
+  type UploadAnswer,
+  type UploadFailure,
+  uploadFailure,
+  uploadFailureKind,
+} from '../uploadServers';
 
-export const NOSTR_BUILD_UPLOAD = 'https://nostr.build/api/v2/upload/files';
+export { NOSTR_BUILD_UPLOAD, type UploadFailure, uploadFailureKind };
 
-/** An Error saying why an upload failed */
-export type UploadFailure = Error & { kind: UploadFailureKind };
+type BrowserSigner = {
+  getPublicKey(): Promise<string>;
+  signEvent(e: unknown): Promise<unknown>;
+};
 
-const failure = (kind: UploadFailureKind, message: string): UploadFailure =>
-  Object.assign(new Error(message), { kind });
+const browserSigner = (): BrowserSigner | undefined =>
+  (window as unknown as { nostr?: BrowserSigner }).nostr;
 
-/** Why an upload failed, if `error` is an upload failure */
-export const uploadFailureKind = (error: unknown): UploadFailureKind | undefined =>
-  error instanceof Error && 'kind' in error ? (error as UploadFailure).kind : undefined;
+const hasSigner = (): boolean => Boolean(browserSigner());
 
-const cancelled = () => failure('cancelled', 'Upload cancelled');
+const cancelled = () => uploadFailure('cancelled', 'Upload cancelled');
+
+/** Resolves undefined when `promise` doesn't settle within `ms` (a signer that doesn't answer) */
+const within = <T>(promise: Promise<T>, ms: number): Promise<T | undefined> =>
+  Promise.race([
+    promise.catch(() => undefined),
+    new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms)),
+  ]);
+
+/** The signed-in user's pubkey via the browser's signer; undefined without one or in time */
+export const signerPubkey = (ms = UPLOAD_STALL_MS): Promise<string | undefined> => {
+  const signer = browserSigner();
+  return signer ? within(signer.getPublicKey(), ms) : Promise.resolve(undefined);
+};
+
+/** `template` signed by the browser's signer; undefined without one, refused or not in time */
+export const signWithBrowser = async (
+  template: unknown,
+  ms = UPLOAD_STALL_MS
+): Promise<unknown | undefined> => {
+  const signer = browserSigner();
+  if (!signer) return undefined;
+  const pubkey = await within(signer.getPublicKey(), ms);
+  return pubkey ? within(signer.signEvent({ ...(template as object), pubkey }), ms) : undefined;
+};
 
 /**
  * Build a NIP-98 HTTP Auth token for the given request.
  * Returns null (and logs a warning) when window.nostr is unavailable or signing fails.
  */
 export async function createNip98AuthToken(url: string, method: string): Promise<string | null> {
-  const nostr = (
-    window as unknown as {
-      nostr?: {
-        getPublicKey(): Promise<string>;
-        signEvent(e: unknown): Promise<unknown>;
-      };
-    }
-  ).nostr;
-  if (!nostr) return null;
-
-  try {
-    const pubkey = await nostr.getPublicKey();
-    const unsignedEvent = {
-      kind: 27235,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ['u', url],
-        ['method', method],
-      ],
-      content: '',
-      pubkey,
-    };
-    const signedEvent = await nostr.signEvent(unsignedEvent);
-    return btoa(JSON.stringify(signedEvent));
-  } catch (err) {
-    console.warn('NIP-98 auth failed:', err);
+  if (!hasSigner()) return null;
+  const signed = await signWithBrowser(nip98AuthEvent(url, method));
+  if (!signed) {
+    console.warn('NIP-98 auth failed');
     return null;
   }
+  return nostrAuthorization(signed).slice('Nostr '.length);
 }
-
-const hasSigner = (): boolean => Boolean((window as unknown as { nostr?: unknown }).nostr);
-
-/** The token, or null (upload without auth) when the signer doesn't answer within `ms` */
-const tokenWithin = (url: string, ms: number): Promise<string | null> =>
-  Promise.race([
-    createNip98AuthToken(url, 'POST'),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ]);
-
-/** The hosted URL in an upload response (nostr.build and NIP-96-like servers) */
-const uploadedUrl = (json: unknown): string | undefined => {
-  const resp = json as
-    | { url?: string; data?: { url?: string } | Array<{ url?: string }> }
-    | undefined;
-  const data = resp?.data;
-  return (
-    (Array.isArray(data) ? data[0]?.url : undefined) ??
-    resp?.url ??
-    (Array.isArray(data) ? undefined : data?.url)
-  );
-};
 
 export interface UploadOptions {
   /** Default nostr.build */
@@ -94,40 +83,21 @@ export interface UploadOptions {
   stallMs?: number;
 }
 
-/** The URL in a finished request's answer, or why there's none (`signedIn`: the request had auth) */
-const answer = (xhr: XMLHttpRequest, signedIn: boolean): string | UploadFailure => {
-  if (xhr.status >= 500) return failure('server', `Upload failed (HTTP ${xhr.status})`);
-  if (!signedIn && (xhr.status === 401 || xhr.status === 403)) {
-    return failure('sign-in', 'Sign in to upload');
-  }
-  if (xhr.status < 200 || xhr.status >= 300) {
-    return failure('rejected', `Upload failed (HTTP ${xhr.status})`);
-  }
-  try {
-    return (
-      uploadedUrl(JSON.parse(xhr.responseText)) ?? failure('rejected', 'No URL in upload response')
-    );
-  } catch {
-    return failure('rejected', 'Invalid upload response');
-  }
-};
+interface Request {
+  method: 'POST' | 'PUT';
+  url: string;
+  body: Blob | FormData;
+  headers: Record<string, string>;
+}
 
 /**
- * Upload a single file to nostr.build (or a custom endpoint) once. Returns the hosted URL;
- * throws an UploadFailure, also when no progress arrives for `stallMs` (`stalled`).
+ * Send one request with progress; resolves with the server's answer, whatever its status.
+ * Throws an UploadFailure without one: no connection, cancelled, or no progress for `stallMs`.
  */
-export async function uploadWithProgress(file: File, options: UploadOptions = {}): Promise<string> {
-  const { uploadUrl = NOSTR_BUILD_UPLOAD, onProgress, signal, stallMs = UPLOAD_STALL_MS } = options;
-  if (signal?.aborted) throw cancelled();
-  const body = new FormData();
-  body.append('file', file);
-  // No signer at all: nothing to sign the upload's auth with (custom servers may not need it)
-  if (!hasSigner() && uploadUrl === NOSTR_BUILD_UPLOAD) {
-    throw failure('sign-in', 'Sign in to upload');
-  }
-  const token = await tokenWithin(uploadUrl, stallMs);
-  if (signal?.aborted) throw cancelled();
-  return new Promise<string>((resolve, reject) => {
+export function sendUpload(request: Request, options: UploadOptions = {}): Promise<UploadAnswer> {
+  const { onProgress, signal, stallMs = UPLOAD_STALL_MS } = options;
+  if (signal?.aborted) return Promise.reject(cancelled());
+  return new Promise<UploadAnswer>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     let stalled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -139,11 +109,9 @@ export async function uploadWithProgress(file: File, options: UploadOptions = {}
       }, ms);
     };
     const onAbort = () => xhr.abort();
-    const settle = (result: string | UploadFailure) => {
+    const done = () => {
       clearTimeout(timer);
       signal?.removeEventListener('abort', onAbort);
-      if (typeof result === 'string') resolve(result);
-      else reject(result);
     };
     signal?.addEventListener('abort', onAbort);
     xhr.upload.addEventListener('progress', (e) => {
@@ -152,20 +120,84 @@ export async function uploadWithProgress(file: File, options: UploadOptions = {}
     });
     // Sent: the server may take a while to store it
     xhr.upload.addEventListener('load', () => watch(stallMs * 2));
-    xhr.addEventListener('load', () => settle(answer(xhr, Boolean(token))));
-    xhr.addEventListener('error', () => settle(failure('network', 'Network error')));
-    xhr.addEventListener('abort', () =>
-      settle(
+    xhr.addEventListener('load', () => {
+      done();
+      resolve({
+        status: xhr.status,
+        body: xhr.responseText,
+        reason: xhr.getResponseHeader('X-Reason') ?? undefined,
+      });
+    });
+    xhr.addEventListener('error', () => {
+      done();
+      reject(uploadFailure('network', 'Network error'));
+    });
+    xhr.addEventListener('abort', () => {
+      done();
+      reject(
         stalled
-          ? failure('stalled', `No progress for ${Math.round(stallMs / 1000)} s`)
+          ? uploadFailure('stalled', `No progress for ${Math.round(stallMs / 1000)} s`)
           : cancelled()
-      )
-    );
-    xhr.open('POST', uploadUrl);
-    if (token) xhr.setRequestHeader('Authorization', `Nostr ${token}`);
-    xhr.send(body);
+      );
+    });
+    xhr.open(request.method, request.url);
+    for (const [name, value] of Object.entries(request.headers)) xhr.setRequestHeader(name, value);
+    xhr.send(request.body);
     watch(stallMs);
   });
+}
+
+/**
+ * Upload a single file to nostr.build (or another NIP-96 endpoint) once, with NIP-98 auth.
+ * Returns the hosted URL; throws an UploadFailure, also when no progress arrives for `stallMs`.
+ */
+export async function uploadWithProgress(file: File, options: UploadOptions = {}): Promise<string> {
+  return (await uploadNip96(file, options)).url;
+}
+
+/** uploadWithProgress, with what the server says about the file (type, hash, size, dimensions) */
+export async function uploadNip96(file: File, options: UploadOptions = {}) {
+  const { uploadUrl = NOSTR_BUILD_UPLOAD, signal, stallMs = UPLOAD_STALL_MS } = options;
+  if (signal?.aborted) throw cancelled();
+  // No signer at all: nothing to sign the upload's auth with (custom servers may not need it)
+  if (!hasSigner() && uploadUrl === NOSTR_BUILD_UPLOAD) {
+    throw uploadFailure('sign-in', 'Sign in to upload');
+  }
+  const token = await within(createNip98AuthToken(uploadUrl, 'POST'), stallMs);
+  if (signal?.aborted) throw cancelled();
+  const body = new FormData();
+  body.append('file', file);
+  const headers: Record<string, string> = token ? { Authorization: `Nostr ${token}` } : {};
+  const answer = await sendUpload({ method: 'POST', url: uploadUrl, body, headers }, options);
+  const result = nip96Result(answer, Boolean(token));
+  if (result instanceof Error) throw result;
+  return result;
+}
+
+/**
+ * Upload a file to a Blossom server once (BUD-02 `PUT /upload`), authorized by `auth` (a
+ * signed kind 24242 event for its hash, or undefined without a signer). Returns the server's
+ * descriptor of the file; throws an UploadFailure, also when it stored another file.
+ */
+export async function uploadBlossom(
+  file: Blob,
+  server: string,
+  sha256: string,
+  auth: unknown | undefined,
+  options: UploadOptions = {}
+) {
+  const headers: Record<string, string> = {
+    'Content-Type': file.type || 'application/octet-stream',
+    'X-SHA-256': sha256,
+  };
+  if (auth) headers.Authorization = nostrAuthorization(auth);
+  const answer = await sendUpload(
+    { method: 'PUT', url: blossomUploadUrl(server), body: file, headers },
+    options
+  );
+  const result = blossomResult(answer, sha256, Boolean(auth));
+  if (result instanceof Error) throw result;
+  return result;
 }
 
 /** Resolves after `ms`, or once the browser is online again if it's offline then */
@@ -200,26 +232,36 @@ export interface RetryOptions extends UploadOptions {
 }
 
 /**
- * uploadWithProgress, tried again after connection and server failures (stalled included):
- * after UPLOAD_RETRY_DELAYS_MS, or once the browser is back online. Each try signs a new
- * NIP-98 token, since servers accept only recent ones.
+ * `attempt`, tried again after connection and server failures (stalled included): after
+ * UPLOAD_RETRY_DELAYS_MS, or once the browser is back online
  */
-export async function uploadWithRetry(file: File, options: RetryOptions = {}): Promise<string> {
+export async function withRetries<T>(
+  attempt: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
   const attempts = UPLOAD_RETRY_DELAYS_MS.length + 1;
-  for (let attempt = 1; ; attempt++) {
+  for (let n = 1; ; n++) {
     try {
-      return await uploadWithProgress(file, options);
+      return await attempt();
     } catch (error) {
       const kind = uploadFailureKind(error);
-      const delay = UPLOAD_RETRY_DELAYS_MS[attempt - 1];
+      const delay = UPLOAD_RETRY_DELAYS_MS[n - 1];
       if (delay === undefined || !kind || !isRetryableUpload(kind) || options.signal?.aborted) {
         throw error;
       }
       options.onWait?.(navigator.onLine === false);
       await waitToRetry(delay, options.signal);
-      options.onRetry?.(attempt + 1, attempts);
+      options.onRetry?.(n + 1, attempts);
     }
   }
+}
+
+/**
+ * uploadWithProgress, tried again after connection and server failures (stalled included).
+ * Each try signs a new NIP-98 token, since servers accept only recent ones.
+ */
+export function uploadWithRetry(file: File, options: RetryOptions = {}): Promise<string> {
+  return withRetries(() => uploadWithProgress(file, options), options);
 }
 
 /** Upload a single file to nostr.build (or a custom endpoint); returns the hosted URL */

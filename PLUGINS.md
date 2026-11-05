@@ -364,7 +364,9 @@ interface NostrUIPlugin {
   // Emit extra Nostr tags beyond the primary mapTo tag (e.g. venue emits geohash + NIP-73 tags)
   extraTags?(value: unknown, field: PostField): [string, ...string[]][];
 
-  // Reconstruct a rich view value from all event tags (e.g. venue reconstructs from geohash + "i" + "location")
+  // Reconstruct a rich view value from all event tags (e.g. venue reconstructs from geohash + "i" + "location").
+  // undefined: the plugin leaves the field to the default reading of its tag (e.g. media reads
+  // `imeta` tags itself and `r` tags the default way); null: the field has no value
   resolveFromTags?(tags: string[][], field: PostField): unknown;
 
   // A post's form data as JSON (see "A post's form data as JSON"): the JSON
@@ -573,7 +575,7 @@ When a plugin reads a new key, add it there.
 | `@nostr-post/plugin-embed`     | `embed`     | `string` | Players for links: YouTube, Spotify, SoundCloud, Vimeo, Bandcamp player links; a "Play" button first, the provider loads on click |
 | `@nostr-post/plugin-profile`   | `profile`   | `profile` | People picker: search profiles (NIP-50) or paste an npub, a role each; `p` tags `["p", pubkey, relay, role]` (NIP-52 participants). Text overridable through `messages` (`ProfileMessages`) |
 | `@nostr-post/plugin-venue`     | `venue`     | `geo`    | OSM venue search + NIP-73 identity tags; wraps `plugin-geo`                      |
-| `@nostr-post/plugin-media`     | `media`     | `string` | Multi-file upload with NIP-98 auth; paste/drop on textarea via `attachTo`        |
+| `@nostr-post/plugin-media`     | `media`     | `string` | Multi-file upload: the user's Blossom servers, then nostr.build (NIP-98); `imeta` tags; paste/drop on textarea via `attachTo` |
 | `@nostr-post/plugin-markdown`  | `markdown`  | `string` | Markdown editor with live preview (WYSIWYG mode supported)                       |
 | `@nostr-post/plugin-hashtag`   | `hashtag`   | `string` | Hashtag array input; auto-extracts from target field when `attachTo` is set      |
 | `@nostr-post/plugin-reference` | `reference` | `string` | URL/nostr reference list; auto-extracts from target field when `attachTo` is set |

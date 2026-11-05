@@ -339,8 +339,8 @@ function castValues(
 
 function readTagTarget(event: WikiEvent, field: PostField, tagName: string): unknown {
   const plugin = pluginRegistry.get(field.uiPlugin);
-  // Prefer resolveFromTags (has access to full tag array, e.g. for i-tags)
-  if (plugin?.resolveFromTags) return plugin.resolveFromTags(event.tags, field);
+  const resolved = plugin?.resolveFromTags?.(event.tags, field); // All tags; undefined: the default
+  if (resolved !== undefined) return resolved;
 
   const tagValues = getAllTagValues(event.tags, tagName);
   if (tagValues.length === 0) return undefined;

@@ -16,6 +16,9 @@ class FakeXhr {
   }
   open() {}
   setRequestHeader() {}
+  getResponseHeader() {
+    return null;
+  }
   abort() {
     this.events.dispatchEvent(new Event('abort'));
   }

@@ -22,6 +22,8 @@ export type TagPluginsInput = {
   tags: string[][];
   tokens: readonly NoteToken[];
   excludeFields?: readonly string[];
+  /** The post's author, for plugin views that need it (e.g. media on the author's servers) */
+  author?: string;
   /** The note text, placed where the manifest's content field is in its view order */
   content?: TemplateResult | typeof nothing;
 };
@@ -68,7 +70,9 @@ const resolveTagPluginValue = (
   values: string[],
   tags: string[][]
 ): unknown => {
-  if (plugin.resolveFromTags) return plugin.resolveFromTags(tags, field);
+  // undefined: the plugin leaves this field to the default reading of its tag
+  const resolved = plugin.resolveFromTags?.(tags, field);
+  if (resolved !== undefined) return resolved;
   if (field.uiPlugin === 'geo') return values.reduce((a, b) => (a.length >= b.length ? a : b));
   if (values.length > 1 || field.uiPlugin === 'hashtag' || field.uiPlugin === 'media') {
     return values;
@@ -102,7 +106,8 @@ const renderTagField = (
   field: PostField,
   tagName: string,
   values: string[],
-  tags: string[][]
+  tags: string[][],
+  author?: string
 ): TemplateResult | undefined => {
   const plugin = pluginRegistry.get(field.uiPlugin);
   if (!plugin) {
@@ -113,7 +118,7 @@ const renderTagField = (
   if (!plugin.viewTagName) return undefined;
   const value = resolveTagPluginValue(plugin, field, values, tags);
   const viewTag = unsafeStatic(plugin.viewTagName);
-  return staticHtml`<${viewTag} .value=${value} .field=${field}></${viewTag}>`;
+  return staticHtml`<${viewTag} .value=${value} .field=${field} .author=${author}></${viewTag}>`;
 };
 
 type TagEntry = { fieldId: string; template: TemplateResult };
@@ -125,6 +130,7 @@ const renderTagEntries = ({
   tags,
   tokens,
   excludeFields,
+  author,
 }: TagPluginsInput): { titles: TemplateResult[]; entries: TagEntry[] } => {
   const fieldMap = tagFieldMap(manifest, kind);
   const entries: TagEntry[] = [];
@@ -132,7 +138,7 @@ const renderTagEntries = ({
   for (const [tagName, values] of groupTagValues(tags, fieldMap, tokens)) {
     for (const field of fieldMap.get(tagName) ?? []) {
       if (field.visibility?.view === 'hidden' || excludeFields?.includes(field.id)) continue;
-      const rendered = renderTagField(field, tagName, values, tags);
+      const rendered = renderTagField(field, tagName, values, tags, author);
       if (!rendered) continue;
       if (tagName === 'title') titles.push(rendered);
       else entries.push({ fieldId: field.id, template: rendered });
@@ -160,9 +166,17 @@ export const renderTagPlugins = ({
   tags,
   tokens,
   excludeFields,
+  author,
   content,
 }: TagPluginsInput): TemplateResult[] => {
-  const { titles, entries } = renderTagEntries({ kind, manifest, tags, tokens, excludeFields });
+  const { titles, entries } = renderTagEntries({
+    kind,
+    manifest,
+    tags,
+    tokens,
+    excludeFields,
+    author,
+  });
   if (content && content !== nothing) {
     entries.push({ fieldId: contentFieldId(manifest, kind), template: html`${content}` });
   }

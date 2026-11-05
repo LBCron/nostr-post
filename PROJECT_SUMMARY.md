@@ -34,7 +34,7 @@ All phases of development complete:
 | **plugin-stars**    | Star rating (1-N)   | Customizable scale             | ✅ Complete |
 | **plugin-geo**      | Location picker     | Leaflet map, geohash, NIP-52   | ✅ Complete |
 | **plugin-venue**    | Business/POI search | OSM Nominatim, NIP-73 tags     | ✅ Complete |
-| **plugin-media**    | Photo/video upload  | Multi-file, drag-drop, NIP-98  | ✅ Complete |
+| **plugin-media**    | Photo/video upload  | Multi-file, drag-drop, Blossom, NIP-98 | ✅ Complete |
 | **plugin-markdown** | Rich text editor    | Toolbar, live preview, WYSIWYG | ✅ Complete |
 | **plugin-hashtag**  | Tag arrays          | Auto-extraction, chip input    | ✅ Complete |
 

@@ -5,9 +5,9 @@
  * newest version and shows it with the calendar manifest (title, date, place, participants,
  * RSVP, Add to calendar, .ics). The calendar's kind view: a post linking an event
  * (`nostr:naddr…`) shows it like this. With `thread`, an event's own page: its comments,
- * reactions and update comments too (a <nostr-post-feed> of the one event), and, when the
- * manifest has a `gallery`, the photos and videos of the event and of everything referencing
- * it, comments included (`<np-media-gallery>`).
+ * reactions and update comments too (a <nostr-post-feed> of the one event), and the
+ * manifest's `sections` (`<nostr-post-sections>`), e.g. the photos and videos of the event and
+ * of everything referencing it, comments included.
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
@@ -47,8 +47,8 @@ export class NostrCalendarEvent extends LitElement {
    * update comment (applied for the event's editors)
    */
   @property({ type: Boolean }) editable = false;
-  /** Without the manifest's gallery on the event's page (`thread`) */
-  @property({ type: Boolean, attribute: 'hide-gallery' }) hideGallery = false;
+  /** Without the manifest's `sections` on the event's page (`thread`) */
+  @property({ type: Boolean, attribute: 'hide-sections' }) hideSections = false;
 
   @state() _event?: SignedEvent;
   /** The feed's filters: a new array only for a new address (the feed reloads on one) */
@@ -88,19 +88,19 @@ export class NostrCalendarEvent extends LitElement {
   }
 
   override render() {
-    return html`${this._renderEvent()}${this._renderGallery()}`;
+    return html`${this._renderEvent()}${this._renderSections()}`;
   }
 
-  /** The manifest's gallery, on the event's own page */
-  _renderGallery() {
-    const config = this.manifest.gallery;
-    if (!config || !this.thread || this.hideGallery) return nothing;
+  /** The manifest's sections, on the event's own page */
+  _renderSections() {
+    const sections = this.manifest.sections;
+    if (!sections?.length || !this.thread || this.hideSections) return nothing;
     if (!isCalendarEventAddress(this.address)) return nothing;
-    return html`<np-media-gallery
-      .targets=${[this.address]}
-      .config=${config}
+    return html`<nostr-post-sections
+      .sections=${sections}
+      .target=${{ addresses: [this.address], ids: [], links: [] }}
       .relays=${this.relays ?? DEFAULT_RELAYS}
-    ></np-media-gallery>`;
+    ></nostr-post-sections>`;
   }
 
   _renderEvent() {

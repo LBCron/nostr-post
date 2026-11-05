@@ -1,17 +1,12 @@
 /**
- * A wiki page's gallery (the manifest's `gallery`): the photos and videos of the page and of
- * every post linking any version of it, shown by `<np-media-gallery>`
- * (`@nostr-post/plugin-media`), with an optional "Add" composer linking the page.
+ * What a wiki page's sections (`sections` of its manifest, `<nostr-post-sections>`) need: the
+ * posts linking any version of the page, and a field value linking the page for "Add".
  */
 
-import type { GalleryConfig } from '@nostr-post/core/types';
 import { fetchReferences, REFERENCES_LIMIT } from '@nostr-post/posts';
 import { fetchEntityVersions } from './fetch';
 import { DEFAULT_WIKI_RELAYS } from './nip54';
 import { collectEntityATags, type WikiEvent } from './resolver';
-
-/** A page's gallery: the manifest's `gallery` (`GalleryConfig`, `@nostr-post/core/types`) */
-export type WikiGalleryConfig = GalleryConfig;
 
 /**
  * Every post linking the entity at `dTag` (any version of its page), newest first, and the
@@ -36,7 +31,7 @@ export async function fetchLinkingPosts(
 }
 
 /**
- * A field value linking the entity's page, for the "Add" composer's `add.field`: both a picked
+ * A field value linking the entity's page, for a section's "Add" (`add.field`): both a picked
  * entity's shape (wiki-entity picker: `dTag`, `resolvedPubkey`) and a venue's (`wikiEntity`),
  * so either field type takes it
  */

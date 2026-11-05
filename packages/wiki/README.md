@@ -272,18 +272,13 @@ export const BEER_REVIEW_MANIFEST: NostrPostManifest = {
 
 ---
 
-`<nostr-wiki-view>` lists the related items its manifest defines (`wikiConfig.related`, see
-[MANIFEST.md](../../MANIFEST.md#related-items)), e.g. a brewery's beers, unless it has `hide-related`
-(React: `hideRelated`). `<nostr-wiki-related entity-id .sections>` shows them on their own;
-`fetchRelated(dTag, section)` returns them.
-
-With the manifest's `gallery` it shows the photos and videos of the page and of every post linking any
-version of it, unless it has `hide-gallery` (React: `hideGallery`). The gallery is `<np-media-gallery>`
-from `@nostr-post/plugin-media`, which reads each kind's media (see
-[MANIFEST.md](../../MANIFEST.md#gallery)). `add: { manifest, field }` adds an "Add" button:
-that manifest's `<nostr-post-composer>` (loaded by the app from `@nostr-post/web`) with `field`
-linking the page (`pageLinkValue(page)`). `fetchLinkingPosts(dTag)` returns the posts linking a
-page, all versions included.
+`<nostr-wiki-view>` shows its manifest's `sections` (see [MANIFEST.md](../../MANIFEST.md#sections)),
+e.g. a brewery's beers, a venue's reviews, photos and videos and upcoming events, unless it has
+`hide-sections` (React: `hideSections`). They are `<nostr-post-sections>` from `@nostr-post/web`, which
+the app loads (the CDN bundle does; the wiki package can't depend on web), over every version of the
+page, with the page for `self` sections, the wiki's roles (`role`), and "Add" filling the field with a
+link to the page (`pageLinkValue(page)`). `fetchLinkingPosts(dTag)` returns the posts linking a page,
+all versions included.
 
 The picker's `metadata` keys (`entityManifest`, `relays`, `minSearchLength`, `emitExtraTags`,
 `multiple`) are listed in [MANIFEST.md](../../MANIFEST.md#plugin-metadata); fields that reference entities in

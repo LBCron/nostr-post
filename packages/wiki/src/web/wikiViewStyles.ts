@@ -94,8 +94,8 @@ export const viewStyles = css`
     word-break: break-word;
   }
 
-  /* ── Photos: the same side padding as the text ── */
-  np-media-gallery { padding: 0 1.25rem 0.75rem; }
+  /* ── Sections (reviews, photos…): the same side padding as the text ── */
+  nostr-post-sections { padding: 0 1.25rem 0.75rem; }
 
   /* ── Contributors ── */
   details.wiki-contributors { border-top: 1px solid var(--nl-border, #e5e7eb); }

@@ -18,8 +18,7 @@ declare module 'react' {
       > & {
         'entity-id'?: string;
         'entity-i-id'?: string;
-        'hide-related'?: boolean;
-        'hide-gallery'?: boolean;
+        'hide-sections'?: boolean;
       };
     }
   }
@@ -31,10 +30,8 @@ export interface WikiViewProps {
   manifest?: NostrPostManifest;
   resolver?: WikiResolverFunction;
   relays?: string[];
-  /** Don't list the manifest's related items (`wikiConfig.related`) */
-  hideRelated?: boolean;
-  /** Don't show the manifest's photo gallery (`gallery`) */
-  hideGallery?: boolean;
+  /** Don't show the manifest's sections (`sections`: reviews, photos, gigs…) */
+  hideSections?: boolean;
   className?: string;
 }
 
@@ -44,8 +41,7 @@ export function WikiView({
   manifest,
   resolver,
   relays,
-  hideRelated,
-  hideGallery,
+  hideSections,
   className,
 }: WikiViewProps) {
   const ref = useRef<NostrWikiViewElement>(null);
@@ -64,8 +60,7 @@ export function WikiView({
       className={className}
       entity-id={entityId}
       entity-i-id={entityIId}
-      hide-related={hideRelated || undefined}
-      hide-gallery={hideGallery || undefined}
+      hide-sections={hideSections || undefined}
     />
   );
 }

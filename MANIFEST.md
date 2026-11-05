@@ -47,7 +47,7 @@ Types: `NostrPostManifest`, `PostField` and `FieldMetadata` in `@nostr-post/core
 | `lists`          | Lists people save events made with it to, e.g. a venue type's "Want to go", see [lists](#lists)                                                         |
 | `listType`       | The type part of those lists' d-tags; default the manifest's `id`, see [lists](#lists)                                                                   |
 | `viewOrder`      | Field ids in the order views show them, e.g. `["rating", "review"]` for the stars above the text; fields not listed follow in manifest order. Without it, views follow the field order. A manifest extending another replaces it |
-| `gallery`        | The photos and videos of an event and of everything referencing it, on the event's own page, see [gallery](#gallery)                                     |
+| `sections`       | What the page of an event made with it lists: reviews, photos and videos, gigs…, each its way and with "Add", see [sections](#sections)                  |
 | `wikiConfig`     | Wiki entity manifests only, see [below](#wiki-entity-manifests)                                                                                          |
 
 ### Which manifest an event was made with
@@ -117,34 +117,59 @@ fields: [
 ]
 ```
 
-## Gallery
+## Sections
 
-`gallery` shows the photos and videos of an event made with the manifest and of everything referencing
-it, on the event's own page, in `<np-media-gallery>` (`@nostr-post/plugin-media`):
-- a wiki page (`<nostr-wiki-view>`): the page and every post linking any version of it, e.g. a venue's
-  photo and video posts, reviews, events and comments; other wiki pages don't count;
-- a calendar event's page (`<nostr-calendar-event thread>`): the event and its comments.
-
-Each kind keeps its media elsewhere:
-- `imeta` tags (NIP-92; NIP-68 pictures, kind 20; NIP-71 videos, kinds 21 and 22);
-- `image` / `thumb` tags, and `r` tags of image or video files;
-- image and video links in the text, and their URLs in JSON content.
-
-The same file shows once (by its hash).
+`sections` lists, on the page of an event made with the manifest, the posts that reference it: a wiki
+page (`<nostr-wiki-view>`) and a calendar event's page (`<nostr-calendar-event thread>`) show them with
+`<nostr-post-sections>` (`@nostr-post/web`), unless they have `hide-sections`. Each section says which
+posts, how they show, and whether people can add one there.
 
 ```typescript
-gallery: { add: { manifest: "venue-media-v1", field: "venue" } }
+sections: [
+  { id: "media", label: "Photos and videos", view: "gallery", self: true,
+    add: { manifest: "venue-media-v1", field: "venue" } },
+  { id: "reviews", label: "Reviews", kinds: [1, 30078], manifests: ["venue-review-v1"],
+    stats: { tag: "rating", max: 5 }, add: { manifest: "venue-review-v1", field: "venue" } },
+  { id: "events", label: "Upcoming events", kinds: [31922, 31923], view: "agenda" },
+]
 ```
+
+**Which posts.** Those that reference the event: by its address (`a`, and `A` of NIP-22 comments; on a
+wiki page any author's version counts) or its id (`e`, `E`). Without `kinds`, any kind but reactions,
+deletions and other wiki pages.
+
+| Key          | Description                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| `id`         | Optional stable key: a manifest extending this one replaces the section with the same `id` (else the same `label`), e.g. to translate it |
+| `label`      | The section's heading                                                                              |
+| `kinds`      | Only these kinds, e.g. `[1, 30078]` for reviews, `[30818]` for wiki entities, `[31922, 31923]` for calendar events |
+| `manifests`  | Only posts made with these manifests (their ids: the `l` label or the manifest's `a` tag)          |
+| `tags`       | Only posts with these tag values, e.g. `{ t: ["punk"] }`                                            |
+| `links`      | `true`: also posts with one of the event's `i` links, e.g. gigs naming an artist's profiles before the artist had a page |
+| `self`       | `true`: the event itself first, e.g. a page's own photo in its gallery                             |
+| `dTagSuffix` | Addressable items of one type, by the end of their d-tag, e.g. wiki entities `-beer`              |
+| `role`       | Only wiki entities whose [role row](#references-with-a-role) (this field id) links the page        |
+
+**How they show (`view`).**
+- `list` (default): wiki entities in their newest version, opening their page on demand; posts as a
+  short text and author, opening in full.
+- `gallery`: the photos and videos of the posts (`<np-media-gallery>`, `@nostr-post/plugin-media`),
+  wherever each kind keeps them: `imeta` tags (NIP-92; NIP-68 pictures, kind 20; NIP-71 videos, kinds
+  21 and 22), `image` / `thumb` tags, `r` tags of image or video files, links in the text, URLs in
+  JSON content. The same file shows once (by its hash).
+- `agenda`: calendar events from today (`@nostr-post/calendar`).
+- Another view a package or app registers (`registerSectionView({ view, tagName })`, an element with
+  `items`, `section` and `relays`). A view that isn't loaded shows as a list.
 
 | Key     | Description                                                                                         |
 | ------- | --------------------------------------------------------------------------------------------------- |
-| `label` | The heading (default "Photos and videos")                                                           |
-| `kinds` | Only these kinds' media, e.g. `[20, 21, 1111]`; default any kind (on wiki pages, any but other wiki pages) |
-| `limit` | Shown at first (12); "Show more" shows more                                                         |
-| `add`   | `{ manifest, field }`: an "Add" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest); on wiki pages `field` is filled with a link to the page |
+| `view`  | `list`, `gallery`, `agenda` or a registered view                                                    |
+| `limit` | Shown at first (20; galleries 12); "Show more" shows more                                           |
+| `stats` | `{ tag, max }`: how many posts and the average of that tag ("12 in total · ★ 4.3 / 5")              |
+| `add`   | `{ manifest, field }`: an "Add" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest), with `field` linking the page where the page knows how (wiki pages: a picked entity's or a venue's value; a field taking several gets a list) |
 
-The elements show it unless they have `hide-gallery`. `{}` shows it with the defaults. A wiki related
-section's `gallery: true` still shows that section's images on their own.
+A section that counts (`stats`), filters on the client (`dTagSuffix`, `role`) or shows a gallery reads
+up to 500 posts, and still lists `limit`; numbers are computed when shown, never stored.
 
 ## Fields
 
@@ -306,36 +331,13 @@ wikiConfig: {
 }
 ```
 
-### Related items
+### Sections of entity pages
 
-`wikiConfig.related` lists items on the entity's page, e.g. a brewery's beers or a beer's reviews: events
-whose `a` tags point at any version of the entity (every author's version has its own address).
-
-```typescript
-related: [
-  { label: "Beers", kinds: [30818], dTagSuffix: "-beer", role: "breweries" },
-  { label: "Reviews", kinds: [1, 30078], manifest: "beer-review-v1" },
-]
-```
-
-| Key          | Description                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| `id`         | Optional stable key: a manifest extending this one replaces the section with the same `id` (else the same `label`), e.g. to translate it |
-| `label`      | The section's heading                                                                              |
-| `kinds`      | Event kinds to list: `30818` for wiki entities, e.g. `1`/`30078` for reviews                        |
-| `dTagSuffix` | Wiki entities of one type, by the suffix of their d-tags (`-beer`)                                  |
-| `role`       | Only wiki entities whose [role row](#references-with-a-role) (this field id) links this entity     |
-| `manifest`   | Only events linking this manifest (its id)                                                         |
-| `limit`      | Items shown at first (20); "Show more" asks for more                                               |
-| `stats`      | `{ tag, max }`: how many posts and the average of that tag ("12 in total · ★ 4.3 / 5")              |
-| `gallery`    | `true`: the images of the section's posts (`r` URLs of image files, `imeta` images)                |
-
-Wiki entities are listed in their newest version and open their page on demand; posts show a short
-text. A section with `stats` or `gallery` reads up to 500 posts for them, computed when shown and
-never stored, and still lists `limit`. `<nostr-wiki-view>` shows the sections unless it has `hide-related`.
+An entity's page lists what its manifest's [`sections`](#sections) say, e.g. a brewery's beers (wiki
+entities `-beer` in the role `breweries`) or a beer's reviews.
 
 Keep sections to the entity type itself; domain sections belong in a manifest that `extends` it, which
-only lists what it adds (sections and links merge by `id`, else `label`, see
+only lists what it adds (`sections` and links merge by `id`, else `label`, see
 [inheritance](./ARCHITECTURE.md#manifest-inheritance)). Like any extending manifest it can add fields
 too, and create pages: they stay pages of the same type as long as it keeps the parent's title and
 d-tag templates, and a viewer using the parent shows the added fields among "all data". An app can
@@ -347,7 +349,7 @@ link ids, and only translated labels, shows the pages in another language:
 ```typescript
 { id: "venue-entity-v1-cs", extends: "venue-entity-v1",
   fields: [{ id: "name", metadata: { label: "Název" } }],
-  wikiConfig: { related: [{ id: "reviews", label: "Recenze", kinds: [1, 30078], manifest: "venue-review-v1" }] } }
+  sections: [{ id: "reviews", label: "Recenze", kinds: [1, 30078], manifests: ["venue-review-v1"] }] }
 ```
 
 ### Title and d-tag templates

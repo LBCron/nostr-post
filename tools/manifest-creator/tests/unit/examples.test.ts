@@ -159,20 +159,23 @@ describe('EXAMPLE_MANIFESTS', () => {
 describe('beer venue manifest', () => {
   it('inherits the venue page and adds the beer sections', () => {
     const beerVenue = EXAMPLE_MANIFESTS['wiki-beer-venue-entity'] as NostrPostManifest;
-    const config = (
-      resolved(beerVenue) as unknown as {
-        wikiConfig: { dTagTemplate: string; related: { label: string }[] };
-      }
-    ).wikiConfig;
-    expect(config.dTagTemplate).toBe('{name}-{city}-(venue)');
-    expect(config.related.map((section) => section.label)).toEqual([
+    const resolvedVenue = resolved(beerVenue) as unknown as {
+      wikiConfig: { dTagTemplate: string };
+      sections: { label: string }[];
+    };
+    expect(resolvedVenue.wikiConfig.dTagTemplate).toBe('{name}-{city}-(venue)');
+    expect(resolvedVenue.sections.map((section) => section.label)).toEqual([
+      'Photos and videos',
       'Reviews',
+      'Upcoming events',
       'Beer reviews',
       'Taproom of',
     ]);
-    const venue = EXAMPLE_MANIFESTS['wiki-venue-entity'] as unknown as {
-      wikiConfig: { related: { label: string }[] };
-    };
-    expect(venue.wikiConfig.related.map((section) => section.label)).toEqual(['Reviews']);
+    const venue = EXAMPLE_MANIFESTS['wiki-venue-entity'] as NostrPostManifest;
+    expect(venue.sections?.map((section) => section.label)).toEqual([
+      'Photos and videos',
+      'Reviews',
+      'Upcoming events',
+    ]);
   });
 });

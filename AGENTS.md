@@ -83,7 +83,7 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
   `/web`: its input and view).
 - `@nostr-post/<domain>` (`wiki`, `calendar`, `list`): a NIP or domain of its own: its kinds, reading
   and publishing, event actions, and its own elements. Domains plug into `web` through
-  `@nostr-post/plugins/entities` (`registerKindView`, `registerEventAction`, entity manifests), and may
+  `@nostr-post/plugins/entities` (`registerKindView`, `registerEventAction`, `registerSectionView`, entity manifests), and may
   provide fields and depend on field plugins, never the other way round.
 
 ## Packages are the product

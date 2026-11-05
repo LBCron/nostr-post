@@ -263,7 +263,25 @@ export {
   VIDEO_KIND,
   SHORT_VIDEO_KIND,
 } from '@nostr-post/plugin-media';
-export { fetchReferences, referenceFilters } from '@nostr-post/posts';
+export {
+  fetchReferences,
+  referenceFilters,
+  // A page's sections (`sections` of a manifest): which posts, matched and counted
+  fetchSection,
+  sectionFilters,
+  matchesSection,
+  sectionStats,
+  sectionTarget,
+  postSnippet,
+  type SectionTarget,
+} from '@nostr-post/posts';
+export type { PostSection } from '@nostr-post/core/types';
+// How a page section shows (`view`): register your own element under a name
+export {
+  registerSectionView,
+  sectionViewFor,
+  type SectionView,
+} from '@nostr-post/plugins/entities';
 
 // Wiki (NIP-54 kind:30818)
 export {
@@ -293,16 +311,9 @@ export {
   // A plugin's control shown with events of a manifest (e.g. Save to lists)
   registerEventAction,
   eventActionsFor,
-  // Related items on an entity's page (wikiConfig.related)
-  fetchRelated,
-  filterRelated,
-  relatedImages,
-  relatedSnippet,
-  relatedStats,
-  // A page's gallery (the manifest's `gallery`): the posts linking it, a value linking it
+  // A wiki page's sections: the posts linking it, a value linking it (for "Add")
   fetchLinkingPosts,
   pageLinkValue,
-  type WikiGalleryConfig,
 } from '@nostr-post/wiki';
 
 // Wiki entity picker (search, create)

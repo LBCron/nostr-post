@@ -8,8 +8,6 @@ export interface MediaGalleryMessages {
   loading: string;
   empty: string;
   showMore: string;
-  /** Opens the composer of a media post */
-  add: string;
   close: string;
   /** Link to the post a photo or video is from */
   openPost: string;
@@ -19,8 +17,6 @@ export interface MediaGalleryMessages {
   photoAlt: (author: string) => string;
   /** On a video's tile */
   video: string;
-  /** The composer couldn't be shown: no manifest, or the app didn't load `<nostr-post-composer>` */
-  noComposer: string;
 }
 
 export const DEFAULT_MEDIA_GALLERY_MESSAGES: MediaGalleryMessages = {
@@ -28,11 +24,9 @@ export const DEFAULT_MEDIA_GALLERY_MESSAGES: MediaGalleryMessages = {
   loading: 'Loading photos…',
   empty: 'No photos yet',
   showMore: 'Show more',
-  add: 'Add photo or video',
   close: 'Close',
   openPost: 'Open post',
   byline: (author, date) => `${author} · ${date}`,
   photoAlt: (author) => `Photo by ${author}`,
   video: 'Video',
-  noComposer: "The form couldn't be loaded",
 };

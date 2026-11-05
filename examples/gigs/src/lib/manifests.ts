@@ -125,7 +125,26 @@ export const GIG_MANIFEST: NostrPostManifest = {
       },
     },
   ],
-  // On a gig's page: the photos and videos of the gig and its comments
-  gallery: {},
+  // On a gig's page: the photos and videos of the gig, its comments and posts linking it
+  sections: [{ id: 'media', label: 'Photos and videos', view: 'gallery', self: true }],
   metadata: { name: 'Gig', description: 'A concert or party: when, where, who plays' },
+};
+
+/**
+ * An artist's page: ARTIST_MANIFEST with its upcoming gigs, those that link the page (`a` tag,
+ * any version's author) or one of its profile links (`i` tags, so gigs added before the page
+ * existed show too), and "Add" a gig with the artist as a performer
+ */
+export const ARTIST_PAGE_MANIFEST: WikiManifest = {
+  ...ARTIST_MANIFEST,
+  sections: [
+    {
+      id: 'gigs',
+      label: 'Gigs',
+      kinds: [31922, 31923],
+      links: true,
+      view: 'agenda',
+      add: { manifest: GIG_MANIFEST, field: 'performers' },
+    },
+  ],
 };

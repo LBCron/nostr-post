@@ -555,6 +555,12 @@ depending on them (or on each other):
   such an event (`nostr:naddr…`) shows it in place of the link (`kindViewFor(kind)`); a later
   registration for the same kind wins, so an app can replace a package's. The wiki registers
   `<nostr-wiki-view>` for 30818, the list plugin `<np-list-view>` for 10003/30003.
+- `registerSectionView({ view, tagName })`: how a page section with that `view` shows its items
+  (`sections` of a manifest, see [MANIFEST.md](./MANIFEST.md#sections)), a custom element with `items`
+  (the section's events, newest first), `section` and `relays` properties (`sectionViewFor(view)`); a
+  later registration with the same name wins. The media plugin registers `<np-media-gallery>` as
+  `gallery`, the calendar `<nostr-calendar-section-agenda>` as `agenda`; `<nostr-post-sections>` shows
+  `list` itself.
 - `entityManifests()`: once `@nostr-post/wiki` is loaded, `resolve(ref)`, an entity manifest from its id,
   `30078:` address or the manifest itself. The list field uses it for the lists of the venue it saves.
 

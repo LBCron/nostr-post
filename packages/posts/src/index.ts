@@ -124,3 +124,15 @@ export {
   referenceFilters,
   targetFilters,
 } from './references';
+export {
+  fetchSection,
+  matchesSection,
+  newestItems,
+  postSnippet,
+  SECTION_READ_LIMIT,
+  type SectionTarget,
+  sectionFilters,
+  sectionReadLimit,
+  sectionStats,
+  sectionTarget,
+} from './sections';

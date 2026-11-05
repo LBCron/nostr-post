@@ -80,8 +80,12 @@ const mergeConfigKeys = (
   const merged: Record<string, unknown> = {};
   for (const [key, parentValue] of Object.entries(parent)) {
     const childValue = child[key];
-    if (!handled.has(key) && isPlainObject(parentValue) && isPlainObject(childValue)) {
+    if (handled.has(key)) continue;
+    if (isPlainObject(parentValue) && isPlainObject(childValue)) {
       merged[key] = mergeConfig(parentValue, childValue);
+    } else if (isLabelledList(parentValue) && isLabelledList(childValue)) {
+      // Top-level lists of labelled entries, e.g. `sections`
+      merged[key] = mergeByKey(parentValue, childValue);
     }
   }
   return merged;
@@ -98,10 +102,10 @@ const mergeConfigKeys = (
  * - `publishFormats` and `lists`: same override-then-append strategy as fields.
  * - `metadata`: shallow-merged (`{ ...parent.metadata, ...child.metadata }`).
  * - `linkManifest`: child's value takes priority; falls back to parent's.
- * - Other keys whose values are objects in both (e.g. `wikiConfig`) are merged per key:
- *   lists of labelled entries (`[{ id?, label, … }]`, e.g. `wikiConfig.related`) keep the
- *   parent's entries in order, a child entry with the same `id` (else `label`) replacing
- *   its parent's, then the child's new ones; any other value is the child's. With ids, a
+ * - `sections`, and other lists of labelled entries (`[{ id?, label, … }]`) at the top or in
+ *   a config object, keep the parent's entries in order, a child entry with the same `id`
+ *   (else `label`) replacing its parent's, then the child's new ones. Other keys whose values are objects in both
+ *   (e.g. `wikiConfig`) are merged per key; any other value is the child's. With ids, a
  *   child can translate labels (`{ id: 'reviews', label: 'Recenze' }`).
  * - `extends` is not forwarded to the resolved manifest.
  *

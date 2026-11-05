@@ -1,10 +1,10 @@
 /**
  * Photos and videos of a venue: a NIP-68 picture (kind 20) or a NIP-71 video (kind 21, or 22 for a
- * short portrait one) linking the venue's wiki page, shown in the page's gallery (the venue
- * entity's `gallery`), which offers "Add" with it.
+ * short portrait one) linking the venue's wiki page, shown in the page's photos and videos
+ * section (VENUE_SECTIONS), which offers "Add" with it.
  */
 
-import type { GalleryConfig, NostrPostManifest } from '@nostr-post/core/types';
+import type { NostrPostManifest, PostSection } from '@nostr-post/core/types';
 
 const ALL = [20, 21, 22];
 
@@ -114,7 +114,31 @@ export const VENUE_MEDIA_MANIFEST: NostrPostManifest = {
   },
 };
 
-/** A venue page's gallery: everything linking it, "Add" with VENUE_MEDIA_MANIFEST */
-export const VENUE_GALLERY: GalleryConfig = {
-  add: { manifest: VENUE_MEDIA_MANIFEST.id, field: 'venue' },
-};
+/**
+ * A venue page's sections: photos and videos of everything linking it ("Add" with
+ * VENUE_MEDIA_MANIFEST), its reviews ("Add" a review) and its upcoming events
+ */
+export const VENUE_SECTIONS: PostSection[] = [
+  {
+    id: 'media',
+    label: 'Photos and videos',
+    view: 'gallery',
+    self: true,
+    add: { manifest: VENUE_MEDIA_MANIFEST.id, field: 'venue' },
+  },
+  {
+    id: 'reviews',
+    label: 'Reviews',
+    kinds: [1, 30078],
+    manifests: ['venue-review-v1'],
+    stats: { tag: 'rating', max: 5 },
+    add: { manifest: 'venue-review-v1', field: 'venue' },
+  },
+  {
+    id: 'events',
+    label: 'Upcoming events',
+    kinds: [31922, 31923],
+    view: 'agenda',
+    add: { manifest: 'calendar-event-venue-v1', field: 'location' },
+  },
+];

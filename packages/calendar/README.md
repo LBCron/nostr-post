@@ -170,7 +170,13 @@ kind view of 31922/31923, so a post linking an event (`nostr:naddr…`) shows it
 | `manifest`, `relays` | Default `CALENDAR_EVENT_MANIFEST` and the default relays |
 | `thread`             | The event's own page: also its comments, reactions and update comments (a `<nostr-post-feed>` of the one event) |
 | `editable`           | An Edit button: the author republishes the event, anyone else suggests the changes as an update comment (applied for the event's editors) |
-| `hide-gallery`       | With `thread`, the manifest's `gallery` shows the photos and videos of the event and of everything referencing it, comments included (`<np-media-gallery>`, `@nostr-post/plugin-media`, see [MANIFEST.md](../../MANIFEST.md#gallery)); `hide-gallery` hides it |
+| `hide-sections`      | With `thread`, the manifest's `sections` show below the event, e.g. the photos and videos of the event and its comments (`<nostr-post-sections>`, see [MANIFEST.md](../../MANIFEST.md#sections)); `hide-sections` hides them |
+
+### Section view `agenda`
+
+`<nostr-calendar-section-agenda>` is the `agenda` view of page sections (`sections` of a manifest,
+`view: "agenda"`): the section's calendar events from today, e.g. an artist's or a venue's upcoming
+gigs.
 
 ### Event actions
 

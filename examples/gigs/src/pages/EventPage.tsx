@@ -1,6 +1,6 @@
 import { GIG_MANIFEST } from '../lib/manifests';
 
-/** One gig by its address (the link has its naddr: shareable), with its comments */
+/** One gig by its address (the link has its naddr: shareable), with its comments and photos */
 export function EventPage({ address }: { address: string }) {
   return (
     <>

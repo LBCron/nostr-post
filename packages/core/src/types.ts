@@ -193,12 +193,61 @@ export interface NostrPostManifest {
    * listed follow in manifest order. Without it, views follow the manifest's field order.
    */
   viewOrder?: string[];
+  /**
+   * What the page of an event made with this manifest lists besides the event itself (a wiki
+   * page, a calendar event's page): posts referencing it, filtered and shown each its way, e.g.
+   * a venue's reviews, photos and upcoming events, an artist's gigs (`<nostr-post-sections>`)
+   */
+  sections?: PostSection[];
   metadata?: {
     name?: string;
     description?: string;
     author?: string;
     tags?: string[];
   };
+}
+
+/**
+ * One section of a page (`sections`): which posts referencing the event it lists, how it shows
+ * them, and an optional "Add". Merged by `id` (else `label`) when a manifest `extends` another.
+ */
+export interface PostSection {
+  /** Stable key for `extends` (e.g. to translate the label) */
+  id?: string;
+  /** Heading, e.g. "Reviews" */
+  label: string;
+  /**
+   * How it shows: `list` (default: short texts, wiki pages opening on demand), `gallery`
+   * (photos and videos, `@nostr-post/plugin-media`), `agenda` (calendar events,
+   * `@nostr-post/calendar`), or another view a package registers (`registerSectionView`)
+   */
+  view?: string;
+  /**
+   * Only these kinds; default any kind but reactions, deletions and other wiki pages (a beer's
+   * label isn't a photo of its brewery)
+   */
+  kinds?: number[];
+  /** Only posts made with these manifests (their ids, the `l` label), e.g. `venue-review-v1` */
+  manifests?: string[];
+  /** Only posts with these tag values, e.g. `{ t: ['punk'] }` */
+  tags?: Record<string, string[]>;
+  /** Also posts with one of the event's `i` links, e.g. gigs naming an artist's profiles */
+  links?: boolean;
+  /** The event itself counts too, e.g. a page's own photo in its gallery */
+  self?: boolean;
+  /** Addressable items of one type, by the end of their d-tag (e.g. wiki pages `-beer`) */
+  dTagSuffix?: string;
+  /** Wiki pages whose role row (this field id) links the page, e.g. beers brewed at a brewery */
+  role?: string;
+  /** Shown at first (default 20; galleries 12); "Show more" shows more */
+  limit?: number;
+  /** A count, and the average of a numeric tag: `{ tag: 'rating', max: 5 }` */
+  stats?: { tag: string; max?: number };
+  /**
+   * "Add": the composer of this manifest (its id, a published manifest's `30078:` address, or
+   * the manifest), with `field` linking the event where the page knows how (wiki pages)
+   */
+  add?: { manifest: string | NostrPostManifest; field?: string };
 }
 
 /** A list for a manifest's events (`lists`) */

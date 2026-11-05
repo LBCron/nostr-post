@@ -8,15 +8,7 @@ export {
   registerEntityManifest,
   resolveEntityManifest,
 } from './registry';
-export {
-  RELATED_STATS_LIMIT,
-  type WikiRelatedSection,
-  fetchRelated,
-  filterRelated,
-  relatedImages,
-  relatedSnippet,
-  relatedStats,
-} from './related';
+export { pageLinkValue } from './pageLink';
 export {
   type CreatedEntity,
   type EntityCreator,

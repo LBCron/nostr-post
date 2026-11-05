@@ -59,6 +59,30 @@ export function kindViewFor(kind: number): KindView | undefined {
   return kindViews.find((view) => view.kinds.includes(kind));
 }
 
+/**
+ * How a page section (`sections` of a manifest, `PostSection`) shows its items, e.g. `gallery`
+ * (`@nostr-post/plugin-media`) or `agenda` (`@nostr-post/calendar`). A custom element with the
+ * properties `items` (the section's events, newest first), `section` and `relays`.
+ * `<nostr-post-sections>` shows `list` itself, and a view that isn't registered as a list.
+ */
+export interface SectionView {
+  view: string;
+  tagName: string;
+}
+
+// Module state: views register once when their package's web entry loads
+const sectionViews: SectionView[] = [];
+
+/** Registers a section view; a later one with the same name wins (an app can replace one) */
+export function registerSectionView(view: SectionView): void {
+  sectionViews.unshift(view);
+}
+
+/** The view registered under a name, if any */
+export function sectionViewFor(view: string): SectionView | undefined {
+  return sectionViews.find((v) => v.view === view);
+}
+
 /** What the wiki package provides about entity manifests */
 export interface EntityManifests {
   /** An entity manifest from a reference: a registered id, a `30078:` address, or the manifest */

@@ -35,7 +35,9 @@
   "dependencies": {
     "@djot/djot": "^0.3.2",
     "@nostr-post/core": "workspace:*",
+    "@nostr-post/plugin-media": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/posts": "workspace:*",
     "@nostr-post/signer": "workspace:*",
     "lit": "^3.3.3"
   },

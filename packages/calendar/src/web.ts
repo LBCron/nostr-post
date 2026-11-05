@@ -6,12 +6,17 @@
  * - <nostr-calendar-agenda>: events of a date window or a month, by day
  * - <nostr-calendar-event>: one event by address, also the kind view of 31922/31923: a post
  *   linking an event shows it
+ * - the `agenda` view of page sections (`sections` of a manifest)
  * - event actions on events made with calendar manifests: RSVP (<np-rsvp>), Add to calendar
  *   (<np-calendar-save>), `.ics` (<np-ics-download>)
  */
 
 import { ALL_DAY_EVENT_KIND, TIMED_EVENT_KIND } from '@nostr-post/plugin-date';
-import { registerEventAction, registerKindView } from '@nostr-post/plugins/entities';
+import {
+  registerEventAction,
+  registerKindView,
+  registerSectionView,
+} from '@nostr-post/plugins/entities';
 import { publishesCalendarEvents } from './calendars';
 
 import './web/agenda';
@@ -19,11 +24,14 @@ import './web/calendarEvent';
 import './web/rsvpButtons';
 import './web/calendarSave';
 import './web/icsDownload';
+import './web/sectionAgenda';
 
 registerKindView({
   kinds: [ALL_DAY_EVENT_KIND, TIMED_EVENT_KIND],
   tagName: 'nostr-calendar-event',
 });
+// A page section's `agenda` view (`sections` of a manifest), e.g. an artist's gigs
+registerSectionView({ view: 'agenda', tagName: 'nostr-calendar-section-agenda' });
 registerEventAction({ tagName: 'np-rsvp', matches: publishesCalendarEvents });
 registerEventAction({ tagName: 'np-calendar-save', matches: publishesCalendarEvents });
 registerEventAction({ tagName: 'np-ics-download', matches: publishesCalendarEvents });
@@ -38,4 +46,5 @@ export { DEFAULT_CALENDAR_SAVE_MESSAGES } from './web/calendarMessages';
 export { NpIcsDownload } from './web/icsDownload';
 export { DEFAULT_ICS_MESSAGES, type IcsMessages } from './web/icsMessages';
 export { NpRsvp } from './web/rsvpButtons';
+export { NostrCalendarSectionAgenda } from './web/sectionAgenda';
 export { DEFAULT_RSVP_MESSAGES, type RsvpMessages } from './web/rsvpMessages';

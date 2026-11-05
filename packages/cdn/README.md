@@ -270,9 +270,16 @@ The bundle re-exports utilities for advanced usage:
 - `defaultResolver`, `collectEntityATags`, `fetchEntityVersions`, `checkEntityDTag`
 - `registerEntityManifest`, `getEntityManifest`, `resolveEntityManifest`: entity manifests by id,
   inline, or by a published manifest's `30078:` address
-- `fetchRelated(dTag, section)`, `filterRelated(events, section, dTag)`, `relatedSnippet(event)`,
-  `relatedStats(events, tag)`, `relatedImages(events)`: an entity's
-  related items (`wikiConfig.related`, e.g. a brewery's beers), as `<nostr-wiki-related>` lists them
+- `pageLinkValue(page)`: a field value linking a wiki page (for a section's "Add"); the posts linking
+  a page come from `fetchSection` with `sectionTarget(versions)`
+- Sections (`sections` of a manifest, MANIFEST.md): `fetchSection(section, target)`,
+  `sectionFilters`, `matchesSection`, `sectionStats`, `sectionTarget(events)`, `postSnippet(event)`;
+  `<nostr-post-sections .sections .target>` shows them (wiki pages and calendar events' pages do;
+  `hide-sections` hides them); `registerSectionView({ view, tagName })` adds a view
+- `eventMedia(event)`, `mediaOfEvents(events)`: the photos and videos of posts, wherever their kind
+  keeps them (`imeta`, `image`, `r`, links, JSON), each file once; `fetchReferences(targets)`: the
+  posts referencing addresses or event ids (comments included); `<np-media-gallery>` shows their
+  media (a section's `gallery` view)
 - `registerEntityCreator({ tagName, matches })`, `entityCreatorFor(manifest)`: a plugin's own "+ Create"
   form in the entity picker for the types it can fill (the venue plugin creates venue pages from OSM)
 - `registerEventAction({ tagName, matches })`, `eventActionsFor(manifest)`: a plugin's control shown with

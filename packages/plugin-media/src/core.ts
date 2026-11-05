@@ -61,6 +61,11 @@ export interface MediaPluginConfig {
    * it's kept at Full quality
    */
   keepMetadata?: boolean;
+  /**
+   * A description per photo for people who can't see it (`alt` in its `imeta` tag, NIP-92):
+   * an input under each photo
+   */
+  alt?: boolean;
 }
 
 /** How much photos are shrunk on the device before upload: smaller uploads faster */
@@ -80,6 +85,25 @@ export const MEDIA_QUALITY_PRESETS: Record<
 
 export const isMediaQuality = (value: unknown): value is MediaQuality =>
   MEDIA_QUALITIES.includes(value as MediaQuality);
+
+/**
+ * Whether a file type is accepted by `accept` (MIME types, `image/*` style wildcards; default
+ * photos and videos)
+ */
+export const acceptsType = (
+  type: string,
+  accept: readonly string[] = ['image/*', 'video/*']
+): boolean =>
+  accept.some((pattern) =>
+    pattern.endsWith('/*')
+      ? type.startsWith(pattern.slice(0, -1))
+      : pattern.toLowerCase() === type.toLowerCase()
+  );
+
+/** A file name extension for a MIME type, e.g. `png` for `image/png` (`bin` when unknown) */
+export const extensionFor = (type: string): string =>
+  ({ 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'video/quicktime': 'mov' })[type] ??
+  (/^[a-z]+\/([a-z0-9]+)$/i.exec(type)?.[1]?.toLowerCase() || 'bin');
 
 /** Whether a file of this type is shrunk: photos, not GIFs (animation), SVGs or videos */
 export const isCompressibleImage = (type: string): boolean =>

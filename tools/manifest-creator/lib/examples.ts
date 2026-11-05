@@ -5,6 +5,7 @@ import { listField } from '@nostr-post/list';
 import type { WikiManifest } from '@nostr-post/wiki';
 import { BEER_LISTS, SAVE_PLACE_MANIFEST, VENUE_LISTS } from './listExamples';
 import bjcpStyleManifest from './manifests/beerStyleBjcp2021.json';
+import { VENUE_MEDIA_MANIFEST, VENUE_SECTIONS } from './manifests/venueMedia';
 
 export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest> = {
   simple: {
@@ -113,20 +114,20 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
   'wiki-brewery-entity': {
     id: 'brewery-entity-v1',
     version: '1.0.0',
+    // Listed on the brewery's page: beers naming it in their roles
+    sections: [
+      { id: 'beers', label: 'Beers', kinds: [30818], dTagSuffix: '-beer', role: 'breweries' },
+      {
+        id: 'brewed-here',
+        label: 'Brewed here for others',
+        kinds: [30818],
+        dTagSuffix: '-beer',
+        role: 'brewed_at',
+      },
+    ],
     wikiConfig: {
       titleTemplate: '{name} (Brewery)',
       dTagTemplate: '{name}-(brewery)',
-      // Listed on the brewery's page: beers naming it in their roles
-      related: [
-        { id: 'beers', label: 'Beers', kinds: [30818], dTagSuffix: '-beer', role: 'breweries' },
-        {
-          id: 'brewed-here',
-          label: 'Brewed here for others',
-          kinds: [30818],
-          dTagSuffix: '-beer',
-          role: 'brewed_at',
-        },
-      ],
     },
     fields: [
       {
@@ -279,18 +280,19 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           url: 'https://www.bjcp.org/style/2021/{style.category}/{style.code}/',
         },
       ],
-      // Listed on the beer's page: reviews linking it (any author's version)
-      related: [
-        {
-          id: 'reviews',
-          label: 'Reviews',
-          kinds: [1, 30078],
-          manifest: 'beer-review-v1',
-          stats: { tag: 'rating', max: 5 },
-          gallery: true,
-        },
-      ],
     },
+    // On the beer's page: reviews linking it (any author's version), and their photos
+    sections: [
+      {
+        id: 'reviews',
+        label: 'Reviews',
+        kinds: [1, 30078],
+        manifests: ['beer-review-v1'],
+        stats: { tag: 'rating', max: 5 },
+        add: { manifest: 'beer-review-v1', field: 'beer' },
+      },
+      { id: 'photos', label: 'Photos', view: 'gallery', self: true },
+    ],
     fields: [
       {
         id: 'title',
@@ -535,6 +537,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
   'wiki-venue-entity': {
     id: 'venue-entity-v1',
     version: '1.0.0',
+    sections: VENUE_SECTIONS,
     // Lists people save venues to; the beer venue inherits them (nostr-post:venue:visited)
     lists: VENUE_LISTS,
     listType: 'venue',
@@ -548,17 +551,6 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           label: 'BTC Map',
           url: 'https://btcmap.org/merchant/{i:osm}',
           when: { field: 'bitcoin', equals: 'yes' },
-        },
-      ],
-      // Listed on the venue's page
-      related: [
-        {
-          id: 'reviews',
-          label: 'Reviews',
-          kinds: [1, 30078],
-          manifest: 'venue-review-v1',
-          stats: { tag: 'rating', max: 5 },
-          gallery: true,
         },
       ],
     },
@@ -719,34 +711,32 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
     id: 'beer-venue-entity-v1',
     version: '1.0.0',
     // Venue pages seen from the beer world: inherits everything (same pages: same title and
-    // d-tag templates) and adds the beer sections (wikiConfig.related merges by id)
+    // d-tag templates) and adds the beer sections (`sections` merge by id)
     extends: 'venue-entity-v1',
     metadata: {
       name: 'Beer venue',
       description:
         'A venue page with beer reviews tasted or bought there and the breweries it is a taproom of',
     },
-    wikiConfig: {
-      related: [
-        {
-          id: 'beer-reviews',
-          label: 'Beer reviews',
-          kinds: [1, 30078],
-          manifest: 'beer-review-v1',
-          gallery: true,
-        },
-        {
-          id: 'taproom-of',
-          label: 'Taproom of',
-          kinds: [30818],
-          dTagSuffix: '-brewery',
-          role: 'taprooms',
-        },
-      ],
-    },
+    sections: [
+      {
+        id: 'beer-reviews',
+        label: 'Beer reviews',
+        kinds: [1, 30078],
+        manifests: ['beer-review-v1'],
+      },
+      {
+        id: 'taproom-of',
+        label: 'Taproom of',
+        kinds: [30818],
+        dTagSuffix: '-brewery',
+        role: 'taprooms',
+      },
+    ],
     fields: [],
   },
   'save-place': SAVE_PLACE_MANIFEST,
+  'venue-media': VENUE_MEDIA_MANIFEST,
   'venue-review': {
     id: 'venue-review-v1',
     version: '1.0.0',

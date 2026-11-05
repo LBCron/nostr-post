@@ -117,3 +117,22 @@ export {
   formatPrefillAsUpdateComment,
 } from './updates';
 export { type RawEventData, rawEventData } from './rawEvent';
+export {
+  fetchReferences,
+  isAddress,
+  REFERENCES_LIMIT,
+  referenceFilters,
+  targetFilters,
+} from './references';
+export {
+  fetchSection,
+  matchesSection,
+  newestItems,
+  postSnippet,
+  SECTION_READ_LIMIT,
+  type SectionTarget,
+  sectionFilters,
+  sectionReadLimit,
+  sectionStats,
+  sectionTarget,
+} from './sections';

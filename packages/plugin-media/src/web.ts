@@ -10,6 +10,7 @@
  *   // Now media plugin is available in composer/view automatically
  */
 
+import { registerSectionView } from '@nostr-post/plugins/entities';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import {
   isMediaQuality,
@@ -22,6 +23,10 @@ import {
 // Import web components (side-effect: defines custom elements)
 import './web/input';
 import './web/view';
+import './web/gallery';
+
+// A page section's `gallery` view (`sections` of a manifest)
+registerSectionView({ view: 'gallery', tagName: 'np-media-gallery' });
 
 import { rememberQuality } from './web/compress';
 import { mediaMessages } from './web/mediaMessages';
@@ -95,6 +100,11 @@ pluginRegistry.register({
 // Re-export components for direct usage
 export { NpMediaInput } from './web/input';
 export { NpMediaView } from './web/view';
+export { type MediaGalleryConfig, NpMediaGallery } from './web/gallery';
+export {
+  DEFAULT_MEDIA_GALLERY_MESSAGES,
+  type MediaGalleryMessages,
+} from './web/galleryMessages';
 export { mediaPlugin } from './core';
 
 // Re-export upload utilities so consumers (e.g. the composer's paste/drop handler) can reuse

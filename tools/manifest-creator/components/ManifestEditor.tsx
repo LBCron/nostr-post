@@ -8,6 +8,7 @@ import { FieldEditor } from './FieldEditor';
 import { formatKindLabel, SUPPORTED_KINDS } from './kindLabels';
 import { styles } from './manifestEditorStyles';
 import { PublishFormatsEditor } from './PublishFormatsEditor';
+import { SectionsEditor } from './SectionsEditor';
 import { WikiConfigEditor } from './WikiConfigEditor';
 
 interface ManifestEditorProps {
@@ -205,6 +206,13 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
         manifest={manifest}
         fieldIds={(resolvedManifest ?? manifest).fields.map((f) => f.id)}
         onChange={onChange}
+      />
+
+      <SectionsEditor
+        sections={manifest.sections ?? []}
+        onChange={(sections) =>
+          onChange({ ...manifest, sections: sections.length > 0 ? sections : undefined })
+        }
       />
 
       <div style={styles.section}>

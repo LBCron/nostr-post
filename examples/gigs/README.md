@@ -10,8 +10,9 @@ players, RSVP, `.ics` import and export.
   page's link (`#/?city=…&g=…&genre=…&view=…&from=…`); "Share" sends it with the shown gigs as text
   (`agendaText`), "Image" as a picture (`agendaImage`), through the device's share sheet or as a
   copy or download.
-- **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions. All of it is
-  the packages' `<nostr-calendar-event thread editable>`, the app only passes the gig manifest:
+- **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions, and the photos
+  and videos of the gig and its comments. All of it is the packages'
+  `<nostr-calendar-event thread editable>`, the app only passes the gig manifest (its `sections`: photos and videos):
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
   comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a
@@ -30,8 +31,10 @@ players, RSVP, `.ics` import and export.
   `addresses`): Going and maybe, Going only, or Maybe only.
 - **Musician** (`#/artist/<d-tag>`, `#/artist-new[/<name>]`, `#/artist-edit/<d-tag>[?add=<JSON>]`):
   a musician's wiki page, its links as players (type
-  `(musician)`); links play (`@nostr-post/plugin-embed`), and its gigs are listed: those that link
-  the page (`a` tag) or one of its profiles (`i` tag), so gigs added before the page show too.
+  `(musician)`); links play (`@nostr-post/plugin-embed`), and its upcoming gigs are listed: those
+  that link the page (`a` tag) or one of its profiles (`i` tag), so gigs added before the page show
+  too, with "Add" a gig with the musician as a performer. All from the artist page manifest's
+  "Gigs" section (`sections`, `ARTIST_PAGE_MANIFEST`); the app has no query of its own.
 - **Add a gig** (`#/add`): paste a post's text and its poster → AI reads it (Claude or Google Gemini
   with your own API key, called from the browser; Gemini with high thinking; Gemini's key from Google AI Studio has a free
   tier, on which Google may use what you send to improve its products; a busy Gemini is tried

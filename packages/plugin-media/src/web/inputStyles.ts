@@ -18,6 +18,48 @@ export const mediaInputStyles = css`
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+  .paste-btn {
+    margin-top: 0.5rem;
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    color: #1f2937;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+  }
+  .drop-zone:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
+  :host-context(.dark) .paste-btn {
+    color: #f3f4f6;
+    background: #374151;
+    border-color: #4b5563;
+  }
+  .gallery-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 120px;
+  }
+  .alt-input {
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.375rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    color: #1f2937;
+  }
+  :host-context(.dark) .alt-input {
+    border-color: #4b5563;
+    background: #374151;
+    color: #f3f4f6;
+  }
   .gallery-card {
     position: relative;
     border: 1px solid #e5e7eb;

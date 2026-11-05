@@ -37,8 +37,9 @@
   "license": "MIT",
   "dependencies": {
     "@nostr-post/core": "workspace:*",
-    "@nostr-post/plugin-date": "workspace:*",
     "@nostr-post/list": "workspace:*",
+    "@nostr-post/plugin-date": "workspace:*",
+    "@nostr-post/plugin-media": "workspace:*",
     "@nostr-post/plugin-profile": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
     "@nostr-post/signer": "workspace:*",

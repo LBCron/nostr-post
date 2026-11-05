@@ -272,10 +272,12 @@ export const BEER_REVIEW_MANIFEST: NostrPostManifest = {
 
 ---
 
-`<nostr-wiki-view>` lists the related items its manifest defines (`wikiConfig.related`, see
-[MANIFEST.md](../../MANIFEST.md#related-items)), e.g. a brewery's beers, unless it has `hide-related`
-(React: `hideRelated`). `<nostr-wiki-related entity-id .sections>` shows them on their own;
-`fetchRelated(dTag, section)` returns them.
+`<nostr-wiki-view>` shows its manifest's `sections` (see [MANIFEST.md](../../MANIFEST.md#sections)),
+e.g. a brewery's beers, a venue's reviews, photos and videos and upcoming events, unless it has
+`hide-sections` (React: `hideSections`). They are `<nostr-post-sections>` from `@nostr-post/web`, which
+the app loads (the CDN bundle does; the wiki package can't depend on web), over every version of the
+page, with the page for `self` sections, the wiki's roles (`role`), and "Add" filling the field with a
+link to the page (`pageLinkValue(page)`).
 
 The picker's `metadata` keys (`entityManifest`, `relays`, `minSearchLength`, `emitExtraTags`,
 `multiple`) are listed in [MANIFEST.md](../../MANIFEST.md#plugin-metadata); fields that reference entities in

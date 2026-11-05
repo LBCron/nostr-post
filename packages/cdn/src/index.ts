@@ -311,8 +311,7 @@ export {
   // A plugin's control shown with events of a manifest (e.g. Save to lists)
   registerEventAction,
   eventActionsFor,
-  // A wiki page's sections: the posts linking it, a value linking it (for "Add")
-  fetchLinkingPosts,
+  // A value linking a wiki page (a section's "Add")
   pageLinkValue,
 } from '@nostr-post/wiki';
 

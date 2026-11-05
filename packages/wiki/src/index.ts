@@ -8,7 +8,7 @@ export {
   registerEntityManifest,
   resolveEntityManifest,
 } from './registry';
-export { fetchLinkingPosts, pageLinkValue } from './gallery';
+export { pageLinkValue } from './pageLink';
 export {
   type CreatedEntity,
   type EntityCreator,

@@ -277,8 +277,7 @@ e.g. a brewery's beers, a venue's reviews, photos and videos and upcoming events
 `hide-sections` (React: `hideSections`). They are `<nostr-post-sections>` from `@nostr-post/web`, which
 the app loads (the CDN bundle does; the wiki package can't depend on web), over every version of the
 page, with the page for `self` sections, the wiki's roles (`role`), and "Add" filling the field with a
-link to the page (`pageLinkValue(page)`). `fetchLinkingPosts(dTag)` returns the posts linking a page,
-all versions included.
+link to the page (`pageLinkValue(page)`).
 
 The picker's `metadata` keys (`entityManifest`, `relays`, `minSearchLength`, `emitExtraTags`,
 `multiple`) are listed in [MANIFEST.md](../../MANIFEST.md#plugin-metadata); fields that reference entities in

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageLinkValue } from './gallery';
+import { pageLinkValue } from './pageLink';
 
 describe('pageLinkValue', () => {
   it('links the page in both a picked entity’s and a venue’s shape', () => {

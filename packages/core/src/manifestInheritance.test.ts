@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveManifest } from './manifestInheritance';
 import type { NostrPostManifest } from './types';
 
-describe('sections of an extending manifest', () => {
+describe('resolveManifest: sections', () => {
   it("keeps the parent's sections, replaces one by id, adds its own", () => {
     const venue = {
       id: 'venue',

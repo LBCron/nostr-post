@@ -270,8 +270,8 @@ The bundle re-exports utilities for advanced usage:
 - `defaultResolver`, `collectEntityATags`, `fetchEntityVersions`, `checkEntityDTag`
 - `registerEntityManifest`, `getEntityManifest`, `resolveEntityManifest`: entity manifests by id,
   inline, or by a published manifest's `30078:` address
-- `fetchLinkingPosts(dTag, { kinds })`, `pageLinkValue(page)`: the posts linking a wiki page (all its
-  versions), and a field value linking it (for a section's "Add")
+- `pageLinkValue(page)`: a field value linking a wiki page (for a section's "Add"); the posts linking
+  a page come from `fetchSection` with `sectionTarget(versions)`
 - Sections (`sections` of a manifest, MANIFEST.md): `fetchSection(section, target)`,
   `sectionFilters`, `matchesSection`, `sectionStats`, `sectionTarget(events)`, `postSnippet(event)`;
   `<nostr-post-sections .sections .target>` shows them (wiki pages and calendar events' pages do;

@@ -11,8 +11,8 @@ import type { PostSection } from '@nostr-post/core/types';
 import { sectionTarget } from '@nostr-post/posts';
 import type { SignedEvent } from '@nostr-post/signer';
 import { html, nothing, type TemplateResult } from 'lit';
-import { pageLinkValue } from '../gallery';
 import { infoboxRowLinks, WIKI_KIND } from '../nip54';
+import { pageLinkValue } from '../pageLink';
 import type { WikiEvent } from '../resolver';
 
 /** A section's `role`: only wiki pages whose role row (that field) links this page */

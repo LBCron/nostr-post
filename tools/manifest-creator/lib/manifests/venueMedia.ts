@@ -1,11 +1,10 @@
 /**
  * Photos and videos of a venue: a NIP-68 picture (kind 20) or a NIP-71 video (kind 21, or 22 for a
- * short portrait one) linking the venue's wiki page, shown in the page's gallery
- * (`wikiConfig.gallery` of the venue entity), which offers "Add" with it.
+ * short portrait one) linking the venue's wiki page, shown in the page's gallery (the venue
+ * entity's `gallery`), which offers "Add" with it.
  */
 
-import type { NostrPostManifest } from '@nostr-post/core/types';
-import type { WikiGalleryConfig } from '@nostr-post/wiki';
+import type { GalleryConfig, NostrPostManifest } from '@nostr-post/core/types';
 
 const ALL = [20, 21, 22];
 
@@ -116,6 +115,6 @@ export const VENUE_MEDIA_MANIFEST: NostrPostManifest = {
 };
 
 /** A venue page's gallery: everything linking it, "Add" with VENUE_MEDIA_MANIFEST */
-export const VENUE_GALLERY: WikiGalleryConfig = {
+export const VENUE_GALLERY: GalleryConfig = {
   add: { manifest: VENUE_MEDIA_MANIFEST.id, field: 'venue' },
 };

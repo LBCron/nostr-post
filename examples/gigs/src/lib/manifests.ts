@@ -125,5 +125,7 @@ export const GIG_MANIFEST: NostrPostManifest = {
       },
     },
   ],
+  // On a gig's page: the photos and videos of the gig and its comments
+  gallery: {},
   metadata: { name: 'Gig', description: 'A concert or party: when, where, who plays' },
 };

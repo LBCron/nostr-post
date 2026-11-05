@@ -299,7 +299,7 @@ export {
   relatedImages,
   relatedSnippet,
   relatedStats,
-  // A page's gallery (wikiConfig.gallery): the posts linking it, a value linking it
+  // A page's gallery (the manifest's `gallery`): the posts linking it, a value linking it
   fetchLinkingPosts,
   pageLinkValue,
   type WikiGalleryConfig,

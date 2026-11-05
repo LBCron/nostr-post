@@ -133,3 +133,17 @@ describe('upload retries', () => {
     expect(isRetryableUpload('cancelled')).toBe(false);
   });
 });
+
+describe('acceptsType / extensionFor', () => {
+  it('matches MIME types and wildcards, photos and videos by default', async () => {
+    const { acceptsType, extensionFor } = await import('./core');
+    expect(acceptsType('image/png')).toBe(true);
+    expect(acceptsType('video/mp4')).toBe(true);
+    expect(acceptsType('text/plain')).toBe(false);
+    expect(acceptsType('video/mp4', ['image/*'])).toBe(false);
+    expect(acceptsType('image/PNG', ['image/png'])).toBe(true);
+    expect(extensionFor('image/jpeg')).toBe('jpg');
+    expect(extensionFor('image/png')).toBe('png');
+    expect(extensionFor('nonsense')).toBe('bin');
+  });
+});

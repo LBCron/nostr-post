@@ -277,10 +277,10 @@ export const BEER_REVIEW_MANIFEST: NostrPostManifest = {
 (React: `hideRelated`). `<nostr-wiki-related entity-id .sections>` shows them on their own;
 `fetchRelated(dTag, section)` returns them.
 
-With `wikiConfig.gallery` it shows the photos and videos of the page and of every post linking any
+With the manifest's `gallery` it shows the photos and videos of the page and of every post linking any
 version of it, unless it has `hide-gallery` (React: `hideGallery`). The gallery is `<np-media-gallery>`
 from `@nostr-post/plugin-media`, which reads each kind's media (see
-[MANIFEST.md](../../MANIFEST.md#photo-gallery)). `add: { manifest, field }` adds an "Add" button:
+[MANIFEST.md](../../MANIFEST.md#gallery)). `add: { manifest, field }` adds an "Add" button:
 that manifest's `<nostr-post-composer>` (loaded by the app from `@nostr-post/web`) with `field`
 linking the page (`pageLinkValue(page)`). `fetchLinkingPosts(dTag)` returns the posts linking a
 page, all versions included.

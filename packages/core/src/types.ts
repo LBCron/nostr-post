@@ -193,12 +193,37 @@ export interface NostrPostManifest {
    * listed follow in manifest order. Without it, views follow the manifest's field order.
    */
   viewOrder?: string[];
+  /**
+   * The photos and videos of an event made with this manifest and of everything referencing it
+   * (comments, reviews, photo posts), on the event's own page: a wiki page, a calendar event's
+   * page (`<np-media-gallery>`, `@nostr-post/plugin-media`)
+   */
+  gallery?: GalleryConfig;
   metadata?: {
     name?: string;
     description?: string;
     author?: string;
     tags?: string[];
   };
+}
+
+/** A manifest's gallery (`gallery`) */
+export interface GalleryConfig {
+  /** Heading; default "Photos and videos" */
+  label?: string;
+  /**
+   * Only posts of these kinds count, e.g. `[20, 21, 1111]`; default any kind (on wiki pages,
+   * any but other wiki pages: a beer's label isn't a photo of its brewery)
+   */
+  kinds?: number[];
+  /** Shown at first (default 12); "Show more" shows more */
+  limit?: number;
+  /**
+   * An "Add" button: the composer of this manifest (its id, a published manifest's `30078:`
+   * address, or the manifest), with `field` filled with a link to the event where the page
+   * knows how (wiki pages)
+   */
+  add?: { manifest: string | NostrPostManifest; field?: string };
 }
 
 /** A list for a manifest's events (`lists`) */

@@ -16,6 +16,7 @@ export {
   MEDIA_QUALITY_PRESETS,
   isMediaQuality,
   isCompressibleImage,
+  acceptsType,
   scaledSize,
   type UploadFailureKind,
   UPLOAD_STALL_MS,

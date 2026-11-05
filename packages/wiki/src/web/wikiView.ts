@@ -25,7 +25,7 @@ import { renderFieldValue } from './wikiFieldValue';
 import { DEFAULT_WIKI_VIEW_MESSAGES, type WikiViewMessages } from './wikiViewMessages';
 import { viewStyles } from './wikiViewStyles';
 import './wikiRelated';
-import { renderWikiGallery, resolveGalleryAdd } from './wikiViewGallery';
+import { renderWikiGallery } from './wikiViewGallery';
 
 /** Resolving the newest version needs every relay's versions, not the first answer */
 const ALL_RELAYS = { waitForAll: true, relayTimeoutMs: 5000 };
@@ -64,7 +64,7 @@ export class NostrWikiView extends LitElement {
   @property({ type: Boolean, attribute: 'hide-related' })
   hideRelated = false;
 
-  /** Don't show the photo gallery the manifest defines (`wikiConfig.gallery`) */
+  /** Don't show the photo gallery the manifest defines (`gallery`) */
   @property({ type: Boolean, attribute: 'hide-gallery' })
   hideGallery = false;
 
@@ -78,9 +78,6 @@ export class NostrWikiView extends LitElement {
   /** Without a given manifest: the one the page was made with (see fetchManifestForEvent) */
   @state() private _found?: EventManifest;
   private _fetchId = 0;
-  /** The gallery's "Add" composer manifest, and the config it was resolved for */
-  @state() private _galleryAdd?: NostrPostManifest;
-  private _galleryAddFor?: object;
   private _manifestLookup?: string;
 
   // First fetch happens in the initial updated() call, which reports every
@@ -379,20 +376,12 @@ export class NostrWikiView extends LitElement {
     `;
   }
 
-  /** The photos and videos of the page and everything linking it (`wikiConfig.gallery`) */
+  /** The photos and videos of the page and everything linking it (the manifest's `gallery`) */
   private _renderGallery() {
-    const config = (this._manifest as WikiManifest).wikiConfig?.gallery;
+    const config = this._manifest.gallery;
     const page = this._winningEvent;
     if (this.hideGallery || !config || !page) return nothing;
-    if (this._galleryAddFor !== config) {
-      this._galleryAddFor = config;
-      void resolveGalleryAdd(config, this.relays).then((m) => {
-        this._galleryAdd = m;
-      });
-    }
-    const versions = this._allEvents;
-    const relays = this.relays;
-    return renderWikiGallery({ config, page, versions, relays, addManifest: this._galleryAdd });
+    return renderWikiGallery({ config, page, versions: this._allEvents, relays: this.relays });
   }
 
   /** The manifest's related items (e.g. a brewery's beers), unless hidden */

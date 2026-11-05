@@ -7,7 +7,7 @@ export function EventPage({ address }: { address: string }) {
       <p>
         <a href="#/">← All gigs</a>
       </p>
-      <nostr-calendar-event manifest={GIG_MANIFEST} address={address} thread editable gallery />
+      <nostr-calendar-event manifest={GIG_MANIFEST} address={address} thread editable />
       <p className="share">
         Share: <input readOnly value={location.href} onFocus={(e) => e.target.select()} />
       </p>

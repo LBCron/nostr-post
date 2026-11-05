@@ -1,32 +1,17 @@
 /**
- * A wiki page's gallery (`wikiConfig.gallery`): the photos and videos of the page and of every
- * post linking any version of it, shown by `<np-media-gallery>` (`@nostr-post/plugin-media`),
- * with an optional "Add" composer linking the page.
+ * A wiki page's gallery (the manifest's `gallery`): the photos and videos of the page and of
+ * every post linking any version of it, shown by `<np-media-gallery>`
+ * (`@nostr-post/plugin-media`), with an optional "Add" composer linking the page.
  */
 
-import type { NostrPostManifest } from '@nostr-post/core/types';
+import type { GalleryConfig } from '@nostr-post/core/types';
 import { fetchReferences, REFERENCES_LIMIT } from '@nostr-post/posts';
 import { fetchEntityVersions } from './fetch';
 import { DEFAULT_WIKI_RELAYS } from './nip54';
 import { collectEntityATags, type WikiEvent } from './resolver';
 
-/** A page's gallery (`wikiConfig.gallery`) */
-export interface WikiGalleryConfig {
-  /** Heading; default "Photos and videos" */
-  label?: string;
-  /**
-   * Kinds whose photos and videos count, e.g. `[20, 21, 1]`; default every kind linking the page
-   * except other wiki pages (a beer's label isn't a photo of its brewery)
-   */
-  kinds?: number[];
-  /** Shown at first (default 12); "Show more" shows more */
-  limit?: number;
-  /**
-   * An "Add" button: the composer of this manifest (its id, a published manifest's `30078:`
-   * address, or the manifest), with `field` filled with a link to the page
-   */
-  add?: { manifest: string | NostrPostManifest; field: string };
-}
+/** A page's gallery: the manifest's `gallery` (`GalleryConfig`, `@nostr-post/core/types`) */
+export type WikiGalleryConfig = GalleryConfig;
 
 /**
  * Every post linking the entity at `dTag` (any version of its page), newest first, and the

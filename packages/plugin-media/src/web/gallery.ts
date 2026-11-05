@@ -3,14 +3,15 @@
  * calendar event and its comments, or everything linking a wiki page. `.targets` (addresses or
  * event ids) loads the targets and every post referencing them (`fetchReferences`,
  * `@nostr-post/posts`); `.events` gives posts directly (then the targets themselves aren't
- * loaded). A grid, newest first; a photo or video opens large with its description, author,
- * date and a link to its post. With `.addManifest`, an "Add" button opens that manifest's
- * `<nostr-post-composer>` with `.addPrefill` (the app loads `@nostr-post/web`).
+ * loaded). `.config` is the manifest's `gallery` (heading, kinds, limit, "Add"). A grid, newest
+ * first; a photo or video opens large with its description, author, date and a link to its post.
+ * With `config.add`, an "Add" button opens that manifest's `<nostr-post-composer>` with
+ * `.addPrefill` (the app loads `@nostr-post/web`).
  */
 
-import type { NostrPostManifest } from '@nostr-post/core/types';
+import type { GalleryConfig, NostrPostManifest } from '@nostr-post/core/types';
 import { fetchReferences } from '@nostr-post/posts';
-import { DEFAULT_RELAYS, fetchProfiles } from '@nostr-post/signer';
+import { DEFAULT_RELAYS, fetchManifestByATag, fetchProfiles } from '@nostr-post/signer';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { type MediaItem, type MediaSource, mediaOfEvents } from '../eventMedia';
@@ -26,18 +27,20 @@ export class NpMediaGallery extends LitElement {
   @property({ type: Array }) targets: string[] = [];
   /** Posts shown besides (first); with them, the targets themselves aren't loaded */
   @property({ attribute: false }) events?: MediaSource[];
-  /** Only posts of these kinds reference the targets; default any kind */
-  @property({ type: Array }) kinds?: number[];
+  /** The manifest's `gallery`: heading, kinds, how many at first, "Add" */
+  @property({ attribute: false }) config: GalleryConfig = {};
   /** Posts of these kinds don't count, e.g. other wiki pages linking a page */
   @property({ type: Array, attribute: 'exclude-kinds' }) excludeKinds?: number[];
-  /** Shown at first (default 12); "Show more" shows more */
-  @property({ type: Number }) limit = 12;
-  /** Heading; default the messages' `heading` */
-  @property() label?: string;
   @property({ type: Array }) relays: string[] = DEFAULT_RELAYS;
-  /** "Add": the composer of this manifest, filled with `addPrefill` */
-  @property({ attribute: false }) addManifest?: NostrPostManifest;
+  /** What "Add" fills in, e.g. a link to the page */
   @property({ attribute: false }) addPrefill?: Record<string, unknown>;
+  /**
+   * Finds `config.add.manifest` given by id (e.g. the wiki's registry); manifests and `30078:`
+   * addresses are found without it
+   */
+  @property({ attribute: false }) resolveManifest?: (
+    ref: string
+  ) => Promise<NostrPostManifest | undefined>;
   @property({ attribute: false }) messages?: Partial<MediaGalleryMessages>;
 
   /** undefined while loading */
@@ -45,6 +48,8 @@ export class NpMediaGallery extends LitElement {
   @state() _shown = 12;
   @state() _open?: MediaItem;
   @state() _adding = false;
+  /** The "Add" composer's manifest, once found */
+  @state() _addManifest?: NostrPostManifest;
   @state() _names: ReadonlyMap<string, string> = new Map();
   @query('dialog.large-view') _largeView?: HTMLDialogElement;
   @query('dialog.composer') _composerDialog?: HTMLDialogElement;
@@ -55,17 +60,31 @@ export class NpMediaGallery extends LitElement {
   }
 
   override updated(changed: Map<string, unknown>): void {
-    const inputs = ['targets', 'events', 'kinds', 'excludeKinds', 'relays'];
+    const inputs = ['targets', 'events', 'config', 'excludeKinds', 'relays'];
     if (inputs.some((name) => changed.has(name))) void this._load();
+    if (changed.has('config') || changed.has('resolveManifest')) void this._findAddManifest();
+  }
+
+  async _findAddManifest(): Promise<void> {
+    const ref = this.config.add?.manifest;
+    const found =
+      typeof ref === 'object'
+        ? ref
+        : ref?.startsWith('30078:')
+          ? (await fetchManifestByATag(ref, this.relays).catch(() => undefined))?.manifest
+          : ref
+            ? await this.resolveManifest?.(ref)
+            : undefined;
+    if (ref === this.config.add?.manifest) this._addManifest = found;
   }
 
   async _load(): Promise<void> {
     const load = ++this._loads;
     this._items = undefined;
-    this._shown = this.limit;
+    this._shown = this.config.limit ?? 12;
     const given = this.events ?? [];
     const { targets, posts } = await fetchReferences(this.targets, {
-      kinds: this.kinds,
+      kinds: this.config.kinds,
       relays: this.relays,
       loadTargets: this.events === undefined,
     }).catch(() => ({ targets: [], posts: [] }));
@@ -112,12 +131,12 @@ export class NpMediaGallery extends LitElement {
 
   _renderComposer() {
     if (!this._adding) return nothing;
-    if (!this.addManifest || !customElements.get('nostr-post-composer')) {
+    if (!this._addManifest || !customElements.get('nostr-post-composer')) {
       return html`<p class="status">${this._m.noComposer}</p>`;
     }
     return html`<nostr-post-composer
       auto-publish
-      .manifest=${this.addManifest}
+      .manifest=${this._addManifest}
       .prefill=${this.addPrefill ?? {}}
       @nostr-post-published=${() => this._published()}
     ></nostr-post-composer>`;
@@ -128,9 +147,9 @@ export class NpMediaGallery extends LitElement {
     const items = this._items;
     return html`
       <div class="head">
-        <h3>${this.label ?? m.heading}</h3>
+        <h3>${this.config.label ?? m.heading}</h3>
         ${
-          this.addManifest
+          this.config.add
             ? html`<button type="button" class="add" @click=${() => void this._openComposer()}>
                 ${m.add}
               </button>`

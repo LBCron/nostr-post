@@ -33,7 +33,7 @@ export interface WikiViewProps {
   relays?: string[];
   /** Don't list the manifest's related items (`wikiConfig.related`) */
   hideRelated?: boolean;
-  /** Don't show the manifest's photo gallery (`wikiConfig.gallery`) */
+  /** Don't show the manifest's photo gallery (`gallery`) */
   hideGallery?: boolean;
   className?: string;
 }

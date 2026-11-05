@@ -47,6 +47,7 @@ Types: `NostrPostManifest`, `PostField` and `FieldMetadata` in `@nostr-post/core
 | `lists`          | Lists people save events made with it to, e.g. a venue type's "Want to go", see [lists](#lists)                                                         |
 | `listType`       | The type part of those lists' d-tags; default the manifest's `id`, see [lists](#lists)                                                                   |
 | `viewOrder`      | Field ids in the order views show them, e.g. `["rating", "review"]` for the stars above the text; fields not listed follow in manifest order. Without it, views follow the field order. A manifest extending another replaces it |
+| `gallery`        | The photos and videos of an event and of everything referencing it, on the event's own page, see [gallery](#gallery)                                     |
 | `wikiConfig`     | Wiki entity manifests only, see [below](#wiki-entity-manifests)                                                                                          |
 
 ### Which manifest an event was made with
@@ -115,6 +116,35 @@ fields: [
     metadata: { label: "Save to lists", saveField: "venue" } },
 ]
 ```
+
+## Gallery
+
+`gallery` shows the photos and videos of an event made with the manifest and of everything referencing
+it, on the event's own page, in `<np-media-gallery>` (`@nostr-post/plugin-media`):
+- a wiki page (`<nostr-wiki-view>`): the page and every post linking any version of it, e.g. a venue's
+  photo and video posts, reviews, events and comments; other wiki pages don't count;
+- a calendar event's page (`<nostr-calendar-event thread>`): the event and its comments.
+
+Each kind keeps its media elsewhere:
+- `imeta` tags (NIP-92; NIP-68 pictures, kind 20; NIP-71 videos, kinds 21 and 22);
+- `image` / `thumb` tags, and `r` tags of image or video files;
+- image and video links in the text, and their URLs in JSON content.
+
+The same file shows once (by its hash).
+
+```typescript
+gallery: { add: { manifest: "venue-media-v1", field: "venue" } }
+```
+
+| Key     | Description                                                                                         |
+| ------- | --------------------------------------------------------------------------------------------------- |
+| `label` | The heading (default "Photos and videos")                                                           |
+| `kinds` | Only these kinds' media, e.g. `[20, 21, 1111]`; default any kind (on wiki pages, any but other wiki pages) |
+| `limit` | Shown at first (12); "Show more" shows more                                                         |
+| `add`   | `{ manifest, field }`: an "Add" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest); on wiki pages `field` is filled with a link to the page |
+
+The elements show it unless they have `hide-gallery`. `{}` shows it with the defaults. A wiki related
+section's `gallery: true` still shows that section's images on their own.
 
 ## Fields
 
@@ -319,32 +349,6 @@ link ids, and only translated labels, shows the pages in another language:
   fields: [{ id: "name", metadata: { label: "Název" } }],
   wikiConfig: { related: [{ id: "reviews", label: "Recenze", kinds: [1, 30078], manifest: "venue-review-v1" }] } }
 ```
-
-### Photo gallery
-
-`wikiConfig.gallery` shows the photos and videos of the page and of everything linked to it, e.g. a
-venue's photo and video posts, reviews, events and comments, in `<np-media-gallery>`
-(`@nostr-post/plugin-media`). Each kind keeps its media elsewhere:
-- `imeta` tags (NIP-92; NIP-68 pictures, kind 20; NIP-71 videos, kinds 21 and 22);
-- `image` / `thumb` tags, and `r` tags of image or video files;
-- image and video links in the text, and their URLs in JSON content.
-
-The same file shows once (by its hash).
-
-```typescript
-gallery: { add: { manifest: "venue-media-v1", field: "venue" } }
-```
-
-| Key     | Description                                                                                         |
-| ------- | --------------------------------------------------------------------------------------------------- |
-| `label` | The heading (default "Photos and videos")                                                           |
-| `kinds` | Only these kinds' media, e.g. `[20, 21, 1]`; default every kind linking the page but other wiki pages |
-| `limit` | Shown at first (12); "Show more" shows more                                                         |
-| `add`   | `{ manifest, field }`: an "Add" button opening that manifest's composer (its id, a published manifest's `30078:` address, or the manifest) with `field` linking the page |
-
-`<nostr-wiki-view>` shows it unless it has `hide-gallery`. A related section's `gallery: true` still shows
-that section's images on their own. Other elements show the same gallery: `<nostr-calendar-event gallery>`
-for an event and its comments, or `<np-media-gallery .targets>` for any events.
 
 ### Title and d-tag templates
 

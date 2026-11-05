@@ -536,6 +536,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
   'wiki-venue-entity': {
     id: 'venue-entity-v1',
     version: '1.0.0',
+    gallery: VENUE_GALLERY,
     // Lists people save venues to; the beer venue inherits them (nostr-post:venue:visited)
     lists: VENUE_LISTS,
     listType: 'venue',
@@ -551,8 +552,7 @@ export const EXAMPLE_MANIFESTS: Record<string, NostrPostManifest | WikiManifest>
           when: { field: 'bitcoin', equals: 'yes' },
         },
       ],
-      // The photos and videos of everything linking the venue (with "Add"), and its reviews
-      gallery: VENUE_GALLERY,
+      // The venue's reviews (its photos and videos: `gallery`)
       related: [
         {
           id: 'reviews',

@@ -38,7 +38,15 @@ type RefLike = {
 const refAddress = (v: unknown): string | undefined => {
   if (typeof v === 'string') return v.startsWith('30818:') ? v : undefined;
   const ref = v as RefLike | null;
-  if (ref && typeof ref.dTag === 'string' && typeof ref.resolvedPubkey === 'string') {
+  // An entity without a page has an empty d-tag and pubkey: its page, if publishing created one,
+  // is its `wikiEntity`
+  if (
+    ref &&
+    typeof ref.dTag === 'string' &&
+    ref.dTag &&
+    typeof ref.resolvedPubkey === 'string' &&
+    ref.resolvedPubkey
+  ) {
     return `30818:${ref.resolvedPubkey}:${ref.dTag}`;
   }
   const page = ref?.wikiEntity;

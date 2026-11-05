@@ -93,6 +93,21 @@ export const entityDataOf = (event: WikiEvent): WikiEntityData => {
 };
 
 /** The picked entities as a list, whether the field holds one or several */
+/**
+ * The end of the d-tags the field's entity type gets from its `dTagTemplate` (`{title}-(musician)`
+ * → `-musician`); undefined when the template ends in a placeholder or the type isn't known
+ */
+export const entityTypeSuffix = (field: PostField): string | undefined => {
+  const manifest = getEntityManifest(
+    (field.metadata as WikiEntityPickerConfig | undefined)?.entityManifest
+  );
+  const template = (manifest as { wikiConfig?: { dTagTemplate?: string } } | undefined)?.wikiConfig
+    ?.dTagTemplate;
+  const tail = template?.slice(template.lastIndexOf('}') + 1) ?? '';
+  const normalized = normalizeDTag(tail);
+  return normalized ? `-${normalized}` : undefined;
+};
+
 export const pickedEntities = (value: unknown): WikiEntityData[] =>
   (Array.isArray(value) ? value : [value]).filter(
     (v): v is WikiEntityData => !!v && typeof v === 'object' && !Array.isArray(v)
@@ -282,10 +297,16 @@ export const wikiEntityPickerPlugin: NostrUIPlugin = {
   ): WikiEntityData | WikiEntityData[] | undefined => {
     const targets = Array.isArray(field.mapTo) ? field.mapTo : [field.mapTo];
     const tagName = targets.find((t) => t.target === 'tag' && t.tagName)?.tagName ?? 'a';
-    const entities = tags
+    const linked = tags
       .filter((t) => t[0] === tagName && t[1]?.startsWith('30818:'))
       .map((t) => parseWikiAddress(t[1] as string))
       .filter((e): e is WikiEntityData => !!e);
+    // Posts written before role lines (or by other clients) give every wiki `a` tag here: when
+    // some are pages of the field's entity type, only those count (not the venue's page among
+    // the performers); pages picked from elsewhere, without the type's d-tag, still show alone
+    const suffix = entityTypeSuffix(field);
+    const ofType = suffix ? linked.filter((e) => e.dTag.endsWith(suffix)) : [];
+    const entities = ofType.length > 0 ? ofType : linked;
     const ids = tags.filter((t) => t[0] === 'i' && t[1]).map((t) => t[1] as string);
     if (isMultiple(field)) {
       // The `i` tags can't be told apart by entity: kept on a nameless unlinked value, so editing

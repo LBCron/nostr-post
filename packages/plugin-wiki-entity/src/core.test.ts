@@ -152,6 +152,32 @@ describe('wikiEntityPickerPlugin.resolveFromTags', () => {
     expect(result.externalIds).toEqual([]);
   });
 
+  it("keeps only pages of the field's entity type when some are, e.g. not the venue (#275)", () => {
+    const artist = {
+      id: 'musician-v1',
+      version: '1',
+      wikiConfig: { dTagTemplate: '{title}-(musician)' },
+      fields: [],
+    };
+    const performers = makeField({
+      id: 'performers',
+      metadata: { multiple: true, entityManifest: artist },
+    });
+    const gig = [
+      ['a', '30818:pk:1981-soul-sold-bangkok-venue'],
+      ['a', '30818:pk:fordecision-musician'],
+      ['a', '30818:pk:monument-x-musician'],
+    ];
+    const read = resolveFromTags(gig, performers) as WikiEntityData[];
+    expect(read.map((e) => e.dTag)).toEqual(['fordecision-musician', 'monument-x-musician']);
+    // A page picked from elsewhere, without the type's d-tag, still shows when it's the only one
+    const picked = resolveFromTags(
+      [['a', '30818:pk:pliny-the-elder']],
+      performers
+    ) as WikiEntityData[];
+    expect(picked.map((e) => e.dTag)).toEqual(['pliny-the-elder']);
+  });
+
   it('returns undefined when no wiki a-tag is present', () => {
     expect(resolveFromTags([['i', 'x']], makeField())).toBeUndefined();
   });

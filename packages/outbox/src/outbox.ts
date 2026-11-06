@@ -47,6 +47,8 @@ export interface Outbox {
   update(item: OutboxItem): Promise<OutboxItem>;
   /** Removes an item and its files */
   remove(id: string): Promise<void>;
+  /** An item's file, e.g. for a thumbnail */
+  file(key: string): Promise<Blob | undefined>;
   /** Runs an item's next step (`nextStep`): uploads, then publishes; the item as it ends */
   run(id: string, conditions?: RunConditions): Promise<OutboxItem | undefined>;
   /** Runs every item of `pubkey` that has a step to take now, one after the other */
@@ -58,7 +60,16 @@ export interface Outbox {
 const message = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-export function createOutbox(storage: OutboxStorage, jobs: OutboxJobs = {}): Outbox {
+/**
+ * The outbox over `storage`. `jobs` may be a function, read when an item runs, so jobs
+ * registered later (e.g. plugin-media's upload) apply
+ */
+export function createOutbox(
+  storage: OutboxStorage,
+  jobsOrGetter: OutboxJobs | (() => OutboxJobs) = {}
+): Outbox {
+  const jobsNow = (): OutboxJobs =>
+    typeof jobsOrGetter === 'function' ? jobsOrGetter() : jobsOrGetter;
   const listeners = new Set<(change: OutboxChange) => void>();
   const notify = (type: OutboxChange['type'], item: OutboxItem) => {
     for (const listener of listeners) listener({ type, item });
@@ -78,6 +89,7 @@ export function createOutbox(storage: OutboxStorage, jobs: OutboxJobs = {}): Out
 
   const upload = async (item: OutboxItem): Promise<OutboxItem> => {
     let current = await save(withState(item, 'uploading'));
+    const jobs = jobsNow();
     for (const file of current.uploads.filter((u) => !u.uploaded)) {
       if (!jobs.upload) throw new Error('No upload job');
       const blob = await storage.file(file.fileKey);
@@ -93,7 +105,7 @@ export function createOutbox(storage: OutboxStorage, jobs: OutboxJobs = {}): Out
 
   const publish = async (item: OutboxItem): Promise<OutboxItem> => {
     const current = await save(withState(item, 'publishing'));
-    const results = await (jobs.publish ?? ((e) => publishSignedEvents(e)))(current.events);
+    const results = await (jobsNow().publish ?? ((e) => publishSignedEvents(e)))(current.events);
     const failed = results.filter((r) => !r.ok);
     if (failed.length === 0) {
       const published = withState(current, 'published');
@@ -142,6 +154,7 @@ export function createOutbox(storage: OutboxStorage, jobs: OutboxJobs = {}): Out
       const item = (await storage.items()).find((i) => i.id === id);
       if (item) await removeWithFiles(item);
     },
+    file: (key) => storage.file(key),
     run,
     runAll: async (pubkey, conditions = {}) => {
       const ran: OutboxItem[] = [];

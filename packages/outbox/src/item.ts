@@ -200,3 +200,27 @@ export const isLate = (item: OutboxItem, now = nowSeconds()): boolean =>
 /** How long an item has waited, in seconds */
 export const waitingFor = (item: OutboxItem, now = nowSeconds()): number =>
   Math.max(0, now - item.createdAt);
+
+/** What the user can do with an item */
+export type OutboxAction = 'upload-now' | 'send-now' | 'retry' | 'edit' | 'remove';
+
+/**
+ * The actions an item offers: a draft is edited, files waiting for wifi can go now, a timed
+ * post can go now, a failed item is retried; every item can be removed
+ */
+export const itemActions = (item: OutboxItem, now = nowSeconds()): OutboxAction[] => {
+  const actions: OutboxAction[] = [];
+  if (item.state === 'draft') actions.push('edit');
+  if (item.state === 'failed') actions.push('retry');
+  if (item.state === 'waiting') {
+    const timed = item.sendAt !== undefined && item.sendAt > now;
+    if (timed) actions.push('send-now');
+    else if (item.uploads.some((u) => !u.uploaded)) actions.push('upload-now');
+  }
+  if (item.state !== 'uploading' && item.state !== 'publishing') actions.push('remove');
+  return actions;
+};
+
+/** Bytes still to upload */
+export const pendingBytes = (item: OutboxItem): number =>
+  item.uploads.filter((u) => !u.uploaded).reduce((sum, u) => sum + u.size, 0);

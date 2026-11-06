@@ -7,9 +7,7 @@ Posts that aren't published at once, in one queue ([#268](https://github.com/sai
 - **Upload later:** photos uploaded on wifi or on request, and the post published after.
 
 It depends only on `@nostr-post/signer`. The main entry has no browser dependencies: it works
-against a storage interface. Status: the main entry ([#280](https://github.com/saintego/nostr-post/issues/280));
-the browser storage and the queue element, upload later, drafts and timed posts follow in
-[#281](https://github.com/saintego/nostr-post/issues/281) to [#284](https://github.com/saintego/nostr-post/issues/284).
+against a storage interface; `/web` keeps it in the browser and shows the queue.
 
 ## Items
 
@@ -63,3 +61,29 @@ await outbox.runAll(pubkey);
 
 `OutboxStorage`: `items(pubkey?)`, `putItem`, `removeItem`, `putFile(key, blob)`, `file(key)`,
 `removeFile`. `memoryStorage()` keeps everything in memory (tests, servers).
+
+## Actions
+
+`itemActions(item)`: what the user can do with it: `'edit'` (a draft), `'upload-now'` (files
+waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (failed), `'remove'`.
+`pendingBytes(item)`: bytes still to upload.
+
+## `/web`
+
+- `indexedDbStorage(name?)`: items and their files in IndexedDB (photos are far too big for
+  localStorage). `requestPersistentStorage()` asks the browser to keep the site's data.
+- `browserOutbox()`: the page's one outbox, in IndexedDB, with the jobs packages register
+  (`registerOutboxJobs({ upload })`, e.g. plugin-media's upload).
+- `startOutboxRunner(outbox?, { pubkey?, intervalMs? })`: runs due items now, every 30 s (timed
+  posts), when the browser comes online and when the connection changes; returns `stop()`.
+- `connectionConditions()`: `{ wifi }` from the Network Information API: true on wifi or
+  ethernet, false on mobile data or with data saving on, unknown elsewhere (Safari, Firefox,
+  desktop Chrome). Items with `wifiOnly` then wait for "Upload now".
+- `<nostr-post-outbox>`: the queue. Each item with its thumbnail, title, state, size to upload,
+  how long it has waited, a timed post's time (and "late" when the app was closed then), the
+  reason it failed, and its actions; "Send all now". Edit fires `outbox-edit` with the item.
+  Properties: `outbox` (default `browserOutbox()`), `pubkey` (default the signer's), `messages`
+  (`DEFAULT_OUTBOX_MESSAGES`). Dark theme with a `dark` class on an ancestor.
+
+Browsers may clear a site's data: Safari after 7 days without use unless the app is installed on
+the home screen. The queue warns when items have waited for days.

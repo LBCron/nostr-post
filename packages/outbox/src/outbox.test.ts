@@ -156,3 +156,36 @@ describe('captureEvents', () => {
     ]);
   });
 });
+
+describe('itemActions', () => {
+  it('offers what fits the item', async () => {
+    const { itemActions, pendingBytes } = await import('./item');
+    const item = signedItem({ pubkey: 'pk', events: [entry('post')], now: 100 });
+    expect(itemActions(item, 100)).toEqual(['remove']);
+    expect(itemActions({ ...item, uploads: [photo] }, 100)).toEqual(['upload-now', 'remove']);
+    expect(pendingBytes({ ...item, uploads: [photo, { ...photo, uploaded: true }] })).toBe(3);
+    expect(itemActions({ ...item, sendAt: 500 }, 100)).toEqual(['send-now', 'remove']);
+    expect(itemActions(withState(item, 'failed'), 100)).toEqual(['retry', 'remove']);
+    expect(itemActions(withState(item, 'uploading'), 100)).toEqual([]);
+    expect(itemActions(draftItem({ pubkey: 'pk', draft: { manifest: {}, formData: {} } }))).toEqual(
+      ['edit', 'remove']
+    );
+  });
+});
+
+describe('connectionConditions', () => {
+  it('reads wifi from the Network Information API where there is one', async () => {
+    const { connectionConditions } = await import('./web/runner');
+    expect(connectionConditions()).toEqual({});
+    const stub = (connection: object) => vi.stubGlobal('navigator', { connection });
+    stub({ type: 'wifi' });
+    expect(connectionConditions()).toEqual({ wifi: true });
+    stub({ type: 'cellular' });
+    expect(connectionConditions()).toEqual({ wifi: false });
+    stub({ type: 'wifi', saveData: true });
+    expect(connectionConditions()).toEqual({ wifi: false });
+    stub({});
+    expect(connectionConditions()).toEqual({});
+    vi.unstubAllGlobals();
+  });
+});

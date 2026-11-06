@@ -233,6 +233,9 @@ importers:
       '@nostr-post/list':
         specifier: workspace:*
         version: link:../list
+      '@nostr-post/outbox':
+        specifier: workspace:*
+        version: link:../outbox
       '@nostr-post/plugin-date':
         specifier: workspace:*
         version: link:../plugin-date
@@ -322,6 +325,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      lit:
+        specifier: ^3.3.3
+        version: 3.3.3
     devDependencies:
       '@nostr-post/core':
         specifier: workspace:*

@@ -35,6 +35,7 @@ Loading the bundle automatically registers every custom element:
 | View      | `<nostr-post-view>`     |
 | Feed      | `<nostr-post-feed>`     |
 | Post menu | `<nostr-post-menu>` (the "⋯" menu of every post; `hide-menu` on the view or feed turns it off; a post in the test-mode log also gets "Publish for real…") |
+| Outbox | `<nostr-post-outbox>` (posts published later: drafts, timed posts, upload later; see [@nostr-post/outbox](../outbox/README.md)) |
 | Publish a test post | `<nostr-dry-run-publish event-id="…">` (a post from the test-mode log with the logged events it links, e.g. the pages it created: lists them, sends them for real, fires `dry-run-published`; `messages`: `DEFAULT_DRY_RUN_PUBLISH_MESSAGES`) |
 
 The plugins and their UI elements are also registered:

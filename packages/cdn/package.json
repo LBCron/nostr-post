@@ -25,6 +25,7 @@
     "@nostr-post/plugin-venue": "workspace:*",
     "@nostr-post/plugin-wiki-entity": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/outbox": "workspace:*",
     "@nostr-post/posts": "workspace:*",
     "@nostr-post/signer": "workspace:*",
     "@nostr-post/web": "workspace:*",

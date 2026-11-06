@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./web": {
+      "types": "./dist/web.d.ts",
+      "import": "./dist/web.js"
     }
   },
   "scripts": {
@@ -29,7 +33,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@nostr-post/signer": "workspace:*"
+    "@nostr-post/signer": "workspace:*",
+    "lit": "^3.3.3"
   },
   "devDependencies": {
     "@nostr-post/core": "workspace:*",

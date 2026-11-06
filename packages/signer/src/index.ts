@@ -120,11 +120,21 @@ export function hasNostrSigner(): boolean {
   return typeof window !== 'undefined' && !!window.nostr;
 }
 
+/** Options of publishing */
+export interface PublishOptions {
+  /** Send to the relays also in dry-run mode (publishing logged events for real) */
+  ignoreDryRun?: boolean;
+}
+
 /**
  * Publish a signed event to a single relay. In dry-run mode it is only logged.
  */
-export function publishToRelay(event: SignedEvent, relayUrl: string): Promise<boolean> {
-  if (isDryRun()) {
+export function publishToRelay(
+  event: SignedEvent,
+  relayUrl: string,
+  options: PublishOptions = {}
+): Promise<boolean> {
+  if (isDryRun() && !options.ignoreDryRun) {
     logDryRunEvent(event, [relayUrl]);
     return Promise.resolve(true);
   }
@@ -219,9 +229,10 @@ export function getRelaysPending(): RelaysPendingDetail {
  */
 export async function publishToRelays(
   event: SignedEvent,
-  relays: string[] = DEFAULT_RELAYS
+  relays: string[] = DEFAULT_RELAYS,
+  options: PublishOptions = {}
 ): Promise<PublishResults> {
-  if (isDryRun()) {
+  if (isDryRun() && !options.ignoreDryRun) {
     logDryRunEvent(event, relays);
     const targets = relays.length > 0 ? relays : ['dry-run'];
     const results = {
@@ -252,7 +263,7 @@ export async function publishToRelays(
   const sends = relays.map(async (relay) => {
     let result: PublishResults['results'][number];
     try {
-      await publishToRelay(event, relay);
+      await publishToRelay(event, relay, options);
       result = { relay, ok: true };
     } catch (error) {
       result = { relay, ok: false, error: (error as Error).message };
@@ -323,8 +334,17 @@ export {
   clearDryRunEntries,
   getDryRunEntries,
   isDryRun,
+  removeDryRunEntries,
   setDryRun,
 } from './dryRun';
+export {
+  addressOf,
+  type DryRunPublishResult,
+  dryRunBundle,
+  dryRunEvents,
+  newerOnRelays,
+  publishDryRunEntries,
+} from './dryRunPublish';
 
 export {
   fetchManifestByATag,

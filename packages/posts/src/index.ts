@@ -116,7 +116,7 @@ export {
   extractPrefillFromEvent,
   formatPrefillAsUpdateComment,
 } from './updates';
-export { type RawEventData, rawEventData } from './rawEvent';
+export { eventTitle, type RawEventData, rawEventData } from './rawEvent';
 export {
   fetchReferences,
   isAddress,

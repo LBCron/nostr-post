@@ -16,6 +16,11 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMess
 export { NostrPostView } from './view';
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from './viewEdit';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from './viewSuggestions';
+export { NostrDryRunPublish } from './dryRunPublish';
+export {
+  DEFAULT_DRY_RUN_PUBLISH_MESSAGES,
+  type DryRunPublishMessages,
+} from './dryRunPublishMessages';
 export { NostrPostMenu, renderPostMenu } from './postMenu';
 export { DEFAULT_POST_MENU_MESSAGES, type PostMenuMessages } from './postMenuMessages';
 export { NostrPostFeed } from './feed';
@@ -60,6 +65,12 @@ export {
   isDryRun,
   getDryRunEntries,
   clearDryRunEntries,
+  dryRunBundle,
+  dryRunEvents,
+  newerOnRelays,
+  publishDryRunEntries,
+  removeDryRunEntries,
+  type DryRunPublishResult,
   DRY_RUN_CHANGE_EVENT,
   type DryRunEntry,
   type DryRunChangeDetail,

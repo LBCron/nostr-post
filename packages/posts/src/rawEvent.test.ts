@@ -43,3 +43,13 @@ describe('rawEventData', () => {
     expect(raw.address).toBeUndefined();
   });
 });
+
+describe('eventTitle', () => {
+  it('names an event by title, name, d tag or text', async () => {
+    const { eventTitle } = await import('./rawEvent');
+    expect(eventTitle({ tags: [['title', 'Soul Slam']], content: '' })).toBe('Soul Slam');
+    expect(eventTitle({ tags: [['d', 'venue']], content: 'x' })).toBe('venue');
+    expect(eventTitle({ tags: [], content: 'Great\n gig' })).toBe('Great gig');
+    expect(eventTitle({ tags: [], content: 'a'.repeat(80) }, 10)).toBe(`${'a'.repeat(9)}…`);
+  });
+});

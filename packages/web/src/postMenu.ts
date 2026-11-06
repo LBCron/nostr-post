@@ -3,14 +3,17 @@
  *
  * A post's "⋯" menu: copy the author's npub, the post's naddr or nevent (with the relays it was
  * found on) and its JSON, or open the raw-data panel (`rawEventData`, `@nostr-post/posts`).
- * <nostr-post-view> shows it in every post's header; `hide-menu` there turns it off.
+ * <nostr-post-view> shows it in every post's header; `hide-menu` there turns it off. A post in
+ * the test-mode log also gets "Publish for real", which opens <nostr-dry-run-publish>.
  */
 
 import type { DisplayableEvent } from '@nostr-post/core/types';
 import { type RawEventData, rawEventData } from '@nostr-post/posts';
-import type { SignedEvent } from '@nostr-post/signer';
+import { DRY_RUN_CHANGE_EVENT, getDryRunEntries, type SignedEvent } from '@nostr-post/signer';
 import { css, html, LitElement, nothing, unsafeCSS } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import './dryRunPublish';
+import type { DryRunPublishMessages } from './dryRunPublishMessages';
 import { DEFAULT_POST_MENU_MESSAGES, type PostMenuMessages } from './postMenuMessages';
 import { type CopyTarget, copyText, renderMenuItems, renderRawPanel } from './postMenuPanel';
 import { colors } from './theme';
@@ -163,10 +166,27 @@ export class NostrPostMenu extends LitElement {
   @property({ type: Array, attribute: false }) relays?: string[];
   /** Overrides of DEFAULT_POST_MENU_MESSAGES (e.g. translations) */
   @property({ type: Object, attribute: false }) messages: Partial<PostMenuMessages> = {};
+  /** Overrides of the "Publish for real" panel's messages */
+  @property({ type: Object, attribute: false })
+  publishMessages: Partial<DryRunPublishMessages> = {};
 
   @state() _open = false;
   @state() _copied?: { target: CopyTarget; ok: boolean };
-  @query('dialog') _dialog?: HTMLDialogElement;
+  /** Whether the post is in the test-mode log */
+  @state() _logged = false;
+  /** The "Publish for real" dialog is open: its panel is made fresh each time */
+  @state() _publishOpen = false;
+  @query('dialog.raw-dialog') _dialog?: HTMLDialogElement;
+  @query('dialog.publish-dialog') _publishDialog?: HTMLDialogElement;
+
+  _onDryRunChange = () => {
+    const id = this.event?.id;
+    this._logged = !!id && getDryRunEntries().some((e) => e.event.id === id);
+  };
+
+  override willUpdate(changed: Map<string, unknown>): void {
+    if (changed.has('event')) this._onDryRunChange();
+  }
 
   /** Closes the menu on a click outside it */
   _onDocumentClick = (event: MouseEvent) => {
@@ -176,10 +196,12 @@ export class NostrPostMenu extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     document.addEventListener('click', this._onDocumentClick);
+    window.addEventListener(DRY_RUN_CHANGE_EVENT, this._onDryRunChange);
   }
 
   override disconnectedCallback(): void {
     document.removeEventListener('click', this._onDocumentClick);
+    window.removeEventListener(DRY_RUN_CHANGE_EVENT, this._onDryRunChange);
     super.disconnectedCallback();
   }
 
@@ -234,10 +256,38 @@ export class NostrPostMenu extends LitElement {
               copied: this._copied,
               onCopy: (target) => void this._copy(target),
               onRaw: () => this._showRaw(),
+              onPublish: this._logged
+                ? () => {
+                    this._open = false;
+                    this._publishOpen = true;
+                    this._publishDialog?.showModal();
+                  }
+                : undefined,
             })
           : nothing
       }
-      <dialog>
+      <dialog
+        class="publish-dialog"
+        @close=${() => {
+          this._publishOpen = false;
+        }}
+      >
+        <div class="dialog-head">
+          <strong>${m.publishForReal}</strong>
+          <button type="button" class="close" @click=${() => this._publishDialog?.close()}>
+            ${m.close}
+          </button>
+        </div>
+        ${
+          this._publishOpen
+            ? html`<nostr-dry-run-publish
+                event-id=${this.event.id}
+                .messages=${this.publishMessages}
+              ></nostr-dry-run-publish>`
+            : nothing
+        }
+      </dialog>
+      <dialog class="raw-dialog">
         <div class="dialog-head">
           <strong>${m.rawData}</strong>
           <button type="button" class="close" @click=${() => this._dialog?.close()}>

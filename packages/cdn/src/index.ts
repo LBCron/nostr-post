@@ -180,6 +180,12 @@ export {
   isDryRun,
   getDryRunEntries,
   clearDryRunEntries,
+  dryRunBundle,
+  dryRunEvents,
+  newerOnRelays,
+  publishDryRunEntries,
+  removeDryRunEntries,
+  type DryRunPublishResult,
   DRY_RUN_CHANGE_EVENT,
   type DryRunEntry,
   type NostrProfile,
@@ -196,6 +202,7 @@ export {
   signAndPublishBundle,
   withTags,
   rawEventData,
+  eventTitle,
   type RawEventData,
   type NostrPostSubmitDetail,
   DEFAULT_PUBLISH_MESSAGES,
@@ -223,6 +230,8 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from '@nostr-post/we
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from '@nostr-post/web';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from '@nostr-post/web';
 export { DEFAULT_FEED_MESSAGES, type FeedMessages } from '@nostr-post/web';
+// Publishing a test-mode post for real (<nostr-dry-run-publish>, the "⋯" menu's item)
+export { DEFAULT_DRY_RUN_PUBLISH_MESSAGES, type DryRunPublishMessages } from '@nostr-post/web';
 
 // Background work (uploads, relay sends) shown by <np-activity> in a corner of the page
 export {

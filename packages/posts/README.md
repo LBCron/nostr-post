@@ -73,6 +73,7 @@ const { events } = await publishWithHooks({
 
 | Export | Does |
 | --- | --- |
+| `eventTitle(event, maxLength?)` | A short name of an event for lists: its `title` or `name` tag, else its d tag, else the start of its text |
 | `rawEventData(event, relays?)`, `RawEventData` | What a post's "⋯" menu copies and shows: the author's npub, kind, d tag, tags, an naddr (addressable) or nevent with relay hints, the relays it was found on (default: `relaysSeenOn`, `@nostr-post/signer`), the JSON and the signature |
 
 ## Editing with update comments

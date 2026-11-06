@@ -4,11 +4,21 @@ import {
   clearDryRunEntries,
   DRY_RUN_CHANGE_EVENT,
   type DryRunEntry,
-  getDryRunEntries,
+  dryRunEvents,
   isDryRun,
   setDryRun,
 } from '@nostr-post/signer';
-import { useEffect, useState } from 'react';
+import { type DetailedHTMLProps, type HTMLAttributes, useEffect, useState } from 'react';
+
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'nostr-dry-run-publish': DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {
+        'event-id'?: string;
+      };
+    }
+  }
+}
 
 /** Remembers the toggle for the browser tab, so a reload doesn't silently publish for real */
 const STORAGE_KEY = 'nostr-post-manifest-creator-test-mode';
@@ -50,7 +60,20 @@ const styles = {
     cursor: 'pointer',
   },
   entry: { marginTop: '0.75rem' },
-  entryLabel: { fontWeight: 600, marginBottom: '0.25rem' },
+  entryLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    fontWeight: 600,
+    marginBottom: '0.25rem',
+  },
+  publish: {
+    margin: '0.5rem 0',
+    padding: '0.75rem',
+    background: 'white',
+    border: '1px solid #fcd34d',
+    borderRadius: '0.375rem',
+  },
   code: {
     margin: 0,
     padding: '0.75rem',
@@ -104,6 +127,33 @@ export const TestModeToggle = () => {
   );
 };
 
+/** One logged event, its JSON, and "Publish for real" (`<nostr-dry-run-publish>`) */
+const LoggedEvent = ({ entry }: { entry: DryRunEntry }) => {
+  const [publishing, setPublishing] = useState(false);
+  const open = () => {
+    // The element comes with the web components, loaded on the client only
+    void import('@nostr-post/web').then(() => setPublishing(true));
+  };
+  return (
+    <div style={styles.entry}>
+      <div style={styles.entryLabel}>
+        {entryLabel(entry)}
+        {!publishing && (
+          <button type="button" style={styles.button} onClick={open}>
+            Publish for real…
+          </button>
+        )}
+      </div>
+      {publishing && (
+        <div style={styles.publish}>
+          <nostr-dry-run-publish event-id={entry.event.id} />
+        </div>
+      )}
+      <pre style={styles.code}>{JSON.stringify(entry.event, null, 2)}</pre>
+    </div>
+  );
+};
+
 const entryLabel = (entry: DryRunEntry) =>
   `kind ${entry.event.kind} · ${entry.event.id.slice(0, 8)}… → ${entry.relays.join(', ') || 'no relays'}`;
 
@@ -115,10 +165,10 @@ export const TestModeLog = () => {
 
   useEffect(() => {
     setEnabled(isDryRun());
-    setEntries(getDryRunEntries());
+    setEntries(dryRunEvents());
     const onChange = (e: WindowEventMap['nostr-post:dry-run']) => {
       setEnabled(e.detail.enabled);
-      setEntries(e.detail.entries);
+      setEntries(dryRunEvents(e.detail.entries));
     };
     window.addEventListener(DRY_RUN_CHANGE_EVENT, onChange);
     return () => window.removeEventListener(DRY_RUN_CHANGE_EVENT, onChange);
@@ -140,7 +190,7 @@ export const TestModeLog = () => {
       <div style={styles.bannerRow}>
         <span>
           <strong>Test mode:</strong> events are signed but not sent to relays. Feeds and pickers
-          include them until you reload. {entries.length} test event(s).
+          include them, and they can still be published for real. {entries.length} test event(s).
         </span>
         <div style={styles.buttons}>
           <button
@@ -169,13 +219,7 @@ export const TestModeLog = () => {
           </button>
         </div>
       </div>
-      {open &&
-        entries.map((entry) => (
-          <div key={`${entry.event.id}-${entry.relays.join()}`} style={styles.entry}>
-            <div style={styles.entryLabel}>{entryLabel(entry)}</div>
-            <pre style={styles.code}>{JSON.stringify(entry.event, null, 2)}</pre>
-          </div>
-        ))}
+      {open && entries.map((entry) => <LoggedEvent key={entry.event.id} entry={entry} />)}
     </div>
   );
 };

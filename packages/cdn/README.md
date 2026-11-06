@@ -34,7 +34,8 @@ Loading the bundle automatically registers every custom element:
 | Composer  | `<nostr-post-composer>` |
 | View      | `<nostr-post-view>`     |
 | Feed      | `<nostr-post-feed>`     |
-| Post menu | `<nostr-post-menu>` (the "⋯" menu of every post; `hide-menu` on the view or feed turns it off) |
+| Post menu | `<nostr-post-menu>` (the "⋯" menu of every post; `hide-menu` on the view or feed turns it off; a post in the test-mode log also gets "Publish for real…") |
+| Publish a test post | `<nostr-dry-run-publish event-id="…">` (a post from the test-mode log with the logged events it links, e.g. the pages it created: lists them, sends them for real, fires `dry-run-published`; `messages`: `DEFAULT_DRY_RUN_PUBLISH_MESSAGES`) |
 
 The plugins and their UI elements are also registered:
 
@@ -174,9 +175,16 @@ The bundle re-exports utilities for advanced usage:
 - `setDryRun(on)`, `isDryRun()`: test mode. Events are still signed, but publishing only logs them
   (every relay reports success), and reads (`fetchEvents`, feeds, pickers) also return logged
   events that match. `getDryRunEntries()` lists `{ event, relays }` newest first,
-  `clearDryRunEntries()` empties the log; `window` fires `DRY_RUN_CHANGE_EVENT`
-  (`'nostr-post:dry-run'`, detail `{ enabled, entries }`) on every change. Blossom media uploads
-  are not affected.
+  `clearDryRunEntries()` empties the log, `removeDryRunEntries(ids)` removes some; `window` fires
+  `DRY_RUN_CHANGE_EVENT` (`'nostr-post:dry-run'`, detail `{ enabled, entries }`) on every change.
+  The log is kept in the browser (localStorage, the newest 300 entries), so a reload keeps it.
+  Blossom media uploads are not affected.
+- Publishing logged events for real (they're signed, so they go as they are): `dryRunEvents()`
+  (the log, each event once with all its relays), `dryRunBundle(id)` (a logged post and the
+  logged events it links by `a`/`A`/`e`/`E` tags, transitively), `newerOnRelays(entries)` (ids
+  that relays have in a newer version), `publishDryRunEntries(entries, fallbackRelays?)` (sends
+  them, linked events first, also in test mode; removes the published ones from the log;
+  `DryRunPublishResult[]`). `publishToRelay(s)` take `{ ignoreDryRun: true }` for the same
 - `fetchUserRelays(pubkeys, relays?)`: the NIP-65 relays of one or more users plus `relays`
   (default: `DEFAULT_RELAYS`); falls back to `relays` when no list is found
 - `getPublishRelays(pubkey, relays?)`: where to publish: the signer's write relays, the user's NIP-65 write relays and `relays` (default: `DEFAULT_RELAYS`)
@@ -251,7 +259,8 @@ The bundle re-exports utilities for advanced usage:
   composer (`prefill`, with the event's `dTag`)
 - `rawEventData(event, relays?)`: what a post's "⋯" menu (`<nostr-post-menu>`) copies and shows:
   npub, kind, d tag, tags, naddr/nevent with relay hints, the relays it was found on
-  (`relaysSeenOn(id)`), JSON, signature
+  (`relaysSeenOn(id)`), JSON, signature; `eventTitle(event)` a short name for lists (title,
+  name, d tag or text)
 
 **Posts without the components** (see [@nostr-post/posts](../posts/README.md))
 

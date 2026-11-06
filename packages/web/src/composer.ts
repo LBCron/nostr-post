@@ -29,6 +29,7 @@ import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
+import { publishOrQueue } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
@@ -346,10 +347,13 @@ export class NostrPostComposer extends NostrPostElement {
       const { bundle, addressableDTag } = outcome;
 
       if (this.autoPublish) {
-        const published = await this._publish(manifest, pubkey);
-        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
+        const { published, queued } = await publishOrQueue(this._formData, pubkey, () =>
+          this._publish(manifest, pubkey)
+        );
+        if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
+        else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
         const notice = publishedNotice(published, this._m);
-        this.successMessage = notice.success;
+        this.successMessage = queued ? this._m.queued : notice.success;
         if (notice.error) this.showError(notice.error);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)

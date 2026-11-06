@@ -29,6 +29,12 @@ import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
 import { DEFAULT_MAX_SIZE, uploadFailureText, uploadQuality } from './upload';
+import {
+  prefersUploadLater,
+  prepareUploadLater,
+  previewUrl,
+  rememberUploadLater,
+} from './uploadLater';
 import { uploadMedia } from './uploadMedia';
 
 @customElement('np-media-input')
@@ -51,6 +57,10 @@ export class NpMediaInput extends LitElement {
   /** Percent sent; undefined while waiting to try again */
   @state() private _uploadProgress: number | undefined = 0;
   @state() private _uploadError = '';
+  /** Upload later (on wifi or when the user asks): the user's choice, remembered */
+  @state() private _uploadLater = prefersUploadLater();
+  /** Why upload later didn't apply */
+  @state() private _uploadNote = '';
   @state() private _urlInput = '';
   /** The quality picked here, until then the remembered one */
   @state() private _quality = '';
@@ -197,8 +207,14 @@ export class NpMediaInput extends LitElement {
       const quality = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
       const upload = await compressImage(file, quality);
       if (upload.size > this._maxSize) throw new Error(m.tooLarge(this._maxMb));
-      this._uploading = `${m.uploading(file.name)}${count}`;
       this._uploadDetail = m.sizes(formatBytes(file.size), formatBytes(upload.size));
+      const later = this._uploadLater ? await this._prepareLater(upload) : undefined;
+      if (later) {
+        this._addUrl(later);
+        activity.done();
+        return;
+      }
+      this._uploading = `${m.uploading(file.name)}${count}`;
       const { url } = await uploadMedia(upload, {
         config: this._config,
         signal: controller.signal,
@@ -230,6 +246,17 @@ export class NpMediaInput extends LitElement {
     }
   }
 
+  /** Prepared to upload later: its final URL; undefined (upload now) without a Blossom server */
+  private async _prepareLater(file: File): Promise<string | undefined> {
+    try {
+      return (await prepareUploadLater(file, this._config)).url;
+    } catch (error) {
+      if ((error as { kind?: string }).kind === 'sign-in') throw error;
+      this._uploadNote = this._m.uploadLaterNoServer;
+      return undefined;
+    }
+  }
+
   // --- URL input ---
 
   private _handleUrlKeypress(e: KeyboardEvent) {
@@ -258,6 +285,7 @@ export class NpMediaInput extends LitElement {
         ${this._urls.length > 0 ? this._renderGallery() : nothing}
         ${canAddMore && showUpload ? this._renderDropZone() : nothing}
         ${canAddMore && showUpload && this._config.qualityChoice !== false ? this._renderQuality() : nothing}
+        ${canAddMore && showUpload ? this._renderUploadLater() : nothing}
         ${
           canAddMore && showUpload && showUrl
             ? html`<div class="url-row"><span class="separator">${m.or}</span></div>`
@@ -306,6 +334,25 @@ export class NpMediaInput extends LitElement {
     `;
   }
 
+  private _renderUploadLater() {
+    const m = this._m;
+    return html`
+      <label class="upload-later">
+        <input
+          type="checkbox"
+          .checked=${this._uploadLater}
+          @change=${(e: Event) => {
+            this._uploadLater = (e.target as HTMLInputElement).checked;
+            this._uploadNote = '';
+            rememberUploadLater(this._uploadLater);
+          }}
+        />
+        ${m.uploadLater}
+      </label>
+      <span class="hint">${this._uploadNote || (this._uploadLater ? m.uploadLaterHint : '')}</span>
+    `;
+  }
+
   private _renderQuality() {
     const m = this._m;
     const selected = isMediaQuality(this._quality) ? this._quality : uploadQuality(this._config);
@@ -338,7 +385,7 @@ export class NpMediaInput extends LitElement {
             <div class="gallery-card">
               ${
                 isImageUrl(url)
-                  ? html`<img src=${url} alt="Media ${i + 1}" />`
+                  ? html`<img src=${previewUrl(url)} alt="Media ${i + 1}" />`
                   : isVideoUrl(url)
                     ? html`
                       <video src=${url} muted></video>

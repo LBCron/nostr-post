@@ -8,6 +8,13 @@
 
 export { captureEvents } from './capture';
 export {
+  type DeferredUpload,
+  deferredUpload,
+  deferredUploadsIn,
+  deferUpload,
+  forgetDeferredUploads,
+} from './deferred';
+export {
   capturedEntries,
   draftItem,
   isLate,

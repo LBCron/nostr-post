@@ -10,6 +10,7 @@
  *   // Now media plugin is available in composer/view automatically
  */
 
+import { registerOutboxJobs } from '@nostr-post/outbox/web';
 import { registerSectionView } from '@nostr-post/plugins/entities';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import {
@@ -24,6 +25,10 @@ import {
 import './web/input';
 import './web/view';
 import './web/gallery';
+import { uploadPrepared } from './web/uploadLater';
+
+// The outbox uploads files prepared to upload later (`prepareUploadLater`)
+registerOutboxJobs({ upload: uploadPrepared });
 
 // A page section's `gallery` view (`sections` of a manifest)
 registerSectionView({ view: 'gallery', tagName: 'np-media-gallery' });
@@ -140,6 +145,15 @@ export {
   withoutMetadata,
 } from './web/uploadMedia';
 export { otherServersOf } from './web/otherServers';
+export {
+  prefersUploadLater,
+  prepareUploadLater,
+  previewUrl,
+  rememberUploadLater,
+  UPLOAD_LATER_AUTH_SECONDS,
+  uploadLaterServer,
+  uploadPrepared,
+} from './web/uploadLater';
 export { compressImage, preferredQuality, rememberQuality } from './web/compress';
 export {
   DEFAULT_MEDIA_MESSAGES,

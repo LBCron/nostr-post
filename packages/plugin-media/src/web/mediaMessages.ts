@@ -50,6 +50,10 @@ export interface MediaMessages {
   remove: string;
   /** Files added out of the most allowed */
   fileCount: (count: number, max: number) => string;
+  /** Upload later: the choice, what it does, and why it didn't apply */
+  uploadLater: string;
+  uploadLaterHint: string;
+  uploadLaterNoServer: string;
   /** A photo's description (`alt: true`): its label and placeholder */
   altLabel: string;
   altPlaceholder: string;
@@ -88,6 +92,10 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   or: 'or',
   urlPlaceholder: 'Paste a photo, or a URL and press Enter',
   remove: 'Remove',
+  uploadLater: 'Upload later, on wifi',
+  uploadLaterHint:
+    'Photos wait in the outbox and upload on wifi or when you choose; the post is published after',
+  uploadLaterNoServer: 'Upload later needs a Blossom server: uploaded now',
   fileCount: (count, max) => `${count}/${max} files`,
   altLabel: 'Description of the photo',
   altPlaceholder: 'Describe the photo',

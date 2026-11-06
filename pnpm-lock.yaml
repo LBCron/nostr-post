@@ -431,6 +431,9 @@ importers:
       '@nostr-post/core':
         specifier: workspace:*
         version: link:../core
+      '@nostr-post/outbox':
+        specifier: workspace:*
+        version: link:../outbox
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
@@ -633,6 +636,9 @@ importers:
       '@nostr-post/list':
         specifier: workspace:*
         version: link:../list
+      '@nostr-post/outbox':
+        specifier: workspace:*
+        version: link:../outbox
       '@nostr-post/plugin-date':
         specifier: workspace:*
         version: link:../plugin-date

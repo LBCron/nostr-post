@@ -265,6 +265,8 @@ export {
   setMediaMessages,
   type UploadMediaOptions,
   uploadMedia,
+  prepareUploadLater,
+  uploadPrepared,
   DEFAULT_MEDIA_GALLERY_MESSAGES,
   type MediaGalleryMessages,
 } from '@nostr-post/plugin-media/web';

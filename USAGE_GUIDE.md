@@ -1364,6 +1364,8 @@ Upload and manage image and video files with array support.
 - Upload to the user's Blossom servers (kind 10063), then nostr.build (NIP-98)
 - `imeta` tags (NIP-92) with `imeta: true`, or mapped to the `imeta` tag (NIP-68 pictures)
 - Location and other metadata removed from JPEG photos (`keepMetadata: true` keeps them)
+- "Upload later, on wifi": photos wait in the outbox (`@nostr-post/outbox`) with the post, and
+  upload on wifi or when the user asks; the post is published after (needs a Blossom server)
 - Image gallery with lightbox
 - Video player with controls
 - Auto-detection of image/video types

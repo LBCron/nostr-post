@@ -189,3 +189,14 @@ describe('connectionConditions', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('deferred uploads', () => {
+  it('are found by the URLs a value uses, and forgotten once queued', async () => {
+    const { deferUpload, deferredUploadsIn, forgetDeferredUploads } = await import('./deferred');
+    deferUpload(photo, new Blob(['jpg']));
+    expect(deferredUploadsIn({ media: ['https://other.example/x.jpg'] })).toEqual([]);
+    expect(deferredUploadsIn({ media: [photo.url] }).map((d) => d.upload.sha256)).toEqual(['abc']);
+    forgetDeferredUploads([photo.url]);
+    expect(deferredUploadsIn({ media: [photo.url] })).toEqual([]);
+  });
+});

@@ -237,6 +237,13 @@ The bundle re-exports utilities for advanced usage:
   them
 - Images from a Blossom server that fail to load are tried on the author's other servers by their
   hash
+- Upload later: the media field's "Upload later, on wifi" (remembered in the browser) prepares a
+  photo instead of uploading it: shrunk, hashed, its Blossom authorization signed for 7 days, its
+  final URL known (a Blossom server's: the user's first, else the field's; without one it uploads
+  now). Publishing then queues the post with its files in the outbox (`<nostr-post-outbox>`,
+  composer event `nostr-post-queued`), which uploads them on wifi or on "Upload now" and
+  publishes the post after. `prepareUploadLater(file, config)` and `uploadPrepared(upload, file)`
+  (the outbox's upload job, registered by the media plugin) do it from your own code
 
 **Composer text**
 

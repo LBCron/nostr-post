@@ -75,8 +75,8 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
 - `@nostr-post/core`, `signer`, `plugins`, `posts`, `web` (and `react`, `cdn`): the base. `posts` is
   the UI-free logic of posts (kind 1 and manifest-made events, NIP-78 included): publishing,
   replies, threads, reactions, feeds, update comments; `web` (Lit) and `react` build their
-  components on it and keep only components, templates and styles. `web` knows posts and the
-  registries; it never depends on a domain package. One exception: plugin autoload (`pluginAutoLoad.ts`) lazy-loads a field's `/web`
+  components on it and keep only components, templates and styles. `web` knows posts, the
+  outbox (a post whose files upload later is queued there) and the registries; it never depends on a domain package. One exception: plugin autoload (`pluginAutoLoad.ts`) lazy-loads a field's `/web`
   entry by its `uiPlugin` id, also from a domain package that provides the field (`list`), so a
   manifest's fields work in any app; it never imports a domain's code statically.
 - `@nostr-post/outbox`: posts published later (drafts, timed posts, upload later). Depends only on

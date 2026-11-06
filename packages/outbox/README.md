@@ -87,3 +87,14 @@ waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (faile
 
 Browsers may clear a site's data: Safari after 7 days without use unless the app is installed on
 the home screen. The queue warns when items have waited for days.
+
+## Upload later
+
+A field prepares a file now and defers it (`deferUpload(upload, file)`): plugin-media shrinks
+and hashes the photo, signs its Blossom authorization (kind 24242, for 7 days) and knows its final
+URL (`<server>/<sha256>.<ext>`). The composer finds the deferred files its form data uses
+(`deferredUploadsIn(formData)`), captures the publish and queues the post with them, `wifiOnly`
+(`forgetDeferredUploads` once queued). The outbox uploads them with the upload job (plugin-media
+registers `uploadPrepared`), checks the server stored the same hash, and only then publishes:
+publishing first would show broken images. `deferredUpload(url)` gives a file not uploaded yet,
+e.g. for a preview.

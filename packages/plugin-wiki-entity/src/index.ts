@@ -39,6 +39,13 @@ export { confirmMatch, isUnconfirmed, rejectMatch } from './entityMatch';
 export { createEntityPage, createsPage, pageData } from './entityPage';
 export { needsPageLinks, splitEventLinks, withPageLinks } from './eventLinks';
 export { entityFromPageForm, type PageForm, withEntity } from './pageDraft';
-export { linkedEntities, pageTitles } from './pageTitles';
+export {
+  type EntityRows,
+  entityPages,
+  entityRows,
+  linkedEntities,
+  pageTitles,
+  titlesOf,
+} from './pageTitles';
 export { resolveEntities } from './resolveEntities';
 export { type EntitySearchResult, searchEntities } from './search';

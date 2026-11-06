@@ -21,7 +21,7 @@ vi.mock('@nostr-post/signer', () => ({
   ]),
 }));
 
-const { linkedEntities, pageTitles } = await import('./pageTitles');
+const { entityRows, linkedEntities, pageTitles } = await import('./pageTitles');
 const { entityFromPageForm, withEntity } = await import('./pageDraft');
 
 const page = (dTag: string) => ({ dTag, resolvedPubkey: 'pk', externalIds: [] });
@@ -41,6 +41,36 @@ describe('pageTitles', () => {
   it("gives each page's newest title", async () => {
     const titles = await pageTitles([page('doom-(musician)')], []);
     expect(titles.get('doom-(musician)')).toBe('Doom (musician)');
+  });
+});
+
+describe('entityRows', () => {
+  it("lists pages, names with links, and the event's other links without the pages' (#274)", () => {
+    const doomPage = {
+      kind: 30818,
+      pubkey: 'pk',
+      created_at: 1,
+      content: '',
+      tags: [
+        ['d', 'doom'],
+        ['i', 'https://doom.example'],
+      ],
+    } as never;
+    const value = [
+      page('doom'),
+      { ...unlinked, displayName: 'Not Proven', externalIds: ['https://np.example', 'isrc:x'] },
+      { ...unlinked, externalIds: ['https://doom.example', 'https://named-in-text.example'] },
+    ];
+    expect(entityRows(value, [doomPage])).toEqual({
+      linked: [expect.objectContaining({ dTag: 'doom' })],
+      named: [{ name: 'Not Proven', links: ['https://np.example'] }],
+      links: ['https://named-in-text.example'],
+    });
+    // Before the pages load, the event's links all show
+    expect(entityRows(value).links).toEqual([
+      'https://doom.example',
+      'https://named-in-text.example',
+    ]);
   });
 });
 

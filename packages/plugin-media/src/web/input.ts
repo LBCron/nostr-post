@@ -24,7 +24,7 @@ import {
 } from '../core';
 import { mediaFileOf, rememberMediaFile } from '../mediaFiles';
 import { targetHost, uploadTargets } from '../uploadServers';
-import { canReadClipboard, clipboardFiles, pastedFiles } from './clipboard';
+import { pastedFiles } from './clipboard';
 import { compressImage, rememberQuality } from './compress';
 import { mediaInputStyles } from './inputStyles';
 import { formatBytes, type MediaMessages, mediaMessages } from './mediaMessages';
@@ -54,6 +54,16 @@ export class NpMediaInput extends LitElement {
   @state() private _urlInput = '';
   /** The quality picked here, until then the remembered one */
   @state() private _quality = '';
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.addEventListener('paste', this._handlePaste);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.removeEventListener('paste', this._handlePaste);
+  }
 
   private get _m(): MediaMessages {
     return mediaMessages(this.messages);
@@ -124,25 +134,16 @@ export class NpMediaInput extends LitElement {
     if (e.dataTransfer?.files) void this._uploadFiles(Array.from(e.dataTransfer.files));
   }
 
-  /** Ctrl+V / ⌘V on the drop zone: the pasted photos and videos */
-  private _handlePaste(e: ClipboardEvent) {
+  /**
+   * Ctrl+V / ⌘V anywhere in the field (the URL input, the focused drop zone): pasted photos and
+   * videos upload; pasted text stays a paste into the input
+   */
+  private _handlePaste = (e: ClipboardEvent) => {
     const files = pastedFiles(e, this._config.accept);
     if (files.length === 0) return;
     e.preventDefault();
     void this._uploadFiles(files);
-  }
-
-  /** The Paste button: reads the clipboard, where the browser allows it */
-  private async _pasteFromClipboard() {
-    this._uploadError = '';
-    try {
-      const files = await clipboardFiles(this._config.accept);
-      if (files.length === 0) this._uploadError = this._m.noMediaInClipboard;
-      else await this._uploadFiles(files);
-    } catch {
-      this._uploadError = this._m.clipboardRefused;
-    }
-  }
+  };
 
   private _openFilePicker() {
     (this.shadowRoot?.querySelector('.file-input') as HTMLInputElement)?.click();
@@ -393,7 +394,6 @@ export class NpMediaInput extends LitElement {
         @dragleave=${this._handleDragLeave}
         @drop=${this._handleDrop}
         @click=${this._openFilePicker}
-        @paste=${this._handlePaste}
         @keydown=${(e: KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') this._openFilePicker();
         }}
@@ -403,20 +403,6 @@ export class NpMediaInput extends LitElement {
         <div class="drop-icon">📷</div>
         <p class="drop-text">${m.dropFiles}</p>
         <p class="drop-hint">${m.dropHint(host, this._maxMb)}</p>
-        ${
-          canReadClipboard()
-            ? html`<button
-                type="button"
-                class="paste-btn"
-                @click=${(e: Event) => {
-                  e.stopPropagation();
-                  void this._pasteFromClipboard();
-                }}
-              >
-                ${m.pasteMedia}
-              </button>`
-            : nothing
-        }
         <input
           class="file-input"
           type="file"

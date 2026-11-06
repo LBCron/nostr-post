@@ -50,11 +50,6 @@ export interface MediaMessages {
   remove: string;
   /** Files added out of the most allowed */
   fileCount: (count: number, max: number) => string;
-  /** Reads photos or videos from the clipboard (where the browser allows it) */
-  pasteMedia: string;
-  noMediaInClipboard: string;
-  /** The browser refused to read the clipboard: pasting with the keyboard still works */
-  clipboardRefused: string;
   /** A photo's description (`alt: true`): its label and placeholder */
   altLabel: string;
   altPlaceholder: string;
@@ -91,13 +86,9 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   dropFiles: 'Drop files here, click to browse, or paste',
   dropHint: (host, maxMb) => `Uploads to ${host} (max ${maxMb} MB each)`,
   or: 'or',
-  urlPlaceholder: 'Paste a URL and press Enter',
+  urlPlaceholder: 'Paste a photo, or a URL and press Enter',
   remove: 'Remove',
   fileCount: (count, max) => `${count}/${max} files`,
-  pasteMedia: 'Paste from clipboard',
-  noMediaInClipboard: 'There is no photo or video in the clipboard',
-  clipboardRefused:
-    "The browser didn't allow reading the clipboard: click here and press Ctrl+V (⌘V)",
   altLabel: 'Description of the photo',
   altPlaceholder: 'Describe the photo',
 };

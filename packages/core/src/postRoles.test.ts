@@ -3,6 +3,7 @@ import { coordinateEvents } from './coordinator';
 import { decodeNaddr, encodeNaddr } from './nip19';
 import {
   isPostRoleField,
+  isRefValue,
   parsePostRoles,
   plainTextContent,
   readPostRoles,
@@ -59,6 +60,74 @@ describe('role fields in posts', () => {
     };
     expect(roleLines(tasted, [created])[0]).toMatch(/^Tasted at: nostr:naddr1/);
     expect(roleLines(tasted, [{ dTag: '', resolvedPubkey: '', unlinked: true }])).toEqual([]);
+  });
+
+  it('write an entity without a page as its name and links, read back with the other links (#274)', () => {
+    const performers: PostField = {
+      ...roleField('performers', 'Performers'),
+      mapTo: [
+        { kind: 31922, target: 'tag', tagName: 'a' },
+        { kind: 31922, target: 'content' },
+      ],
+      metadata: { label: 'Performers', multiple: true },
+    };
+    const notProven = {
+      dTag: '',
+      resolvedPubkey: '',
+      unlinked: true,
+      displayName: 'Not Proven',
+      externalIds: ['https://notproven.bandcamp.com', 'https://instagram.com/notproven'],
+    };
+    const named = { ...notProven, displayName: 'Doom', externalIds: ['https://doom.example'] };
+    const linked = { dTag: 'fordecision-musician', resolvedPubkey: pk };
+    const text = 'Line-up: DOOM and friends';
+    const lines = roleLines(performers, [linked, notProven, named], text);
+    expect(lines[1]).toBe(
+      'Performers: Not Proven (https://notproven.bandcamp.com, https://instagram.com/notproven)'
+    );
+    // Doom is in the text: no line
+    expect(lines).toHaveLength(2);
+    expect(roleLines(performers, { ...notProven, externalIds: ['untappd:beer:1'] })).toEqual([
+      'Performers: Not Proven',
+    ]);
+
+    const read = readPostRoles(
+      {
+        kind: 31922,
+        content: `${text}\n\n${lines.join('\n')}`,
+        tags: [
+          ['a', `30818:${pk}:fordecision-musician`],
+          ...notProven.externalIds.map((id) => ['i', id]),
+          ['i', 'https://doom.example'],
+        ],
+      },
+      [performers]
+    );
+    expect(read.text).toBe(text);
+    expect(read.values.performers).toMatchObject([
+      { dTag: 'fordecision-musician', resolvedPubkey: pk },
+      { displayName: 'Not Proven', externalIds: notProven.externalIds, unlinked: true },
+      { externalIds: ['https://doom.example'], unlinked: true },
+    ]);
+  });
+
+  it('take entities without a page as a reference value', () => {
+    expect(isRefValue([{ dTag: '', resolvedPubkey: '', unlinked: true, displayName: 'X' }])).toBe(
+      true
+    );
+    expect(isRefValue(`30818:${pk}:x`)).toBe(true);
+    expect(isRefValue([])).toBe(false);
+    expect(isRefValue(' ')).toBe(false);
+    expect(isRefValue([null])).toBe(false);
+  });
+
+  it('read a name line only by its label, and keep other text with colons', () => {
+    const { text, named } = parsePostRoles('Doors: 20:00\nNote: bring cash', [tasted]);
+    expect(text).toBe('Doors: 20:00\nNote: bring cash');
+    expect(named.size).toBe(0);
+    expect(parsePostRoles('Hi\nTasted at: Home (CZ)', [tasted]).named.get('tasting_at')).toEqual([
+      { name: 'Home (CZ)', links: [] },
+    ]);
   });
 
   it('write a mention line and read it back by label, else by order', () => {

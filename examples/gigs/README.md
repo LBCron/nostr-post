@@ -19,7 +19,8 @@ players, RSVP, `.ics` import and export.
   page as a row that opens it. Performers' pages are `a` tags and a `Performers: nostr:naddr1…`
   line each after the description, so other clients show them as links too. The performers field
   (`@nostr-post/plugin-wiki-entity`) removes a performer's profile links with them; performers
-  without a page are named in the description.
+  without a page get a `Performers: <name> (<links>)` line, unless the description names them, and
+  the view lists them with their links.
 - **Venues** are wiki pages of the venue page type published on Nostr (`VENUE_ENTITY_MANIFEST` in
   `manifests.ts`, `venue-entity-v1`, shared with worldtrip.guide): publishing a gig creates the
   venue's page from OpenStreetMap when it has none, and links it.

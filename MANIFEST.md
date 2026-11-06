@@ -441,7 +441,11 @@ was bought. A `ref` field mapped to an `a` tag and to the content:
 - Kind 1 (plain text): after the text, a NIP-27 mention line per entity, `Tasted at: nostr:naddr1…`,
   which other clients show as a link. Reading matches the line's label to the field (or, if the
   label changed, the next role field in order); the view shows the text without these lines and a
-  row per role that opens the entity's page.
+  row per role that opens the entity's page. An entity without a page (e.g. a performer nobody
+  created a page for) gets a text line instead, its name and web links, `Performers: Not Proven
+  (https://notproven.bandcamp.com)`, also when the text names it; reading gives it back as an
+  entity without a page, and the view lists it with its links, or as the page of its type that one
+  of its links has (`i` tag) when a page was created for it later.
 - NIP-78 (JSON): the entity's address under the field's key, `{"tasting_at": "30818:…"}`.
 - Every entity is also a plain `a` tag; a reference field without a content mapping (the reviewed
   beer) gets the `a` tags no role claims.

@@ -15,7 +15,7 @@ import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 const viewTagOf = (field: PostField): string | undefined =>
   pluginRegistry.get(field.uiPlugin)?.viewTagName;
 
-type EntityValue = { dTag: string };
+type EntityValue = { dTag?: string; displayName?: string; unlinked?: boolean };
 
 /** Loads the page into the row only when it's opened (feeds show many posts) */
 const openPage = (e: Event, dTag: string) => {
@@ -27,23 +27,34 @@ const openPage = (e: Event, dTag: string) => {
 };
 
 /**
- * One referenced entity: a field with its own view (a venue) shows the place
- * (name, map, page); others a row whose wiki page opens on demand
+ * A role field's entities: a field with its own view shows them in it (a venue: name, map,
+ * page; performers: their pages, and the names and links of those without one), the label
+ * above; others a row per page, opening it on demand
  */
-const roleRow = (field: PostField, entity: EntityValue) => {
+const roleRows = (field: PostField, value: unknown) => {
   const viewTag = viewTagOf(field);
   if (viewTag) {
     const tag = unsafeStatic(viewTag);
-    return staticHtml`<div class="post-role">
-      <div class="post-role-label">${fieldLabel(field)}</div>
-      <${tag} .value=${entity} .field=${field}></${tag}>
-    </div>`;
+    return [
+      staticHtml`<div class="post-role">
+        <div class="post-role-label">${fieldLabel(field)}</div>
+        <${tag} .value=${value} .field=${field} .hideLabel=${true}></${tag}>
+      </div>`,
+    ];
   }
-  return html`
-    <details class="post-role" @toggle=${(e: Event) => openPage(e, entity.dTag)}>
-      <summary>${fieldLabel(field)}: ${entity.dTag}</summary>
-    </details>
-  `;
+  return ([value].flat() as EntityValue[]).flatMap((entity) => {
+    if (entity.dTag) {
+      const dTag = entity.dTag;
+      return [
+        html`<details class="post-role" @toggle=${(e: Event) => openPage(e, dTag)}>
+          <summary>${fieldLabel(field)}: ${dTag}</summary>
+        </details>`,
+      ];
+    }
+    return entity.displayName
+      ? [html`<div class="post-role">${fieldLabel(field)}: ${entity.displayName}</div>`]
+      : [];
+  });
 };
 
 /** The post's text without role lines, a row per referenced entity, and the remaining tags */
@@ -54,7 +65,7 @@ export function postRoleView(
   if (!manifest) return { text: event.content, rows: nothing, tags: event.tags };
   const { text, values, tags } = readPostRoles(event, manifest.fields);
   const rows = manifest.fields.flatMap((field) =>
-    [values[field.id] ?? []].flat().map((entity) => roleRow(field, entity as EntityValue))
+    field.id in values ? roleRows(field, values[field.id]) : []
   );
   // Tags without the roles' `a` tags, for the other fields (e.g. the reviewed beer)
   return { text, rows: rows.length > 0 ? html`${rows}` : nothing, tags };

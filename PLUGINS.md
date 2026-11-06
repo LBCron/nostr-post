@@ -525,7 +525,8 @@ as `r` or `i` tags) and hashtag fields (`t`), e.g. a musician's name, profiles a
 hashtags prefill a new page and qualify its slug when the name is taken. `parseJson` looks their pages up by the
 links' `i` tags first, then by the name's d-tag (a page with that name but none of the same links
 is another entity). Entities without a page stay in the value unlinked (no `a` tag, their links
-still as `i` tags, so a page created later finds the post) with a `create` suggestion. A page
+still as `i` tags, so a page created later finds the post; in a plain-text kind a role line with
+their name and links, see MANIFEST.md) with a `create` suggestion. A page
 found this way is marked for the user to check (`match`: by link or by name, and the unlinked
 value it was): the picker's chip says so, and its preview has "It's them" (`confirmMatch`) and
 "Not them" (`rejectMatch`: back to its name and links); the publish summary lists those not

@@ -7,7 +7,7 @@
 
 import { isFieldOptionValue, optionValue } from './enumOptions';
 import { isValidGeohash } from './geohash';
-import { refAddresses } from './postRoles';
+import { isRefValue } from './postRoles';
 import type { PostField, Result, ValidationError } from './types';
 
 /**
@@ -105,8 +105,9 @@ export function validateFieldType(field: PostField, value: unknown): Result<void
       break;
 
     case 'ref':
-      // A reference string (e.g. an address), or picked entities (`{ dTag, resolvedPubkey }`)
-      if (typeof value === 'string' ? value.trim() === '' : refAddresses(value).length === 0) {
+      // A reference string (e.g. an address), or picked entities (`{ dTag, resolvedPubkey }`), also
+      // ones without a page (yet): the plugin checks them (its validate hook)
+      if (!isRefValue(value)) {
         return {
           success: false,
           error: {

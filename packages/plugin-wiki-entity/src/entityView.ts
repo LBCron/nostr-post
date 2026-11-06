@@ -2,32 +2,53 @@
  * @nostr-post/plugin-wiki-entity - <np-wiki-entity-view>: the picker's value in a post's view,
  * e.g. a gig's performers. A row per linked page, named by the page's title; opening a row loads
  * the page (`<nostr-wiki-view>`) in place, so a view with many posts loads no pages up front.
- * Entities without a page (names only) aren't listed: the post's text names them.
+ * Entities without a page are listed by name with their links, or as their page when one of the
+ * type created later has one of their links; the event's other links after them.
  */
 
 import { fieldLabel } from '@nostr-post/core/manifest';
 import type { PostField } from '@nostr-post/plugins/types';
+import type { WikiEvent } from '@nostr-post/wiki';
 import { DEFAULT_WIKI_RELAYS } from '@nostr-post/wiki';
 import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { getEntityManifest, type WikiEntityData, type WikiEntityPickerConfig } from './core';
-import { linkedEntities, pageTitles } from './pageTitles';
+import {
+  entityTypeAffixes,
+  getEntityManifest,
+  type WikiEntityData,
+  type WikiEntityPickerConfig,
+} from './core';
+import { entityPages, entityRows, titlesOf } from './pageTitles';
+
+/** A link's host and path, shorter than its URL */
+const linkText = (url: string): string =>
+  url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+
+const linkList = (links: string[]) =>
+  links.map(
+    (url) => html`<a href=${url} target="_blank" rel="noopener noreferrer">${linkText(url)}</a>`
+  );
 
 @customElement('np-wiki-entity-view')
 export class NpWikiEntityView extends LitElement {
   static override styles = css`
     :host { display: block; margin: 0.5rem 0; font-size: 0.875rem; }
     .label { color: var(--nl-muted, #4b5563); margin-bottom: 0.25rem; }
-    details { margin: 0.25rem 0; }
+    details, .named, .links { margin: 0.25rem 0; }
     summary { cursor: pointer; font-weight: 500; }
+    .named { font-weight: 500; }
+    .named a, .links a { font-weight: 400; color: #4f46e5; margin-left: 0.375rem; }
     :host-context(.dark) .label { color: var(--nl-muted, #9ca3af); }
+    :host-context(.dark) .named a, :host-context(.dark) .links a { color: #a5b4fc; }
   `;
 
   @property({ attribute: false }) value: unknown;
   @property({ attribute: false }) field?: PostField;
+  /** Leave out the field's label (a label above shows it) */
+  @property({ type: Boolean, attribute: 'hide-label' }) hideLabel = false;
 
-  /** Titles of the shown pages by d-tag */
-  @state() private _titles = new Map<string, string>();
+  /** The shown pages, once loaded: their titles, and their links apart from the event's others */
+  @state() private _pages: WikiEvent[] = [];
 
   private get _config(): WikiEntityPickerConfig {
     return (this.field?.metadata as WikiEntityPickerConfig | undefined) ?? {};
@@ -36,11 +57,9 @@ export class NpWikiEntityView extends LitElement {
   override updated(changed: Map<string, unknown>): void {
     if (!changed.has('value')) return;
     const value = this.value;
-    void pageTitles(linkedEntities(value), this._config.relays ?? DEFAULT_WIKI_RELAYS).then(
-      (titles) => {
-        if (this.value === value) this._titles = titles;
-      }
-    );
+    void entityPages(value, this._config.relays ?? DEFAULT_WIKI_RELAYS).then((pages) => {
+      if (this.value === value) this._pages = pages;
+    });
   }
 
   /** Loads the page into its row when the row is first opened */
@@ -59,17 +78,26 @@ export class NpWikiEntityView extends LitElement {
   }
 
   override render() {
-    const entities = linkedEntities(this.value);
-    if (!entities.length) return nothing;
+    const manifest = getEntityManifest(this._config.entityManifest);
+    const affixes = manifest ? entityTypeAffixes(manifest) : undefined;
+    const { linked, named, links } = entityRows(this.value, this._pages, affixes);
+    if (!linked.length && !named.length && !links.length) return nothing;
+    const titles = titlesOf(this._pages);
     return html`
-      ${this.field ? html`<div class="label">${fieldLabel(this.field)}</div>` : nothing}
-      ${entities.map(
+      ${
+        this.field && !this.hideLabel
+          ? html`<div class="label">${fieldLabel(this.field)}</div>`
+          : nothing
+      }
+      ${linked.map(
         (entity) => html`
           <details @toggle=${(e: Event) => this._open(e, entity)}>
-            <summary>${this._titles.get(entity.dTag) ?? entity.displayName ?? entity.dTag}</summary>
+            <summary>${titles.get(entity.dTag) ?? entity.displayName ?? entity.dTag}</summary>
           </details>
         `
       )}
+      ${named.map((entity) => html`<div class="named">${entity.name}${linkList(entity.links)}</div>`)}
+      ${links.length ? html`<div class="links">${linkList(links)}</div>` : nothing}
     `;
   }
 }

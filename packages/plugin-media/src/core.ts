@@ -100,11 +100,6 @@ export const acceptsType = (
       : pattern.toLowerCase() === type.toLowerCase()
   );
 
-/** A file name extension for a MIME type, e.g. `png` for `image/png` (`bin` when unknown) */
-export const extensionFor = (type: string): string =>
-  ({ 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'video/quicktime': 'mov' })[type] ??
-  (/^[a-z]+\/([a-z0-9]+)$/i.exec(type)?.[1]?.toLowerCase() || 'bin');
-
 /** Whether a file of this type is shrunk: photos, not GIFs (animation), SVGs or videos */
 export const isCompressibleImage = (type: string): boolean =>
   /^image\/(jpeg|png|webp|heic|heif|avif)$/i.test(type);

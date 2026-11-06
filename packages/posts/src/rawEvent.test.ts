@@ -36,7 +36,7 @@ describe('rawEventData', () => {
   });
 
   it('names other events by nevent', () => {
-    const note = { ...gig, kind: 1, tags: [['t', 'punk']] };
+    const note = { ...gig, kind: 1, tags: [['t', 'punk'] as [string, string]] };
     const raw = rawEventData(note, []);
     expect(raw.pointer).toMatch(/^nevent1/);
     expect(raw.dTag).toBeUndefined();

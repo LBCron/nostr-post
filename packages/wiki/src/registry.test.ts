@@ -1,3 +1,4 @@
+import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import type { Mock } from 'vitest';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -10,7 +11,7 @@ vi.mock('@nostr-post/signer', () => ({
 import { fetchManifestByATag } from '@nostr-post/signer';
 import { getEntityManifest, registerEntityManifest, resolveEntityManifest } from './registry';
 
-const manifest = (id: string) => ({ id, version: '1.0.0', fields: [] }) as never;
+const manifest = (id: string): NostrPostManifest => ({ id, version: '1.0.0', fields: [] });
 
 describe('entity manifest references', () => {
   it('resolves registered ids and inline manifests', async () => {
@@ -37,7 +38,7 @@ describe('entity manifest references', () => {
   });
 
   it('merges a registered parent named in extends', async () => {
-    const field = (id: string) => ({
+    const field = (id: string): PostField => ({
       id,
       type: 'string',
       uiPlugin: 'text',
@@ -56,7 +57,7 @@ describe('entity manifest references', () => {
   });
 
   it('looks up an unregistered parent on relays, and works without it when missing', async () => {
-    const field = (id: string) => ({
+    const field = (id: string): PostField => ({
       id,
       type: 'string',
       uiPlugin: 'text',

@@ -9,7 +9,7 @@ describe('composer submit area', async () => {
   const { pluginRegistry } = await import('@nostr-post/plugins/registry');
 
   const make = async (manifest: unknown, prefill: Record<string, unknown>) => {
-    const c = document.createElement('nostr-post-composer') as HTMLElement &
+    const c = document.createElement('nostr-post-composer') as unknown as HTMLElement &
       Record<string, unknown>;
     c.manifest = manifest;
     c.autoPublish = true;
@@ -93,7 +93,7 @@ describe('composer submit area', async () => {
         { id: 'x', type: 'string', uiPlugin: 'hang', mapTo: { kind: 1, target: 'content' } },
       ],
     };
-    const c = document.createElement('nostr-post-composer') as HTMLElement &
+    const c = document.createElement('nostr-post-composer') as unknown as HTMLElement &
       Record<string, unknown>;
     c.manifest = manifest;
     c.autoPublish = true;
@@ -124,11 +124,11 @@ describe('composer submit area', async () => {
       id: 'signs',
       type: 'string',
       beforePublish: async () => {
-        await signEvent({ kind: 30818, created_at: 0, tags: [], content: '' });
+        await signEvent({ kind: 30818, created_at: 0, tags: [], content: '', pubkey: '' });
         return [];
       },
     } as never);
-    const c = document.createElement('nostr-post-composer') as HTMLElement &
+    const c = document.createElement('nostr-post-composer') as unknown as HTMLElement &
       Record<string, unknown>;
     c.manifest = {
       id: 's',
@@ -154,7 +154,7 @@ describe('composer submit area', async () => {
 
   it('waits for running uploads before building the post, stops when one failed', async () => {
     const { startActivity } = await import('@nostr-post/plugins/activity');
-    const c = document.createElement('nostr-post-composer') as HTMLElement &
+    const c = document.createElement('nostr-post-composer') as unknown as HTMLElement &
       Record<string, unknown>;
     c.manifest = {
       id: 'u',

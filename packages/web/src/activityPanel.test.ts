@@ -48,7 +48,7 @@ describe('<np-activity>', async () => {
     let cancelled = 0;
     startActivity('Uploading c.jpg', { cancel: () => cancelled++ });
     startActivity('Sending to relays…');
-    const panel = document.querySelector('np-activity') as HTMLElement & {
+    const panel = document.querySelector('np-activity') as unknown as HTMLElement & {
       updateComplete: Promise<void>;
     };
     await panel.updateComplete;

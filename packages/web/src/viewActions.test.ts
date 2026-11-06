@@ -13,7 +13,8 @@ describe('<nostr-post-view> event actions', () => {
       }
     );
     registerEventAction({ tagName: 'test-post-action', matches: (m) => m.id === 'review-test' });
-    const view = document.createElement('nostr-post-view') as HTMLElement & Record<string, unknown>;
+    const view = document.createElement('nostr-post-view') as unknown as HTMLElement &
+      Record<string, unknown>;
     view.manifest = { id: 'review-test', version: '1', fields: [] };
     view.event = {
       id: 'e1',

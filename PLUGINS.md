@@ -24,7 +24,8 @@ This split lets you:
 ```
 packages/plugin-{name}/
   package.json
-  tsconfig.json
+  tsconfig.json        # type-checks src/, tests included
+  tsconfig.build.json  # builds dist/, tests left out
   src/
     core.ts         # validation + serialization (no DOM)
     index.ts        # re-exports core
@@ -232,6 +233,16 @@ pluginRegistry.register({
     }
   },
   "include": ["src/**/*"]
+}
+```
+
+**`tsconfig.build.json`** (the `build` script runs `tsc -p tsconfig.build.json`, `typecheck`
+runs `tsc --noEmit`, so tests are type-checked but not published):
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }
 ```
 

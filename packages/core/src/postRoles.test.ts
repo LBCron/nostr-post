@@ -153,22 +153,27 @@ describe('role fields in posts', () => {
     const manifest: NostrPostManifest = {
       id: 'beer-review',
       version: '1',
-      fields: [
-        tasted,
-        {
-          id: 'review',
-          type: 'string',
-          uiPlugin: 'textarea',
-          mapTo: [
-            { kind: 1, target: 'content' },
-            { kind: 30078, target: 'content', path: 'review' },
-          ],
-        },
-        {
-          ...tasted,
-          mapTo: [...[tasted.mapTo].flat(), { kind: 30078, target: 'content', path: 'tasting_at' }],
-        },
-      ].slice(1),
+      fields: (
+        [
+          tasted,
+          {
+            id: 'review',
+            type: 'string',
+            uiPlugin: 'textarea',
+            mapTo: [
+              { kind: 1, target: 'content' },
+              { kind: 30078, target: 'content', path: 'review' },
+            ],
+          },
+          {
+            ...tasted,
+            mapTo: [
+              ...[tasted.mapTo].flat(),
+              { kind: 30078, target: 'content', path: 'tasting_at' },
+            ],
+          },
+        ] as PostField[]
+      ).slice(1),
       publishFormats: [{ id: 'note', label: 'Note', kinds: [1], default: true }],
     };
     const ref = { dTag: 'u-fleků-prague-venue', resolvedPubkey: pk, externalIds: [] };

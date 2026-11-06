@@ -279,7 +279,7 @@ describe('references with a role', () => {
       tags: [
         ['d', 'old-beer'],
         ['a', '30818:pk1:brand-brewery'],
-      ],
+      ] as [string, string][],
     };
     const data = wikiEventToManifestData(asEvent(old), manifest);
     expect(data.breweries).toBe('30818:pk1:brand-brewery');

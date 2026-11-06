@@ -157,3 +157,23 @@ describe('the log in the browser', () => {
     expect(kept[0]).toEqual({ event: note, relays: ['wss://r9'] });
   });
 });
+
+describe('publish capture', () => {
+  it('hands publishes to the capture instead of relays or the log, until turned off', async () => {
+    const { setPublishCapture, publishSignedEvents } = await import('./publishSigned');
+    const { publishToRelays } = await import('./index');
+    const got: string[] = [];
+    setPublishCapture((ev, relays) => got.push(`${ev.id}@${relays.join()}`));
+    const before = getDryRunEntries().length;
+    const results = await publishToRelays(event('captured'), ['wss://r1']);
+    expect(results.success).toBe(1);
+    expect(got).toEqual(['captured@wss://r1']);
+    expect(getDryRunEntries()).toHaveLength(before);
+    // Sending signed events goes past the capture
+    await publishSignedEvents([{ event: note, relays: ['wss://r1'] }], { ignoreDryRun: true });
+    expect(sent.map((e) => e.id)).toEqual(['note']);
+    setPublishCapture();
+    await publishToRelays(event('logged'), ['wss://r1']);
+    expect(getDryRunEntries()[0]?.event.id).toBe('logged');
+  });
+});

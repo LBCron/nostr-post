@@ -79,6 +79,8 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
   registries; it never depends on a domain package. One exception: plugin autoload (`pluginAutoLoad.ts`) lazy-loads a field's `/web`
   entry by its `uiPlugin` id, also from a domain package that provides the field (`list`), so a
   manifest's fields work in any app; it never imports a domain's code statically.
+- `@nostr-post/outbox`: posts published later (drafts, timed posts, upload later). Depends only on
+  `signer`, so it could move out of the repo; the other packages use it through its small API.
 - `@nostr-post/plugin-*`: field plugins, one `uiPlugin` field type each (main entry: the field's logic;
   `/web`: its input and view).
 - `@nostr-post/<domain>` (`wiki`, `calendar`, `list`): a NIP or domain of its own: its kinds, reading

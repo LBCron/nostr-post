@@ -6,6 +6,7 @@
 
 import type { UnsignedNostrEvent } from '@nostr-post/core/types';
 import { isDryRun, logDryRunEvent } from './dryRun';
+import { publishCapture } from './publishSigned';
 import { DEFAULT_RELAYS } from './fetch';
 import { getPublishRelays } from './relays';
 
@@ -124,7 +125,16 @@ export function hasNostrSigner(): boolean {
 export interface PublishOptions {
   /** Send to the relays also in dry-run mode (publishing logged events for real) */
   ignoreDryRun?: boolean;
+  /** Send to the relays also while a capture is on (`setPublishCapture`) */
+  ignoreCapture?: boolean;
 }
+
+/** Hands the event to the capture, if one is on: true when it took it */
+const captured = (event: SignedEvent, relays: string[], options: PublishOptions): boolean => {
+  const handler = options.ignoreCapture ? undefined : publishCapture();
+  handler?.(event, relays);
+  return !!handler;
+};
 
 /**
  * Publish a signed event to a single relay. In dry-run mode it is only logged.
@@ -134,6 +144,7 @@ export function publishToRelay(
   relayUrl: string,
   options: PublishOptions = {}
 ): Promise<boolean> {
+  if (captured(event, [relayUrl], options)) return Promise.resolve(true);
   if (isDryRun() && !options.ignoreDryRun) {
     logDryRunEvent(event, [relayUrl]);
     return Promise.resolve(true);
@@ -232,8 +243,9 @@ export async function publishToRelays(
   relays: string[] = DEFAULT_RELAYS,
   options: PublishOptions = {}
 ): Promise<PublishResults> {
-  if (isDryRun() && !options.ignoreDryRun) {
-    logDryRunEvent(event, relays);
+  const capturing = captured(event, relays, options);
+  if (capturing || (isDryRun() && !options.ignoreDryRun)) {
+    if (!capturing) logDryRunEvent(event, relays);
     const targets = relays.length > 0 ? relays : ['dry-run'];
     const results = {
       success: targets.length,
@@ -345,6 +357,15 @@ export {
   newerOnRelays,
   publishDryRunEntries,
 } from './dryRunPublish';
+export {
+  type PublishCapture,
+  type PublishSignedOptions,
+  publishCapture,
+  publishSignedEvents,
+  type SignedEntry,
+  type SignedPublishResult,
+  setPublishCapture,
+} from './publishSigned';
 
 export {
   fetchManifestByATag,

@@ -184,7 +184,10 @@ The bundle re-exports utilities for advanced usage:
   logged events it links by `a`/`A`/`e`/`E` tags, transitively), `newerOnRelays(entries)` (ids
   that relays have in a newer version), `publishDryRunEntries(entries, fallbackRelays?)` (sends
   them, linked events first, also in test mode; removes the published ones from the log;
-  `DryRunPublishResult[]`). `publishToRelay(s)` take `{ ignoreDryRun: true }` for the same
+  `DryRunPublishResult[]`). `publishToRelay(s)` take `{ ignoreDryRun: true }` for the same.
+  `publishSignedEvents(entries, { fallbackRelays?, ignoreDryRun? })` sends any signed events
+  that way; `setPublishCapture(handler?)` hands every publish to `handler` instead of the relays
+  (the outbox's capture)
 - `fetchUserRelays(pubkeys, relays?)`: the NIP-65 relays of one or more users plus `relays`
   (default: `DEFAULT_RELAYS`); falls back to `relays` when no list is found
 - `getPublishRelays(pubkey, relays?)`: where to publish: the signer's write relays, the user's NIP-65 write relays and `relays` (default: `DEFAULT_RELAYS`)

@@ -11,7 +11,8 @@
 
 import { type DryRunEntry, getDryRunEntries, removeDryRunEntries } from './dryRun';
 import { fetchEvents } from './fetch';
-import { publishToRelays, type SignedEvent } from './index';
+import type { SignedEvent } from './index';
+import { publishSignedEvents, type SignedPublishResult } from './publishSigned';
 
 /**
  * An addressable or replaceable event's address, `<kind>:<pubkey>:<d-tag>` (`<kind>:<pubkey>:`
@@ -120,13 +121,7 @@ export async function newerOnRelays(entries: DryRunEntry[]): Promise<Set<string>
 }
 
 /** How publishing a logged event for real went */
-export interface DryRunPublishResult {
-  id: string;
-  /** Some relay accepted it */
-  ok: boolean;
-  /** Why no relay did */
-  error?: string;
-}
+export type DryRunPublishResult = SignedPublishResult;
 
 /**
  * Sends logged events to the relays they were logged for, also in dry-run mode, linked events
@@ -137,18 +132,7 @@ export async function publishDryRunEntries(
   entries: DryRunEntry[],
   fallbackRelays?: string[]
 ): Promise<DryRunPublishResult[]> {
-  const results: DryRunPublishResult[] = [];
-  for (const { event, relays } of [...entries].reverse()) {
-    const targets = relays.filter((r) => /^wss?:\/\//.test(r));
-    const sent = await publishToRelays(event, targets.length ? targets : fallbackRelays, {
-      ignoreDryRun: true,
-    }).catch((error: Error) => ({ success: 0, results: [{ error: error.message }] }));
-    const ok = sent.success > 0;
-    const error = ok
-      ? undefined
-      : (sent.results.find((r) => r.error)?.error ?? 'No relay accepted it');
-    results.push({ id: event.id, ok, ...(error ? { error } : {}) });
-  }
+  const results = await publishSignedEvents(entries, { fallbackRelays, ignoreDryRun: true });
   removeDryRunEntries(results.filter((r) => r.ok).map((r) => r.id));
-  return results.reverse();
+  return results;
 }

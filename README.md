@@ -82,6 +82,7 @@ This keeps relay I/O in one place and avoids duplicate network requests.
 | **@nostr-post/signer**  | ✅ **Complete** | NIP-07 signing, relay publish/fetch                                   |
 | **@nostr-post/plugins** | ✅ **Complete** | Plugin registry + types (extraTags, resolveFromTags)                  |
 | **@nostr-post/posts**   | ✅ **Complete** | Publishing and reading posts without a UI (bundles, threads, feeds) — [README](./packages/posts/README.md) |
+| **@nostr-post/outbox**  | 🚧 **In progress** | Posts published later: drafts, timed posts, upload later — [README](./packages/outbox/README.md) |
 | **@nostr-post/web**     | ✅ **Complete** | Lit web components (composer, view, feed)                             |
 | **@nostr-post/react**   | ✅ **Complete** | React hooks + wrapper components                                      |
 | **@nostr-post/cdn**     | ✅ **Complete** | Single-file CDN bundle (ESM + IIFE, no npm required)                  |

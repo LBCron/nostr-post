@@ -200,3 +200,21 @@ describe('deferred uploads', () => {
     expect(deferredUploadsIn({ media: [photo.url] })).toEqual([]);
   });
 });
+
+describe('removing an item', () => {
+  it('keeps the files another item uses', async () => {
+    const storage = memoryStorage();
+    const outbox = createOutbox(storage);
+    const draft = {
+      ...draftItem({ pubkey: 'pk', draft: { manifest: {}, formData: {} } }),
+      uploads: [photo],
+    };
+    const queued = signedItem({ pubkey: 'pk', events: [entry('post')], uploads: [photo] });
+    await outbox.add(draft, { f1: new Blob(['jpg']) });
+    await outbox.add(queued, { f1: new Blob(['jpg']) });
+    await outbox.remove(draft.id);
+    expect(await storage.file('f1')).toBeDefined();
+    await outbox.remove(queued.id);
+    expect(await storage.file('f1')).toBeUndefined();
+  });
+});

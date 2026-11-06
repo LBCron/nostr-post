@@ -278,6 +278,8 @@ Create and publish Nostr posts.
 - `extra-tags` - Extra tags added to the post
 - `default-format-id`, `hide-publish-format-selector` - Publish format choice
 - `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111), `show-reply-target`, `editable-reply-target` - Replies
+- `drafts` - Offer "Save draft": the form goes to the outbox (`@nostr-post/outbox`), unsigned, with its photos to upload later
+- `draft-id` - The draft being edited (`openDraft(item)` gives it with `manifest`/`manifestRef`, `prefill` and `dTag`): saving replaces it, publishing removes it
 
 **Properties:**
 
@@ -291,6 +293,8 @@ Create and publish Nostr posts.
   ```typescript
   event.detail = SignedEvent[]
   ```
+- `nostr-post-queued` - With `auto-publish`, when photos upload later ("Upload later, on wifi" in the media field): the signed post waits in the outbox, `event.detail` is the outbox item
+- `nostr-post-draft-saved` - "Save draft": `event.detail` is the outbox item
 - `nostr-post-submit` - Without `auto-publish`: the post is ready for the app to sign and publish
   ```typescript
   event.detail = { bundle: EventBundle; dTag?: string; formData: Record<string, unknown>; manifest: NostrPostManifest }

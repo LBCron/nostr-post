@@ -79,9 +79,13 @@ export function createOutbox(
     notify('updated', item);
     return item;
   };
+  // Files another item uses stay (a draft and the post queued from it share their photos)
   const removeWithFiles = async (item: OutboxItem): Promise<void> => {
-    await Promise.all(item.uploads.map((u) => storage.removeFile(u.fileKey)));
     await storage.removeItem(item.id);
+    const used = new Set((await storage.items()).flatMap((i) => i.uploads.map((u) => u.fileKey)));
+    await Promise.all(
+      item.uploads.filter((u) => !used.has(u.fileKey)).map((u) => storage.removeFile(u.fileKey))
+    );
     notify('removed', item);
   };
   // Items running now: a second run of the same item waits for nothing and does nothing

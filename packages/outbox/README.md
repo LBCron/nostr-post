@@ -98,3 +98,21 @@ URL (`<server>/<sha256>.<ext>`). The composer finds the deferred files its form 
 registers `uploadPrepared`), checks the server stored the same hash, and only then publishes:
 publishing first would show broken images. `deferredUpload(url)` gives a file not uploaded yet,
 e.g. for a preview.
+
+## Drafts
+
+The composer's `drafts` attribute adds "Save draft": `saveDraft({ pubkey, manifest, formData,
+dTag?, draftId? })` (`@nostr-post/web`) stores a `draft` item with the form data, unsigned, and
+the manifest (or a published manifest's address), with its photos to upload later (their files
+kept with it). `<nostr-post-outbox>` fires `outbox-edit` for a draft; `openDraft(item)` gives what
+a composer needs (`manifest` or `manifestRef`, `prefill`, `dTag`, `draftId`) and defers its photos
+again, so publishing it queues them:
+
+```js
+outboxElement.addEventListener('outbox-edit', async (e) => {
+  Object.assign(composer, await openDraft(e.detail));
+});
+```
+
+Publishing the draft from the composer removes it. A draft and the post queued from it share
+their photos: removing an item keeps the files another item uses.

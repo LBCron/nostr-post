@@ -53,6 +53,8 @@ export interface SubmitAreaState {
   /** Labels of fields that failed validation */
   invalidFields: string[];
   messages: ComposerMessages;
+  /** Set with the composer's `drafts`: saves the form as a draft */
+  onSaveDraft?: () => void;
 }
 
 /** The submit button with the running step, the last error and invalid fields next to it */
@@ -70,6 +72,18 @@ export const renderSubmitArea = (state: SubmitAreaState) => {
       >
         ${label}
       </button>
+      ${
+        state.onSaveDraft
+          ? html`<button
+              type="button"
+              class="secondary"
+              ?disabled=${state.isSubmitting}
+              @click=${state.onSaveDraft}
+            >
+              ${m.saveDraft}
+            </button>`
+          : ''
+      }
       ${state.isSubmitting && state.step ? html`<span class="submit-step">${state.step}</span>` : ''}
     </div>
     ${

@@ -16,6 +16,15 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMess
 export { NostrPostView } from './view';
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from './viewEdit';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from './viewSuggestions';
+export {
+  draftTitle,
+  type OpenedDraft,
+  openDraft,
+  removeDraft,
+  type SaveDraftOptions,
+  saveDraft,
+} from './composerDrafts';
+export { type PublishOrQueueResult, publishOrQueue } from './composerOutbox';
 export { NostrDryRunPublish } from './dryRunPublish';
 export {
   DEFAULT_DRY_RUN_PUBLISH_MESSAGES,

@@ -17,6 +17,9 @@ export interface ComposerMessages extends PublishMessages {
   doneWithoutPost: string;
   /** The post waits in the outbox: its files upload later (on wifi or when the user asks) */
   queued: string;
+  /** "Save draft" (`drafts`), and once saved */
+  saveDraft: string;
+  draftSaved: string;
   /** The post is published but a plugin's after-publish step failed; its errors follow */
   afterPublishFailed: (errors: string[]) => string;
   /** While the signer works on a signature, e.g. waits for the user to approve it */
@@ -36,6 +39,8 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
   published: (count) => `Published to ${count} event(s)!`,
   created: 'Post created successfully!',
   doneWithoutPost: 'Done!',
+  saveDraft: 'Save draft',
+  draftSaved: 'Draft saved in the outbox',
   queued:
     'Saved to the outbox: the photos upload on wifi or when you choose, then the post is published',
   afterPublishFailed: (errors) => `Published, but: ${errors.join('; ')}`,

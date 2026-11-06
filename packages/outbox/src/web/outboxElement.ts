@@ -43,6 +43,8 @@ export class NostrPostOutbox extends LitElement {
   @state() _thumbs = new Map<string, string>();
   _unsubscribe?: () => void;
   _owner?: string;
+  /** Signing in (nostr-login) or coming back to the page: the user's items may differ */
+  _reload = () => void this._load();
 
   get _box(): Outbox {
     return this.outbox ?? browserOutbox();
@@ -55,11 +57,15 @@ export class NostrPostOutbox extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     this._unsubscribe = this._box.subscribe(() => void this._load());
+    document.addEventListener('nlAuth', this._reload);
+    window.addEventListener('focus', this._reload);
     void this._load();
   }
 
   override disconnectedCallback(): void {
     this._unsubscribe?.();
+    document.removeEventListener('nlAuth', this._reload);
+    window.removeEventListener('focus', this._reload);
     for (const url of this._thumbs.values()) URL.revokeObjectURL(url);
     this._thumbs = new Map();
     super.disconnectedCallback();

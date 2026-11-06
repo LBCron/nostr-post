@@ -23,6 +23,7 @@ import {
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
+import { removeDraft, saveDraft } from './composerDrafts';
 import type { FieldRenderContext } from './composerField';
 import { renderFieldList } from './composerFieldList';
 import { renderHiddenFieldErrors } from './composerForm';
@@ -124,59 +125,42 @@ export class NostrPostComposer extends NostrPostElement {
   @property({ type: String, attribute: 'extra-tags' })
   extraTags?: string;
 
-  @state()
-  private _formData!: Record<string, unknown>;
+  /** Offer "Save draft": the form goes to the outbox, unsigned (`saveDraft`) */
+  @property({ type: Boolean }) drafts = false;
+  /** The draft being edited (`openDraft`): saving replaces it, publishing removes it */
+  @property({ type: String, attribute: 'draft-id' }) draftId?: string;
+
+  @state() private _formData: Record<string, unknown> = {};
 
   /** Current form data (read-only accessor for external consumers) */
   get formData(): Record<string, unknown> {
     return this._formData;
   }
 
-  @state()
-  private errors!: Record<string, string>;
-
-  @state()
-  private isSubmitting!: boolean;
-
-  @state()
-  private successMessage!: string;
+  @state() private errors: Record<string, string> = {};
+  @state() private isSubmitting = false;
+  @state() private successMessage = '';
 
   /** What the running submit is doing, shown next to the button */
-  @state()
-  private _submitStep?: string;
+  @state() private _submitStep?: string;
 
   /** The signer is working on a signature (e.g. waiting for the user to approve) */
-  @state()
-  private _signing = false;
+  @state() private _signing = false;
 
   private readonly _onSigning = (e: CustomEvent<SigningDetail>) => {
     this._signing = e.detail.pending > 0;
   };
 
   /** Why the last submit failed, shown below the button */
-  @state()
-  private _submitError?: string;
+  @state() private _submitError?: string;
 
   private get _m(): ComposerMessages {
     return { ...DEFAULT_COMPOSER_MESSAGES, ...this.messages };
   }
 
-  @state()
-  private _expandedFields: Set<string> = new Set();
-
-  @state()
-  private isResolvingManifestRef = false;
-
-  @state()
-  private selectedPublishFormatId = '';
-
-  constructor() {
-    super();
-    this._formData = {};
-    this.errors = {};
-    this.isSubmitting = false;
-    this.successMessage = '';
-  }
+  @state() private _expandedFields: Set<string> = new Set();
+  @state() private isResolvingManifestRef = false;
+  @state() private selectedPublishFormatId = '';
 
   private getInitialSelectedPublishFormatId(manifest: NostrPostManifest): string {
     return initialPublishFormatId(manifest, this.defaultFormatId, this.hidePublishFormatSelector);
@@ -367,12 +351,25 @@ export class NostrPostComposer extends NostrPostElement {
       }
 
       this._formData = {};
+      if (this.draftId) void removeDraft(this.draftId);
+      this.draftId = undefined;
     } catch (error) {
       this.showError(error instanceof Error ? error.message : this._m.unknownError);
     } finally {
       this.isSubmitting = false;
       this._submitStep = undefined;
     }
+  }
+
+  private async _saveDraft(): Promise<void> {
+    const pubkey = await signedInPubkey(this.pubkey, this.autoPublish);
+    if (!pubkey) return this.showError(this._m.signInToPublish);
+    const manifest = this.manifest ?? this.manifestRef ?? STANDARD_KIND1_POST_MANIFEST;
+    const { draftId, dTag, _formData: formData } = this;
+    const item = await saveDraft({ pubkey, manifest, formData, dTag, draftId });
+    this.draftId = item.id;
+    this.successMessage = this._m.draftSaved;
+    this.dispatchCustomEvent('nostr-post-draft-saved', item);
   }
 
   private _coordinate(
@@ -486,6 +483,7 @@ export class NostrPostComposer extends NostrPostElement {
             error: this._submitError,
             invalidFields: invalidFieldLabels(manifest, this.errors),
             messages: this._m,
+            onSaveDraft: this.drafts ? () => void this._saveDraft() : undefined,
           })}
         </form>
       </div>

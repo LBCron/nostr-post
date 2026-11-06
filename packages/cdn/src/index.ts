@@ -401,6 +401,7 @@ export {
   browserOutbox,
   connectionConditions,
   DEFAULT_OUTBOX_MESSAGES,
+  ensureOutboxRunner,
   indexedDbStorage,
   type OutboxMessages,
   registerOutboxJobs,

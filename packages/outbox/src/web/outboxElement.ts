@@ -22,7 +22,7 @@ import {
 import type { Outbox } from '../outbox';
 import { DEFAULT_OUTBOX_MESSAGES, type OutboxMessages } from './outboxMessages';
 import { outboxStyles } from './outboxStyles';
-import { browserOutbox, connectionConditions } from './runner';
+import { browserOutbox, connectionConditions, ensureOutboxRunner } from './runner';
 
 /** Items waiting this long get the warning that browsers may clear them */
 const OLD_SECONDS = 4 * 86400;
@@ -59,6 +59,7 @@ export class NostrPostOutbox extends LitElement {
     this._unsubscribe = this._box.subscribe(() => void this._load());
     document.addEventListener('nlAuth', this._reload);
     window.addEventListener('focus', this._reload);
+    if (!this.outbox) ensureOutboxRunner();
     void this._load();
   }
 

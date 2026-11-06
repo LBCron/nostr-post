@@ -9,6 +9,7 @@ export { DEFAULT_OUTBOX_MESSAGES, type OutboxMessages } from './web/outboxMessag
 export {
   browserOutbox,
   connectionConditions,
+  ensureOutboxRunner,
   type OutboxRunnerOptions,
   registerOutboxJobs,
   startOutboxRunner,

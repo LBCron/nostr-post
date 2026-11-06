@@ -90,3 +90,16 @@ export function startOutboxRunner(
     networkInformation()?.removeEventListener('change', run);
   };
 }
+
+// Module state: the page's runner, started once
+let pageRunnerStarted = false;
+
+/**
+ * Starts the browser outbox's runner once per page (the queue element and the composer call it);
+ * apps call it at start so timed posts and waiting uploads go even before either is shown
+ */
+export function ensureOutboxRunner(): void {
+  if (pageRunnerStarted) return;
+  pageRunnerStarted = true;
+  startOutboxRunner(browserOutbox());
+}

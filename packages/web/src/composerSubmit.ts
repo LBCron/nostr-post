@@ -55,7 +55,30 @@ export interface SubmitAreaState {
   messages: ComposerMessages;
   /** Set with the composer's `drafts`: saves the form as a draft */
   onSaveDraft?: () => void;
+  /** Set with the composer's `schedule`: when to publish (unix seconds; undefined: now) */
+  sendAt?: { value?: number; onChange: (value: number | undefined) => void };
 }
+
+/** A unix time as a `datetime-local` value, in the user's time zone */
+const localInput = (seconds: number): string => {
+  const date = new Date(seconds * 1000);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+};
+
+/** "Publish at": a date and time, empty for now */
+const renderSendAt = (sendAt: NonNullable<SubmitAreaState['sendAt']>, m: ComposerMessages) =>
+  html`<label class="send-at">
+    ${m.sendAt}
+    <input
+      type="datetime-local"
+      .value=${sendAt.value === undefined ? '' : localInput(sendAt.value)}
+      @change=${(e: Event) => {
+        const { value } = e.target as HTMLInputElement;
+        sendAt.onChange(value ? Math.floor(new Date(value).getTime() / 1000) : undefined);
+      }}
+    />
+    <span class="submit-step">${m.sendAtHint}</span>
+  </label>`;
 
 /** The submit button with the running step, the last error and invalid fields next to it */
 export const renderSubmitArea = (state: SubmitAreaState) => {
@@ -64,6 +87,7 @@ export const renderSubmitArea = (state: SubmitAreaState) => {
   if (state.isSubmitting) label = m.submitting;
   else if (state.isResolvingManifestRef) label = m.loadingManifest;
   return html`
+    ${state.sendAt ? renderSendAt(state.sendAt, m) : ''}
     <div class="composer-actions">
       <button
         type="submit"

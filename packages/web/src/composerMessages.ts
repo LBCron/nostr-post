@@ -17,6 +17,10 @@ export interface ComposerMessages extends PublishMessages {
   doneWithoutPost: string;
   /** The post waits in the outbox: its files upload later (on wifi or when the user asks) */
   queued: string;
+  /** "Publish at" (`schedule`), and once a timed post is queued */
+  sendAt: string;
+  sendAtHint: string;
+  scheduled: (date: Date) => string;
   /** "Save draft" (`drafts`), and once saved */
   saveDraft: string;
   draftSaved: string;
@@ -39,6 +43,9 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
   published: (count) => `Published to ${count} event(s)!`,
   created: 'Post created successfully!',
   doneWithoutPost: 'Done!',
+  sendAt: 'Publish at',
+  sendAtHint: 'Empty: now. Signed now, sent at that time while the app is open, else when it opens',
+  scheduled: (date) => `Saved to the outbox: published at ${date.toLocaleString()}`,
   saveDraft: 'Save draft',
   draftSaved: 'Draft saved in the outbox',
   queued:

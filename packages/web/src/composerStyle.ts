@@ -106,6 +106,15 @@ export const composerStyle = css`
     margin-top: 1rem;
   }
 
+  .send-at {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+  }
+
   .submit-step {
     font-size: 0.875rem;
     color: var(--nl-text-secondary, #6b7280);

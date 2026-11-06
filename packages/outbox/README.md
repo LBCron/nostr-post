@@ -76,6 +76,8 @@ waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (faile
   (`registerOutboxJobs({ upload })`, e.g. plugin-media's upload).
 - `startOutboxRunner(outbox?, { pubkey?, intervalMs? })`: runs due items now, every 30 s (timed
   posts), when the browser comes online and when the connection changes; returns `stop()`.
+  `ensureOutboxRunner()` starts it once for the browser outbox: the queue element and the composer
+  call it; call it at app start so timed posts and waiting uploads go before either is shown.
 - `connectionConditions()`: `{ wifi }` from the Network Information API: true on wifi or
   ethernet, false on mobile data or with data saving on, unknown elsewhere (Safari, Firefox,
   desktop Chrome). Items with `wifiOnly` then wait for "Upload now".
@@ -116,3 +118,12 @@ outboxElement.addEventListener('outbox-edit', async (e) => {
 
 Publishing the draft from the composer removes it. A draft and the post queued from it share
 their photos: removing an item keeps the files another item uses.
+
+## Timed posts
+
+The composer's `schedule` attribute adds "Publish at" (a date and time; empty for now). The post
+is signed now and queued with `sendAt` (`publishOrQueue(formData, pubkey, publish, { sendAt })`):
+many relays refuse events dated in the future, so it keeps the signing date. The runner sends it
+at its time while the app is open; when the app was closed then, it's sent when it opens and the
+queue marks it late (`isLate`). "Send now" sends it before its time. Signing at the time itself
+(a NIP-46 remote signer, a server) is #122.

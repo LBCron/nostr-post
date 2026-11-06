@@ -30,7 +30,7 @@ import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import { publishOrQueue } from './composerOutbox';
+import { publishOrQueue, queuedMessage } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
@@ -129,6 +129,9 @@ export class NostrPostComposer extends NostrPostElement {
   @property({ type: Boolean }) drafts = false;
   /** The draft being edited (`openDraft`): saving replaces it, publishing removes it */
   @property({ type: String, attribute: 'draft-id' }) draftId?: string;
+  /** Offer "Publish at": a timed post waits in the outbox (`publishOrQueue`) */
+  @property({ type: Boolean }) schedule = false;
+  @state() private _sendAt?: number;
 
   @state() private _formData: Record<string, unknown> = {};
 
@@ -174,15 +177,7 @@ export class NostrPostComposer extends NostrPostElement {
 
     if (manifestChanged || prefillChanged) {
       this.initDefaults({ resetUnknownFields: manifestChanged });
-      if (manifestChanged) {
-        this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(
-          this.manifest || STANDARD_KIND1_POST_MANIFEST
-        );
-        this.errors = {};
-        this.successMessage = '';
-        this._expandedFields = new Set();
-        this.dispatchFormChange();
-      }
+      if (manifestChanged) this._resetForManifest(this.manifest || STANDARD_KIND1_POST_MANIFEST);
       void this.ensureManifestPlugins();
     }
 
@@ -202,6 +197,15 @@ export class NostrPostComposer extends NostrPostElement {
     super.disconnectedCallback();
   }
 
+  /** A new manifest: its default format, no errors or message, fields collapsed */
+  private _resetForManifest(manifest: NostrPostManifest): void {
+    this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(manifest);
+    this.errors = {};
+    this.successMessage = '';
+    this._expandedFields = new Set();
+    this.dispatchFormChange();
+  }
+
   private async _resolveManifestRef(): Promise<boolean> {
     if (this.manifest) return true;
     if (!this.manifestRef) return false;
@@ -213,11 +217,7 @@ export class NostrPostComposer extends NostrPostElement {
       if (stored) {
         this.manifest = stored.manifest;
         this.initDefaults({ resetUnknownFields: true });
-        this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(stored.manifest);
-        this.errors = {};
-        this.successMessage = '';
-        this._expandedFields = new Set();
-        this.dispatchFormChange();
+        this._resetForManifest(stored.manifest);
         void this.ensureManifestPlugins();
         return true;
       }
@@ -331,13 +331,16 @@ export class NostrPostComposer extends NostrPostElement {
       const { bundle, addressableDTag } = outcome;
 
       if (this.autoPublish) {
-        const { published, queued } = await publishOrQueue(this._formData, pubkey, () =>
-          this._publish(manifest, pubkey)
+        const { published, queued } = await publishOrQueue(
+          this._formData,
+          pubkey,
+          () => this._publish(manifest, pubkey),
+          { sendAt: this._sendAt }
         );
         if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
         else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
         const notice = publishedNotice(published, this._m);
-        this.successMessage = queued ? this._m.queued : notice.success;
+        this.successMessage = queued ? queuedMessage(queued, this._m) : notice.success;
         if (notice.error) this.showError(notice.error);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)
@@ -352,7 +355,7 @@ export class NostrPostComposer extends NostrPostElement {
 
       this._formData = {};
       if (this.draftId) void removeDraft(this.draftId);
-      this.draftId = undefined;
+      this.draftId = this._sendAt = undefined;
     } catch (error) {
       this.showError(error instanceof Error ? error.message : this._m.unknownError);
     } finally {
@@ -484,6 +487,9 @@ export class NostrPostComposer extends NostrPostElement {
             invalidFields: invalidFieldLabels(manifest, this.errors),
             messages: this._m,
             onSaveDraft: this.drafts ? () => void this._saveDraft() : undefined,
+            sendAt: this.schedule
+              ? { value: this._sendAt, onChange: (v) => (this._sendAt = v) }
+              : undefined,
           })}
         </form>
       </div>

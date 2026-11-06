@@ -2,8 +2,8 @@
  * @nostr-post/plugin-wiki-entity - <np-wiki-entity-view>: the picker's value in a post's view,
  * e.g. a gig's performers. A row per linked page, named by the page's title; opening a row loads
  * the page (`<nostr-wiki-view>`) in place, so a view with many posts loads no pages up front.
- * Entities without a page are listed by name with their links; the event's other links (of
- * entities the post's text names) after them.
+ * Entities without a page are listed by name with their links, or as their page when one of the
+ * type created later has one of their links; the event's other links after them.
  */
 
 import { fieldLabel } from '@nostr-post/core/manifest';
@@ -12,8 +12,13 @@ import type { WikiEvent } from '@nostr-post/wiki';
 import { DEFAULT_WIKI_RELAYS } from '@nostr-post/wiki';
 import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { getEntityManifest, type WikiEntityData, type WikiEntityPickerConfig } from './core';
-import { entityPages, entityRows, linkedEntities, titlesOf } from './pageTitles';
+import {
+  entityTypeAffixes,
+  getEntityManifest,
+  type WikiEntityData,
+  type WikiEntityPickerConfig,
+} from './core';
+import { entityPages, entityRows, titlesOf } from './pageTitles';
 
 /** A link's host and path, shorter than its URL */
 const linkText = (url: string): string =>
@@ -52,11 +57,9 @@ export class NpWikiEntityView extends LitElement {
   override updated(changed: Map<string, unknown>): void {
     if (!changed.has('value')) return;
     const value = this.value;
-    void entityPages(linkedEntities(value), this._config.relays ?? DEFAULT_WIKI_RELAYS).then(
-      (pages) => {
-        if (this.value === value) this._pages = pages;
-      }
-    );
+    void entityPages(value, this._config.relays ?? DEFAULT_WIKI_RELAYS).then((pages) => {
+      if (this.value === value) this._pages = pages;
+    });
   }
 
   /** Loads the page into its row when the row is first opened */
@@ -75,7 +78,9 @@ export class NpWikiEntityView extends LitElement {
   }
 
   override render() {
-    const { linked, named, links } = entityRows(this.value, this._pages);
+    const manifest = getEntityManifest(this._config.entityManifest);
+    const affixes = manifest ? entityTypeAffixes(manifest) : undefined;
+    const { linked, named, links } = entityRows(this.value, this._pages, affixes);
     if (!linked.length && !named.length && !links.length) return nothing;
     const titles = titlesOf(this._pages);
     return html`

@@ -88,9 +88,10 @@ so no client shows an event as a reply to its own copy. Events published before 
 A reference field mapped to an `a` tag and to the content of a plain-text kind (kind 1, NIP-52
 calendar events) appends one line per entity after the text, `<field label>: nostr:naddr1…`
 (NIP-27), e.g. a gig's `Performers: nostr:naddr1…`. An entity without a page gets a line with its
-name and web links instead, `Performers: Not Proven (https://notproven.bandcamp.com)` (none when
-the text already names it); its links are `i` tags too. Other clients show the lines and links; our
-view reads the role from the label, hides the lines and shows a row per page and per name. The `.ics` export
+name and web links instead, `Performers: Not Proven (https://notproven.bandcamp.com)`, also when
+the text names it; its links are `i` tags too. Other clients show the lines and links; our view
+reads the role from the label, hides the lines and shows a row per page and per name (as a page
+when one created later has one of its links). The `.ics` export
 leaves them out. A reference field mapped only to an `a` tag shows the same rows in our view
 (`<np-wiki-entity-view>`), but other clients see nothing of it.
 

@@ -81,12 +81,12 @@ describe('role fields in posts', () => {
     const named = { ...notProven, displayName: 'Doom', externalIds: ['https://doom.example'] };
     const linked = { dTag: 'fordecision-musician', resolvedPubkey: pk };
     const text = 'Line-up: DOOM and friends';
-    const lines = roleLines(performers, [linked, notProven, named], text);
+    const lines = roleLines(performers, [linked, notProven, named]);
     expect(lines[1]).toBe(
       'Performers: Not Proven (https://notproven.bandcamp.com, https://instagram.com/notproven)'
     );
-    // Doom is in the text: no line
-    expect(lines).toHaveLength(2);
+    // Also when the text names it: a guess could drop the name
+    expect(lines[2]).toBe('Performers: Doom (https://doom.example)');
     expect(roleLines(performers, { ...notProven, externalIds: ['untappd:beer:1'] })).toEqual([
       'Performers: Not Proven',
     ]);
@@ -99,6 +99,7 @@ describe('role fields in posts', () => {
           ['a', `30818:${pk}:fordecision-musician`],
           ...notProven.externalIds.map((id) => ['i', id]),
           ['i', 'https://doom.example'],
+          ['i', 'https://other.example'],
         ],
       },
       [performers]
@@ -107,7 +108,8 @@ describe('role fields in posts', () => {
     expect(read.values.performers).toMatchObject([
       { dTag: 'fordecision-musician', resolvedPubkey: pk },
       { displayName: 'Not Proven', externalIds: notProven.externalIds, unlinked: true },
-      { externalIds: ['https://doom.example'], unlinked: true },
+      { displayName: 'Doom', externalIds: ['https://doom.example'], unlinked: true },
+      { externalIds: ['https://other.example'], unlinked: true },
     ]);
   });
 

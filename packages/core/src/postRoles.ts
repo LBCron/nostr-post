@@ -9,8 +9,8 @@
  * show it as a link; reading matches the line's label to the field.
  *
  * An entity without a page (e.g. a performer the user didn't create a page for) gets a text
- * line with its name and web links instead, `Performers: Not Proven (https://…, https://…)`,
- * left out when the post's text already names it. Its links are `i` tags too.
+ * line with its name and web links instead, `Performers: Not Proven (https://…, https://…)`.
+ * Its links are `i` tags too.
  */
 
 import { fieldLabel } from './manifest';
@@ -99,18 +99,12 @@ const namedRef = (v: unknown): NamedRef | undefined => {
   return name ? { name, links } : undefined;
 };
 
-/** Whether the text names `name` as a whole word or phrase, ignoring case */
-const textNames = (text: string, name: string): boolean =>
-  new RegExp(
-    `(?<![\\p{L}\\p{N}])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`,
-    'iu'
-  ).test(text);
-
 /**
  * The lines of a role field's value: `<label>: nostr:naddr1…` per entity with a page, and
- * `<label>: <name> (<links>)` per entity without one, unless `text` (the post's) names it
+ * `<label>: <name> (<links>)` per entity without one, also when the post's text names it (a
+ * guess whether it does could drop a name)
  */
-export function roleLines(field: PostField, value: unknown, text = ''): string[] {
+export function roleLines(field: PostField, value: unknown): string[] {
   const label = fieldLabel(field);
   return (Array.isArray(value) ? value : [value]).flatMap((v) => {
     const address = refAddress(v);
@@ -119,7 +113,7 @@ export function roleLines(field: PostField, value: unknown, text = ''): string[]
       return naddr ? [`${label}: nostr:${naddr}`] : [];
     }
     const named = namedRef(v);
-    if (!named || textNames(text, named.name)) return [];
+    if (!named) return [];
     return [`${label}: ${named.name}${named.links.length ? ` (${named.links.join(', ')})` : ''}`];
   });
 }
@@ -183,10 +177,7 @@ export function plainTextContent(fields: PostField[], formData: Record<string, u
     .map((field) => formData[field.id])
     .filter((value) => value !== undefined && value !== null && !isEmptyList(value))
     .map((value) => (Array.isArray(value) ? value.join(', ') : value));
-  const plain = text.join('\n');
-  const lines = fields
-    .filter(isRole)
-    .flatMap((field) => roleLines(field, formData[field.id], plain));
+  const lines = fields.filter(isRole).flatMap((field) => roleLines(field, formData[field.id]));
   return [...text, ...lines].join('\n');
 }
 

@@ -74,6 +74,49 @@ describe('entityRows', () => {
   });
 });
 
+describe('entityRows with pages created later', () => {
+  const later = (dTag: string, link: string, created_at = 5) =>
+    ({
+      kind: 30818,
+      pubkey: 'pk2',
+      created_at,
+      content: '',
+      tags: [
+        ['d', dTag],
+        ['i', link],
+      ],
+    }) as never;
+  const musician = { prefix: '', suffix: '-musician' };
+
+  it('shows an entity without a page as the page of its type with one of its links', () => {
+    const value = [
+      { ...unlinked, displayName: 'Not Proven', externalIds: ['https://np.example'] },
+      { ...unlinked, externalIds: ['https://doom.example', 'https://none.example'] },
+    ];
+    const pages = [
+      later('not-proven-musician', 'https://np.example'),
+      later('doom-musician', 'https://doom.example'),
+      later('np-venue', 'https://np.example', 9),
+    ];
+    const rows = entityRows(value, pages, musician);
+    expect(rows.linked).toEqual([
+      {
+        dTag: 'not-proven-musician',
+        resolvedPubkey: 'pk2',
+        externalIds: ['https://np.example'],
+        displayName: 'Not Proven',
+      },
+      {
+        dTag: 'doom-musician',
+        resolvedPubkey: 'pk2',
+        externalIds: ['https://doom.example'],
+      },
+    ]);
+    expect(rows.named).toEqual([]);
+    expect(rows.links).toEqual(['https://none.example']);
+  });
+});
+
 describe('entityFromPageForm', () => {
   const manifest = {
     id: 'm',

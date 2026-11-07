@@ -236,7 +236,14 @@ export { DEFAULT_EDIT_MESSAGES, type EditMessages } from '@nostr-post/web';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from '@nostr-post/web';
 export { DEFAULT_FEED_MESSAGES, type FeedMessages } from '@nostr-post/web';
 // Drafts in the outbox (the composer's `drafts`), and queueing posts whose photos upload later
-export { draftTitle, openDraft, removeDraft, saveDraft, publishOrQueue } from '@nostr-post/web';
+export {
+  draftTitle,
+  openDraft,
+  removeDraft,
+  saveDraft,
+  publishOrQueue,
+  signQueuedPost,
+} from '@nostr-post/web';
 // Publishing a test-mode post for real (<nostr-dry-run-publish>, the "⋯" menu's item)
 export { DEFAULT_DRY_RUN_PUBLISH_MESSAGES, type DryRunPublishMessages } from '@nostr-post/web';
 

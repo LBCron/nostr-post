@@ -127,3 +127,16 @@ many relays refuse events dated in the future, so it keeps the signing date. The
 at its time while the app is open; when the app was closed then, it's sent when it opens and the
 queue marks it late (`isLate`). "Send now" sends it before its time. Signing at the time itself
 (a NIP-46 remote signer, a server) is #122.
+
+## Sign later
+
+Without a Blossom server (e.g. nostr.build, which chooses the file's URL), the post can't be
+signed before the upload. plugin-media then gives the photo a placeholder URL
+(`pending:<sha256>.<ext>`) and signs nothing; the composer queues the form unsigned: a
+`signLater` item whose `draft` holds the form, the manifest, the composer's options
+(`publish`) and relays. When it runs, the outbox uploads the files (the upload job returns each
+URL, kept as `uploadedUrl`), then the `sign` job (`signQueuedPost`, registered by
+`@nostr-post/web`) puts the URLs in the form (`withUploadedUrls`), builds the post as the
+composer would, plugins' publish hooks included, and signs it: the signer is asked then, and
+must be the item's author. Then the events are sent. If signing fails, the uploaded files stay
+uploaded and a retry signs again.

@@ -30,7 +30,7 @@ import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import { publishOrQueue, queuedMessage } from './composerOutbox';
+import { type CoordinateOptions, publishOrQueue, queuedMessage } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
@@ -172,18 +172,14 @@ export class NostrPostComposer extends NostrPostElement {
   updated(changed: Map<string, unknown>) {
     super.updated(changed);
     const manifestChanged = changed.has('manifest');
-    const prefillChanged = changed.has('prefill');
-    const manifestRefChanged = changed.has('manifestRef');
-
-    if (manifestChanged || prefillChanged) {
+    // Opening a draft (`openDraft`: its id and values): they replace the form's
+    if (changed.has('prefill') && this.draftId) this._formData = {};
+    if (manifestChanged || changed.has('prefill')) {
       this.initDefaults({ resetUnknownFields: manifestChanged });
       if (manifestChanged) this._resetForManifest(this.manifest || STANDARD_KIND1_POST_MANIFEST);
       void this.ensureManifestPlugins();
     }
-
-    if (manifestRefChanged) {
-      void this._resolveManifestRef();
-    }
+    if (changed.has('manifestRef')) void this._resolveManifestRef();
   }
 
   connectedCallback(): void {
@@ -335,7 +331,10 @@ export class NostrPostComposer extends NostrPostElement {
           this._formData,
           pubkey,
           () => this._publish(manifest, pubkey),
-          { sendAt: this._sendAt }
+          {
+            sendAt: this._sendAt,
+            signLater: { manifest, options: this._coordinateOptions, relays: this.relays },
+          }
         );
         if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
         else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
@@ -375,23 +374,21 @@ export class NostrPostComposer extends NostrPostElement {
     this.dispatchCustomEvent('nostr-post-draft-saved', item);
   }
 
+  /** How to build the post besides the pubkey; kept with a post signed later */
+  private get _coordinateOptions(): CoordinateOptions {
+    const { selectedPublishFormatId: selectedFormatId, manifestRef, dTag, extraTags } = this;
+    return { selectedFormatId, manifestRef, dTag, extraTags, ...this._replyTarget };
+  }
+
   private _coordinate(
     manifest: NostrPostManifest,
     formData: Record<string, unknown>,
     pubkey: string
   ) {
-    return validateAndCoordinate(
-      manifest,
-      formData as Parameters<typeof validateAndCoordinate>[1],
-      {
-        pubkey,
-        selectedFormatId: this.selectedPublishFormatId,
-        manifestRef: this.manifestRef,
-        dTag: this.dTag,
-        extraTags: this.extraTags,
-        ...this._replyTarget,
-      }
-    );
+    return validateAndCoordinate(manifest, formData as never, {
+      pubkey,
+      ...this._coordinateOptions,
+    });
   }
 
   /** Plugins' related events first (e.g. a venue's wiki page), then the post */

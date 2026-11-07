@@ -3,6 +3,7 @@
  * shows. Test mode signs events but publishes nothing (the signer's dry run).
  */
 
+import { ensureOutboxRunner } from '@nostr-post/outbox/web';
 import { setDryRun } from '@nostr-post/signer';
 import { useEffect, useState } from 'react';
 import { routeOf } from './lib/routes';
@@ -14,6 +15,10 @@ import { Browse } from './pages/Browse';
 import { EventPage } from './pages/EventPage';
 import { ImportIcs } from './pages/ImportIcs';
 import { MyGigs } from './pages/MyGigs';
+import { Outbox } from './pages/Outbox';
+
+// Timed posts and photos waiting for wifi go while the app is open, whatever page it shows
+ensureOutboxRunner();
 
 /** The link's hash, following its changes */
 const useHash = (): string => {
@@ -48,7 +53,9 @@ function Page({ hash }: { hash: string }) {
     case 'artist-edit':
       return <ArtistComposer dTag={route.dTag} additions={route.additions} />;
     case 'add':
-      return <AddGig />;
+      return <AddGig draftId={route.draftId} />;
+    case 'outbox':
+      return <Outbox />;
     case 'mine':
       return <MyGigs />;
     case 'import':
@@ -70,6 +77,7 @@ export function App() {
           <a href="#/mine">My gigs</a>
           <a href="#/add">Add a gig</a>
           <a href="#/import">Import .ics</a>
+          <a href="#/outbox">Outbox</a>
           <a href="#/artist-new">Add an artist</a>
         </nav>
         <label className="switch">

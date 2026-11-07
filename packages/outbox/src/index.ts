@@ -35,6 +35,7 @@ export {
   titleOf,
   waitingFor,
   withState,
+  withUploadedUrls,
 } from './item';
 export {
   createOutbox,

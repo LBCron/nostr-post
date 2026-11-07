@@ -114,6 +114,7 @@ export class NostrPostOutbox extends LitElement {
     if (item.sendAt !== undefined) parts.push(m.sendAt(new Date(item.sendAt * 1000)));
     else if (item.state !== 'draft') parts.push(m.waited(waitingFor(item, now)));
     if (bytes > 0 && item.wifiOnly && item.state === 'waiting') parts.push(m.onWifi);
+    if (item.signLater && item.events.length === 0) parts.push(m.signLater);
     return html`<div class="meta">
       <span class="state-${item.state}">${parts.join(' · ')}</span>
       ${isLate(item, now) ? html` · <span class="late">${m.late}</span>` : nothing}

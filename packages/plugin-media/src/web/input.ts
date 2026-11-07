@@ -246,15 +246,11 @@ export class NpMediaInput extends LitElement {
     }
   }
 
-  /** Prepared to upload later: its final URL; undefined (upload now) without a Blossom server */
-  private async _prepareLater(file: File): Promise<string | undefined> {
-    try {
-      return (await prepareUploadLater(file, this._config)).url;
-    } catch (error) {
-      if ((error as { kind?: string }).kind === 'sign-in') throw error;
-      this._uploadNote = this._m.uploadLaterNoServer;
-      return undefined;
-    }
+  /** Prepared to upload later: its URL (a placeholder without a Blossom server: signed later) */
+  private async _prepareLater(file: File): Promise<string> {
+    const { url } = await prepareUploadLater(file, this._config);
+    if (url.startsWith('pending:')) this._uploadNote = this._m.uploadLaterSignLater;
+    return url;
   }
 
   // --- URL input ---

@@ -22,6 +22,8 @@ export interface OutboxMessages {
   late: string;
   /** Files wait for wifi */
   onWifi: string;
+  /** Unsigned until it's sent: the signer is asked then */
+  signLater: string;
   /** Items waiting several days: browsers may clear them */
   oldWarning: string;
   untitled: string;
@@ -61,6 +63,7 @@ export const DEFAULT_OUTBOX_MESSAGES: OutboxMessages = {
   sendAt: (date) => `at ${date.toLocaleString()}`,
   late: 'late: sent when the app opened',
   onWifi: 'uploads on wifi',
+  signLater: 'signed when sent',
   oldWarning:
     'Some items have waited for days: browsers may clear a site’s data after a week without use.',
   untitled: 'Untitled',

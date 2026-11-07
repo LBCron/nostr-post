@@ -218,3 +218,72 @@ describe('removing an item', () => {
     expect(await storage.file('f1')).toBeUndefined();
   });
 });
+
+describe('sign-later items', () => {
+  it('upload first, then sign the form with the uploaded URLs, then publish', async () => {
+    const { withUploadedUrls } = await import('./item');
+    const pending: OutboxUpload = {
+      ...photo,
+      auth: undefined,
+      url: 'pending:abc.jpg',
+      server: '',
+    };
+    const signedForms: unknown[] = [];
+    const steps: string[] = [];
+    const outbox = createOutbox(memoryStorage(), {
+      upload: async () => {
+        steps.push('upload');
+        return 'https://nostr.build/i/abc.jpg';
+      },
+      sign: async (item) => {
+        steps.push('sign');
+        signedForms.push(withUploadedUrls(item.draft?.formData, item.uploads));
+        return [entry('post')];
+      },
+      publish: async (entries) => {
+        steps.push('publish');
+        return entries.map((e) => ({ id: e.event.id, ok: true }));
+      },
+    });
+    const item = {
+      ...draftItem({
+        pubkey: 'pk',
+        draft: { manifest: {}, formData: { photos: ['pending:abc.jpg'], text: 'Hi' } },
+      }),
+      state: 'waiting' as const,
+      uploads: [pending],
+      signLater: true,
+      wifiOnly: true,
+    };
+    await outbox.add(item, { f1: new Blob(['jpg']) });
+    expect(nextStep(item, { wifi: false })).toBe('wait');
+    const done = await outbox.run(item.id, { force: true });
+    expect(done?.state).toBe('published');
+    expect(steps).toEqual(['upload', 'sign', 'publish']);
+    expect(signedForms).toEqual([{ photos: ['https://nostr.build/i/abc.jpg'], text: 'Hi' }]);
+  });
+
+  it('fail with the reason when signing fails, keeping the uploaded files', async () => {
+    const outbox = createOutbox(memoryStorage(), {
+      upload: async () => 'https://nostr.build/i/abc.jpg',
+      sign: async () => {
+        throw new Error('Sign in to publish');
+      },
+    });
+    const item = {
+      ...draftItem({ pubkey: 'pk', draft: { manifest: {}, formData: {} } }),
+      state: 'waiting' as const,
+      uploads: [{ ...photo, auth: undefined, url: 'pending:abc.jpg', server: '' }],
+      signLater: true,
+    };
+    await outbox.add(item, { f1: new Blob(['jpg']) });
+    const failed = await outbox.run(item.id);
+    expect(failed).toMatchObject({ state: 'failed', error: 'Sign in to publish' });
+    expect(failed?.uploads[0]).toMatchObject({
+      uploaded: true,
+      uploadedUrl: 'https://nostr.build/i/abc.jpg',
+    });
+    // A retry doesn't upload again
+    expect(nextStep(failed as never, { force: true })).toBe('publish');
+  });
+});

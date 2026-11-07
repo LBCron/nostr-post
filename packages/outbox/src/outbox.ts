@@ -24,10 +24,15 @@ import type { OutboxStorage } from './storage';
 
 export interface OutboxJobs {
   /**
-   * Uploads a file with its authorization signed at capture; resolves once the server has it
-   * (with the same hash), throws with the reason otherwise
+   * Uploads a file (with its authorization signed at capture, or signing now); resolves with its
+   * URL once the server has it (with the same hash), throws with the reason otherwise
    */
-  upload?: (upload: OutboxUpload, file: Blob) => Promise<void>;
+  upload?: (upload: OutboxUpload, file: Blob) => Promise<string | undefined>;
+  /**
+   * Builds and signs a sign-later item's events from its form (`draft`, with the uploaded URLs
+   * in it, `withUploadedUrls`), without sending them: the post first, then what its publish made
+   */
+  sign?: (item: OutboxItem) => Promise<SignedEntry[]>;
   /** Sends signed events; default `publishSignedEvents` (in test mode only logged) */
   publish?: (entries: SignedEntry[]) => Promise<SignedPublishResult[]>;
 }
@@ -98,17 +103,29 @@ export function createOutbox(
       if (!jobs.upload) throw new Error('No upload job');
       const blob = await storage.file(file.fileKey);
       if (!blob) throw new Error(`The file of ${file.name ?? file.url} is gone`);
-      await jobs.upload(file, blob);
+      const url = await jobs.upload(file, blob);
       current = await save({
         ...current,
-        uploads: current.uploads.map((u) => (u === file ? { ...u, uploaded: true } : u)),
+        uploads: current.uploads.map((u) =>
+          u === file ? { ...u, uploaded: true, ...(url ? { uploadedUrl: url } : {}) } : u
+        ),
       });
     }
     return current;
   };
 
+  /** A sign-later item with its events, signed now from its form */
+  const sign = async (item: OutboxItem): Promise<OutboxItem> => {
+    const { sign: signJob } = jobsNow();
+    if (!signJob) throw new Error('No sign job');
+    const events = await signJob(item);
+    if (events.length === 0) throw new Error('Nothing was signed');
+    return save({ ...item, events, signLater: false });
+  };
+
   const publish = async (item: OutboxItem): Promise<OutboxItem> => {
-    const current = await save(withState(item, 'publishing'));
+    const signed = item.events.length === 0 && item.signLater ? await sign(item) : item;
+    const current = await save(withState(signed, 'publishing'));
     const results = await (jobsNow().publish ?? ((e) => publishSignedEvents(e)))(current.events);
     const failed = results.filter((r) => !r.ok);
     if (failed.length === 0) {

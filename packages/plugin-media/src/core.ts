@@ -232,7 +232,8 @@ export const mediaPlugin: NostrUIPlugin = {
     }
 
     for (const url of urls) {
-      if (!url.startsWith('data:') && !isUrl(url)) {
+      // `pending:` a file that uploads later: its URL replaces it before the post is signed
+      if (!url.startsWith('data:') && !url.startsWith('pending:') && !isUrl(url)) {
         return {
           success: false,
           error: {

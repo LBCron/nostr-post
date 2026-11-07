@@ -61,6 +61,9 @@ importers:
       '@nostr-post/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@nostr-post/outbox':
+        specifier: workspace:*
+        version: link:../../packages/outbox
       '@nostr-post/plugin-date':
         specifier: workspace:*
         version: link:../../packages/plugin-date
@@ -592,6 +595,9 @@ importers:
       '@nostr-post/core':
         specifier: workspace:*
         version: link:../core
+      '@nostr-post/outbox':
+        specifier: workspace:*
+        version: link:../outbox
       '@nostr-post/posts':
         specifier: workspace:*
         version: link:../posts

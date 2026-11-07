@@ -7,29 +7,44 @@
  *
  * draft → (signed) waiting → uploading → publishing → published (leaves the outbox), or failed
  * with its reason (retry).
+ *
+ * A "sign later" item (`signLater`) waits unsigned: its form and files. Its files go first (their
+ * URLs aren't known before, e.g. nostr.build chooses them), then the post is built with them and
+ * signed (the `sign` job: the signer is asked then), then published.
  */
 
 import type { SignedEntry, SignedEvent } from '@nostr-post/signer';
 
 export type OutboxState = 'draft' | 'waiting' | 'uploading' | 'publishing' | 'published' | 'failed';
 
-/** A file the item's events point to, uploaded later with an authorization signed at capture */
+/**
+ * A file the item's events point to, uploaded later: with an authorization signed at capture
+ * (Blossom: its URL is final before the upload), or signed at upload time (sign later: its URL
+ * in the form is a placeholder until then)
+ */
 export interface OutboxUpload {
   /** The file's key in the outbox storage */
   fileKey: string;
   /** SHA-256 of the file as uploaded (its Blossom address) */
   sha256: string;
-  /** Its URL in the events, final before the upload (a Blossom server's `<server>/<sha256>`) */
+  /**
+   * Its URL in the events or the form: final (a Blossom server's `<server>/<sha256>`), or a
+   * placeholder (`pending:<sha256>`) the uploaded URL replaces
+   */
   url: string;
-  /** The Blossom server it goes to */
+  /** The Blossom server it goes to; empty when it's chosen at upload time */
   server: string;
   type: string;
   size: number;
   name?: string;
   /** The upload's authorization (Blossom kind 24242, scoped to `sha256`), signed at capture */
-  auth: SignedEvent;
+  auth?: SignedEvent;
+  /** The field's upload settings, for an upload signed at upload time */
+  config?: unknown;
   /** On the server already */
   uploaded?: boolean;
+  /** Where it was stored, when that differs from `url` (a placeholder) */
+  uploadedUrl?: string;
 }
 
 /** A post the user is still working on: its form data and manifest, unsigned */
@@ -41,6 +56,10 @@ export interface OutboxDraft {
   kinds?: number[];
   /** Editing an existing addressable event */
   dTag?: string;
+  /** How to publish it (a sign-later item): the composer's options, e.g. format and reply target */
+  publish?: Record<string, unknown>;
+  /** Where to publish it */
+  relays?: string[];
 }
 
 export interface OutboxItem {
@@ -61,6 +80,8 @@ export interface OutboxItem {
   sendAt?: number;
   /** Upload only on wifi, unless the user asks to upload now */
   wifiOnly?: boolean;
+  /** Unsigned until it's sent: `draft` holds the form, signed after the uploads (`sign` job) */
+  signLater?: boolean;
   /** Why the last attempt failed */
   error?: string;
   attempts: number;
@@ -185,7 +206,7 @@ export type OutboxStep = 'upload' | 'publish' | 'wait' | 'none';
 export const nextStep = (item: OutboxItem, conditions: RunConditions = {}): OutboxStep => {
   const { now = nowSeconds(), wifi, force = false } = conditions;
   if (item.state === 'failed' ? !force : item.state !== 'waiting') return 'none';
-  if (item.events.length === 0) return 'none';
+  if (item.events.length === 0 && !item.signLater) return 'none';
   if (item.sendAt !== undefined && item.sendAt > now && !force) return 'wait';
   if (item.uploads.some((u) => !u.uploaded)) {
     return item.wifiOnly && wifi !== true && !force ? 'wait' : 'upload';
@@ -224,3 +245,12 @@ export const itemActions = (item: OutboxItem, now = nowSeconds()): OutboxAction[
 /** Bytes still to upload */
 export const pendingBytes = (item: OutboxItem): number =>
   item.uploads.filter((u) => !u.uploaded).reduce((sum, u) => sum + u.size, 0);
+
+/** Placeholder URLs in a value replaced by the uploaded files' URLs (a sign-later form) */
+export const withUploadedUrls = <T>(value: T, uploads: readonly OutboxUpload[]): T => {
+  let text = JSON.stringify(value);
+  for (const u of uploads) {
+    if (u.uploadedUrl && u.uploadedUrl !== u.url) text = text.split(u.url).join(u.uploadedUrl);
+  }
+  return JSON.parse(text) as T;
+};

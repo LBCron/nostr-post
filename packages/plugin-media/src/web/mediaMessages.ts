@@ -53,7 +53,8 @@ export interface MediaMessages {
   /** Upload later: the choice, what it does, and why it didn't apply */
   uploadLater: string;
   uploadLaterHint: string;
-  uploadLaterNoServer: string;
+  /** No Blossom server: the photos are uploaded and the post signed when they go */
+  uploadLaterSignLater: string;
   /** A photo's description (`alt: true`): its label and placeholder */
   altLabel: string;
   altPlaceholder: string;
@@ -95,7 +96,8 @@ export const DEFAULT_MEDIA_MESSAGES: MediaMessages = {
   uploadLater: 'Upload later, on wifi',
   uploadLaterHint:
     'Photos wait in the outbox and upload on wifi or when you choose; the post is published after',
-  uploadLaterNoServer: 'Upload later needs a Blossom server: uploaded now',
+  uploadLaterSignLater:
+    'Your signer will be asked when the photos upload: the post is signed with their links then',
   fileCount: (count, max) => `${count}/${max} files`,
   altLabel: 'Description of the photo',
   altPlaceholder: 'Describe the photo',

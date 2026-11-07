@@ -8,8 +8,9 @@ export type Route =
   | { page: 'artist'; dTag: string }
   | { page: 'artist-new'; name?: string }
   | { page: 'artist-edit'; dTag: string; additions?: Record<string, unknown> }
-  | { page: 'add' }
+  | { page: 'add'; draftId?: string }
   | { page: 'mine' }
+  | { page: 'outbox' }
   | { page: 'import' };
 
 /** `?add=<JSON>` of a route, if valid */
@@ -23,6 +24,14 @@ const additionsOf = (query: string | undefined): Record<string, unknown> | undef
 };
 
 const decode = (part: string | undefined) => decodeURIComponent(part ?? '');
+
+/** Pages with a fixed link */
+const FIXED: Record<string, Route> = {
+  '#/add': { page: 'add' },
+  '#/mine': { page: 'mine' },
+  '#/outbox': { page: 'outbox' },
+  '#/import': { page: 'import' },
+};
 
 /** The page a hash shows; anything unknown is browsing */
 export const routeOf = (hash: string): Route => {
@@ -38,10 +47,9 @@ export const routeOf = (hash: string): Route => {
   if (m) return { page: 'artist-new', name: m[1] ? decode(m[1]) : undefined };
   m = hash.match(/^#\/artist-edit\/([^?]+)(?:\?(.*))?$/);
   if (m) return { page: 'artist-edit', dTag: decode(m[1]), additions: additionsOf(m[2]) };
-  if (hash === '#/add') return { page: 'add' };
-  if (hash === '#/mine') return { page: 'mine' };
-  if (hash === '#/import') return { page: 'import' };
-  return { page: 'browse', query: hash.split('?')[1] ?? '' };
+  m = hash.match(/^#\/add\?draft=(.+)$/);
+  if (m) return { page: 'add', draftId: decode(m[1]) };
+  return FIXED[hash] ?? { page: 'browse', query: hash.split('?')[1] ?? '' };
 };
 
 /** A gig's page */
@@ -56,3 +64,6 @@ export const artistEditLink = (dTag: string, additions?: Record<string, unknown>
   `#/artist-edit/${encodeURIComponent(dTag)}${
     additions ? `?add=${encodeURIComponent(JSON.stringify(additions))}` : ''
   }`;
+
+/** Editing a draft from the outbox in the Add a gig page */
+export const draftLink = (id: string): string => `#/add?draft=${encodeURIComponent(id)}`;

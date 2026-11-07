@@ -24,7 +24,13 @@ export {
   type SaveDraftOptions,
   saveDraft,
 } from './composerDrafts';
-export { type PublishOrQueueResult, publishOrQueue } from './composerOutbox';
+export {
+  type CoordinateOptions,
+  type PublishOrQueueResult,
+  publishOrQueue,
+  type SignLaterContext,
+  signQueuedPost,
+} from './composerOutbox';
 export { NostrDryRunPublish } from './dryRunPublish';
 export {
   DEFAULT_DRY_RUN_PUBLISH_MESSAGES,

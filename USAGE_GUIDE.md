@@ -941,6 +941,13 @@ function UserFeed({ pubkey }: { pubkey: string }) {
 
 ### Components
 
+#### `<NostrPostOutbox>`
+
+React wrapper for `<nostr-post-outbox>` (`@nostr-post/outbox/web`): posts not published yet
+(drafts, timed posts, photos to upload later), kept in this browser. Props: `outbox?`, `pubkey?`
+(default the signer's), `messages?`, `onEdit?(item)` (a draft to edit: `openDraft(item)` gives
+the composer's `manifest`/`manifestRef`, `prefill`, `dTag` and `draftId`), `dark?`.
+
 #### `<NostrPostComposer>`
 
 React wrapper for the composer component.
@@ -965,6 +972,11 @@ React wrapper for the composer component.
     borderColor?: string;
   };
   dark?: boolean;                    // Enable dark mode
+  drafts?: boolean;                  // "Save draft" (the outbox)
+  draftId?: string;                  // The draft being edited (openDraft)
+  schedule?: boolean;                // "Publish at" (a timed post in the outbox)
+  onQueued?: (item: OutboxItem) => void;     // Waits in the outbox (upload later, timed)
+  onDraftSaved?: (item: OutboxItem) => void; // "Save draft" saved it
   onPublish?: (events: NostrEvent[]) => void;
   onError?: (error: string) => void;
   onChange?: (data: Record<string, unknown>) => void;
@@ -1370,7 +1382,8 @@ Upload and manage image and video files with array support.
 - `imeta` tags (NIP-92) with `imeta: true`, or mapped to the `imeta` tag (NIP-68 pictures)
 - Location and other metadata removed from JPEG photos (`keepMetadata: true` keeps them)
 - "Upload later, on wifi": photos wait in the outbox (`@nostr-post/outbox`) with the post, and
-  upload on wifi or when the user asks; the post is published after (needs a Blossom server)
+  upload on wifi or when the user asks; the post is published after. With a Blossom server the
+  post is signed now; otherwise it's signed when the photos upload (the signer is asked then)
 - Image gallery with lightbox
 - Video player with controls
 - Auto-detection of image/video types

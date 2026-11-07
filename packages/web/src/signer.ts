@@ -48,6 +48,7 @@ export {
   publishToRelays,
   removeDryRunEntries,
   SIGNING_EVENT,
+  type SignedEntry,
   type SignedEvent,
   type SigningDetail,
   setDryRun,

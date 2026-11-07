@@ -24,13 +24,14 @@ import {
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
+import { composerDefaults as outboxDefaults } from './composerDefaults';
 import type { FieldRenderContext } from './composerField';
 import { renderFieldList } from './composerFieldList';
 import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import { publishOrQueue, queuedMessage, removeDraft, saveDraft } from './composerOutbox';
+import { publishOrQueue, queuedMessage, removeDraft, saveComposerDraft } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
@@ -42,79 +43,61 @@ import { fetchManifestByATag, SIGNING_EVENT, type SignedEvent, type SigningDetai
 export class NostrPostComposer extends NostrPostElement {
   static styles = [baseStyles, composerStyle];
 
-  @property({ type: Object })
-  manifest?: NostrPostManifest;
+  @property({ type: Object }) manifest?: NostrPostManifest;
 
   /** Overrides for the submit area's text (e.g. translations) */
-  @property({ attribute: false })
-  messages?: Partial<ComposerMessages>;
+  @property({ attribute: false }) messages?: Partial<ComposerMessages>;
 
-  @property({ type: String })
-  pubkey?: string;
+  @property({ type: String }) pubkey?: string;
 
   /** Reference to the manifest event on Nostr (a-tag value, e.g. '30078:<pubkey>:<d-tag>') */
-  @property({ type: String, attribute: 'manifest-ref' })
-  manifestRef?: string;
+  @property({ type: String, attribute: 'manifest-ref' }) manifestRef?: string;
 
   /** Explicit d-tag for addressable events (kinds 30000-39999). Reuse this to update an existing post. */
-  @property({ type: String, attribute: 'd-tag' })
-  dTag?: string;
+  @property({ type: String, attribute: 'd-tag' }) dTag?: string;
 
   /** Auto-sign and publish events (uses NIP-07 window.nostr) */
-  @property({ type: Boolean, attribute: 'auto-publish' })
-  autoPublish = false;
+  @property({ type: Boolean, attribute: 'auto-publish' }) autoPublish = false;
 
   /** Custom relay URLs (defaults to popular relays) */
-  @property({ type: Array })
-  relays?: string[];
+  @property({ type: Array }) relays?: string[];
 
   /** Field IDs to completely exclude from the composer */
-  @property({ type: Array, attribute: 'exclude-fields' })
-  excludeFields?: string[];
+  @property({ type: Array, attribute: 'exclude-fields' }) excludeFields?: string[];
 
   /** Field IDs to show as read-only (value visible but not editable) */
-  @property({ type: Array, attribute: 'readonly-fields' })
-  readonlyFields?: string[];
+  @property({ type: Array, attribute: 'readonly-fields' }) readonlyFields?: string[];
 
   /** Pre-filled values keyed by field ID (merged with field defaultValue, prefill wins) */
-  @property({ type: Object })
-  prefill?: Record<string, unknown>;
+  @property({ type: Object }) prefill?: Record<string, unknown>;
 
   /** Parent event id for protocol-standard kind 1 replies/comments. */
-  @property({ type: String, attribute: 'reply-to-event-id' })
-  replyToEventId?: string;
+  @property({ type: String, attribute: 'reply-to-event-id' }) replyToEventId?: string;
 
   /** Parent author pubkey for protocol-standard kind 1 replies/comments. */
-  @property({ type: String, attribute: 'reply-to-pubkey' })
-  replyToPubkey?: string;
+  @property({ type: String, attribute: 'reply-to-pubkey' }) replyToPubkey?: string;
 
   /** Optional root event id when replying deeper in a thread. Defaults to replyToEventId. */
-  @property({ type: String, attribute: 'root-event-id' })
-  rootEventId?: string;
+  @property({ type: String, attribute: 'root-event-id' }) rootEventId?: string;
 
   /** Optional root author pubkey when replying deeper in a thread. */
-  @property({ type: String, attribute: 'root-pubkey' })
-  rootPubkey?: string;
+  @property({ type: String, attribute: 'root-pubkey' }) rootPubkey?: string;
 
   /** The root's address when it's addressable: replies follow it across its versions */
-  @property({ type: String, attribute: 'root-address' })
-  rootAddress?: string;
+  @property({ type: String, attribute: 'root-address' }) rootAddress?: string;
 
   /** Show reply target context panel when reply tags are in use. */
-  @property({ type: Boolean, attribute: 'show-reply-target' })
-  showReplyTarget = false;
+  @property({ type: Boolean, attribute: 'show-reply-target' }) showReplyTarget = false;
 
   /** Allow editing reply target ids/pubkeys directly in the composer panel. */
-  @property({ type: Boolean, attribute: 'editable-reply-target' })
-  editableReplyTarget = false;
+  @property({ type: Boolean, attribute: 'editable-reply-target' }) editableReplyTarget = false;
 
   /** Hide the publish format picker even when the manifest offers user-selectable formats. */
   @property({ type: Boolean, attribute: 'hide-publish-format-selector' })
   hidePublishFormatSelector = false;
 
   /** Pre-select a specific publish format by ID when the composer first renders. */
-  @property({ type: String, attribute: 'default-format-id' })
-  defaultFormatId?: string;
+  @property({ type: String, attribute: 'default-format-id' }) defaultFormatId?: string;
 
   /**
    * Extra Nostr tags to append to every published event.
@@ -122,17 +105,17 @@ export class NostrPostComposer extends NostrPostElement {
    * values with colons — e.g. "i:osm:node:1234" — are handled correctly).
    * Can also be set programmatically as a string property.
    */
-  @property({ type: String, attribute: 'extra-tags' })
-  extraTags?: string;
+  @property({ type: String, attribute: 'extra-tags' }) extraTags?: string;
 
   /** Offer "Save draft": the form goes to the outbox, unsigned (`saveDraft`) */
-  @property({ type: Boolean }) drafts = false;
+  @property({ type: Boolean }) drafts = outboxDefaults().drafts ?? false;
   /** The draft being edited (`openDraft`): saving replaces it, publishing removes it */
   @property({ type: String, attribute: 'draft-id' }) draftId?: string;
   /** Offer "Publish at": a timed post waits in the outbox (`publishOrQueue`) */
-  @property({ type: Boolean }) schedule = false;
+  @property({ type: Boolean }) schedule = outboxDefaults().schedule ?? false;
   /** Offer "Upload later, on wifi" in media fields: the post waits in the outbox */
-  @property({ type: Boolean, attribute: 'upload-later' }) uploadLater = false;
+  @property({ type: Boolean, attribute: 'upload-later' }) uploadLater =
+    outboxDefaults().uploadLater ?? false;
   @state() private _sendAt?: number;
 
   @state() private _formData: Record<string, unknown> = {};
@@ -366,11 +349,17 @@ export class NostrPostComposer extends NostrPostElement {
   }
 
   private async _saveDraft(): Promise<void> {
-    const pubkey = await signedInPubkey(this.pubkey, this.autoPublish);
-    if (!pubkey) return this.showError(this._m.signInToPublish);
     const manifest = this.manifest ?? this.manifestRef ?? STANDARD_KIND1_POST_MANIFEST;
-    const { draftId, dTag, _formData: formData } = this;
-    const item = await saveDraft({ pubkey, manifest, formData, dTag, draftId });
+    const { pubkey, autoPublish, dTag, draftId, _formData: formData } = this;
+    const item = await saveComposerDraft({
+      pubkey,
+      autoPublish,
+      manifest,
+      formData,
+      dTag,
+      draftId,
+    });
+    if (!item) return this.showError(this._m.signInToPublish);
     this.draftId = item.id;
     this.successMessage = this._m.draftSaved;
     this.dispatchCustomEvent('nostr-post-draft-saved', item);

@@ -18,6 +18,7 @@ import {
   queuePost,
   type SaveDraftOptions,
   saveDraftItem,
+  signedInPubkey,
   signQueuedPost,
 } from '@nostr-post/posts';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
@@ -39,6 +40,20 @@ export async function publishOrQueue(
 /** Saves the form as a draft in the browser outbox */
 export const saveDraft = (options: SaveDraftOptions): Promise<OutboxItem> =>
   saveDraftItem(browserOutbox(), options);
+
+/** A composer's draft: saved under the signed-in user, or undefined when no one is */
+export async function saveComposerDraft(
+  composer: Omit<SaveDraftOptions, 'pubkey' | 'manifest'> & {
+    pubkey?: string;
+    autoPublish?: boolean;
+    manifest: SaveDraftOptions['manifest'];
+  }
+): Promise<OutboxItem | undefined> {
+  const pubkey = await signedInPubkey(composer.pubkey, composer.autoPublish ?? false);
+  if (!pubkey) return undefined;
+  const { manifest, formData, dTag, draftId } = composer;
+  return saveDraft({ pubkey, manifest, formData, dTag, draftId });
+}
 
 /** A draft of the browser outbox for a composer (`manifest`/`manifestRef`, `prefill`, `draftId`) */
 export const openDraft = (item: OutboxItem): Promise<OpenedDraft> =>

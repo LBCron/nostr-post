@@ -34,7 +34,15 @@ export function AdditionalMappings({
 
   return (
     <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div id={additionalMappingsHeadingId} style={styles.label}>
             Additional Event Mappings
@@ -66,6 +74,8 @@ export function AdditionalMappings({
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap' as const,
+                      gap: '0.5rem',
                       alignItems: 'center',
                       marginBottom: '0.75rem',
                     }}

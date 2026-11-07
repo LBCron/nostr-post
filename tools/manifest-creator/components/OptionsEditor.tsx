@@ -90,7 +90,15 @@ export function OptionsEditor({ field, onChange }: OptionsEditorProps) {
 
   return (
     <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div style={styles.label}>Options</div>
           <div style={styles.helperText}>

@@ -276,7 +276,7 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
         This preserves its internal state (form values) across tab switches.
       */}
       <div style={activeTab !== 'preview' ? styles.hidden : undefined}>
-        <div style={styles.composerContainer}>
+        <div className="composer-scroll">
           <h3 style={styles.feedHeader}>Composer</h3>
           <nostr-post-composer
             key={manifest.id}

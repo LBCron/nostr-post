@@ -57,10 +57,6 @@ export const styles = {
     whiteSpace: 'pre-wrap' as const,
     wordBreak: 'break-word' as const,
   },
-  composerContainer: {
-    maxHeight: '600px',
-    overflowY: 'auto' as const,
-  },
   divider: {
     borderTop: '2px solid var(--np-color-outline-variant)',
     margin: '1.5rem 0',
@@ -81,6 +77,8 @@ export const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap' as const,
+    gap: '0.5rem',
   },
   hidden: {
     display: 'none',
@@ -100,7 +98,7 @@ export const styles = {
   },
   replyGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
     gap: '0.75rem',
     marginTop: '0.75rem',
   },

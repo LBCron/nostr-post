@@ -11,7 +11,7 @@ interface SectionsEditorProps {
 
 const cardStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
   gap: '0.5rem',
   padding: '0.5rem',
   border: '1px solid var(--np-color-outline-variant)',
@@ -63,7 +63,15 @@ export function SectionsEditor({ sections: related, onChange }: SectionsEditorPr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div style={styles.label}>Sections</div>
           <div style={styles.helperText}>

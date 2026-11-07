@@ -8,6 +8,8 @@ export const styles = {
   panelHeader: {
     display: 'flex',
     justifyContent: 'space-between',
+    flexWrap: 'wrap' as const,
+    gap: '0.5rem',
     alignItems: 'center',
     marginBottom: '1.5rem',
     paddingBottom: '1rem',

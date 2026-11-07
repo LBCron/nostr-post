@@ -32,7 +32,15 @@ export function WikiLinksEditor({ links, fieldIds, onChange }: WikiLinksEditorPr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div style={styles.label}>Links</div>
           <div style={styles.helperText}>

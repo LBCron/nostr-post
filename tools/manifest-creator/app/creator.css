@@ -1,5 +1,11 @@
 /* The manifest creator's page: @nostr-post/ui's tokens and primitives (ui.css), no brand */
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
@@ -64,4 +70,58 @@ body {
 input[type="range"],
 input[type="checkbox"] {
   accent-color: var(--np-color-primary);
+}
+
+/* ── Page layout: editor and preview side by side, stacked on narrow screens ── */
+.creator-header {
+  padding: var(--np-space-6) var(--np-space-8);
+  background: var(--np-color-surface-container-lowest);
+  border-bottom: 1px solid var(--np-color-outline-variant);
+}
+
+.creator-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--np-space-8);
+}
+
+.creator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--np-space-8);
+}
+
+.creator-grid > *,
+.creator-column {
+  min-width: 0;
+}
+
+/* The preview's composer scrolls in its own box beside the editor; stacked, the page scrolls */
+.composer-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+@media (max-width: 960px) {
+  .creator-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .composer-scroll {
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .creator-header {
+    padding: var(--np-space-4);
+  }
+
+  .creator-container {
+    padding: var(--np-space-3);
+  }
+
+  .creator-grid {
+    gap: var(--np-space-4);
+  }
 }

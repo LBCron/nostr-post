@@ -66,6 +66,7 @@ export function PublishFormatsEditor({
         style={{
           display: 'flex',
           justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
           alignItems: 'center',
           gap: '1rem',
         }}
@@ -109,7 +110,7 @@ export function PublishFormatsEditor({
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
                   gap: '0.75rem',
                 }}
               >

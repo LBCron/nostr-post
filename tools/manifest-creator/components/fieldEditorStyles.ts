@@ -8,6 +8,8 @@ export const styles = {
   fieldHeader: {
     display: 'flex',
     justifyContent: 'space-between',
+    flexWrap: 'wrap' as const,
+    gap: '0.5rem',
     alignItems: 'center',
     marginBottom: '0.75rem',
   },
@@ -17,7 +19,7 @@ export const styles = {
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
     gap: '0.75rem',
   },
   formGroup: {

@@ -14,11 +14,6 @@ import { registerEntityManifests } from '../lib/entityManifests';
 import { EXAMPLE_MANIFESTS } from '../lib/examples';
 
 const styles = {
-  header: {
-    background: 'var(--np-color-surface-container-lowest)',
-    borderBottom: '1px solid var(--np-color-outline-variant)',
-    padding: '1.5rem 2rem',
-  },
   title: {
     fontSize: 'var(--np-text-2xl)',
     fontWeight: 700,
@@ -35,16 +30,6 @@ const styles = {
     justifyContent: 'space-between',
     gap: '1rem',
     flexWrap: 'wrap',
-  },
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '2rem',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '2rem',
   },
 } as const;
 
@@ -149,7 +134,7 @@ export default function Home() {
 
   return (
     <>
-      <header style={styles.header}>
+      <header className="creator-header">
         <div style={styles.headerRow}>
           <div>
             <h1 style={styles.title}>🎨 Manifest Creator</h1>
@@ -163,9 +148,9 @@ export default function Home() {
         <TestModeLog />
       </header>
 
-      <div style={styles.container}>
+      <div className="creator-container">
         <ThemePanel />
-        <div style={styles.grid}>
+        <div className="creator-grid">
           <div>
             <ManifestEditor
               manifest={manifest}

@@ -36,7 +36,7 @@ export { type FeedLayout, type FeedThreadContext, renderFeedThread } from './fee
 export { NostrPostElement } from './baseComponent';
 
 // Theme (single source of truth for colors and styles)
-export { colors, baseStyles } from './theme';
+export { baseStyles } from './theme';
 
 // Publishing a submitted post yourself: run plugin hooks, add their tags
 export { runAfterPublish, runBeforePublish, runPublishHooks } from '@nostr-post/plugins/publish';

@@ -8,7 +8,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
@@ -54,32 +55,34 @@ function renderMarkdown(md: string): string {
 }
 
 @customElement('np-markdown-view')
-export class NpMarkdownView extends LitElement {
-  static styles = css`
+export class NpMarkdownView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
 
     .markdown-view {
       line-height: 1.7;
-      color: #1f2937;
-      font-size: 0.9375rem;
+      color: var(--np-color-on-surface);
+      font-size: var(--np-text-md);
     }
 
     .markdown-view h1 {
-      font-size: 1.5rem;
+      font-size: var(--np-text-2xl);
       margin: 1rem 0 0.5rem;
       font-weight: 700;
     }
 
     .markdown-view h2 {
-      font-size: 1.25rem;
+      font-size: var(--np-text-xl);
       margin: 1rem 0 0.5rem;
       font-weight: 600;
     }
 
     .markdown-view h3 {
-      font-size: 1.125rem;
+      font-size: var(--np-text-xl);
       margin: 0.75rem 0 0.5rem;
       font-weight: 600;
     }
@@ -97,21 +100,21 @@ export class NpMarkdownView extends LitElement {
     }
 
     .markdown-view code {
-      background: #f3f4f6;
+      background: var(--np-color-surface-container);
       padding: 2px 5px;
-      border-radius: 3px;
-      font-family: "SF Mono", "Fira Code", monospace;
+      border-radius: var(--np-radius-xs);
+      font-family: var(--np-font-family-mono);
       font-size: 0.875em;
     }
 
     .markdown-view pre {
-      background: #1f2937;
-      color: #e5e7eb;
+      background: var(--np-color-inverse-surface);
+      color: var(--np-color-on-surface-variant);
       padding: 0.75rem 1rem;
-      border-radius: 6px;
+      border-radius: var(--np-radius-sm);
       overflow-x: auto;
-      font-family: "SF Mono", "Fira Code", monospace;
-      font-size: 0.875rem;
+      font-family: var(--np-font-family-mono);
+      font-size: var(--np-text-md);
       line-height: 1.5;
     }
 
@@ -122,30 +125,30 @@ export class NpMarkdownView extends LitElement {
     }
 
     .markdown-view blockquote {
-      border-left: 3px solid #d1d5db;
+      border-left: 3px solid var(--np-color-outline-variant);
       padding-left: 0.75rem;
       margin: 0.5rem 0;
-      color: #6b7280;
+      color: var(--np-color-on-surface-variant);
       font-style: italic;
     }
 
     .markdown-view a {
-      color: #6366f1;
+      color: var(--np-color-primary);
       text-decoration: underline;
     }
 
     .markdown-view a:hover {
-      color: #4f46e5;
+      color: var(--np-color-primary);
     }
 
     .markdown-view img {
       max-width: 100%;
-      border-radius: 6px;
+      border-radius: var(--np-radius-sm);
     }
 
     .markdown-view hr {
       border: none;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid var(--np-color-outline-variant);
       margin: 1rem 0;
     }
 
@@ -160,34 +163,13 @@ export class NpMarkdownView extends LitElement {
     }
 
     .empty {
-      font-size: 0.875rem;
-      color: #9ca3af;
+      font-size: var(--np-text-md);
+      color: var(--np-color-on-surface-variant);
       font-style: italic;
     }
 
-    :host-context(.dark) .markdown-view {
-      color: #f3f4f6;
-    }
-    :host-context(.dark) .markdown-view code {
-      background: #374151;
-    }
-    :host-context(.dark) .markdown-view pre {
-      background: #111827;
-    }
-    :host-context(.dark) .markdown-view blockquote {
-      border-color: #4b5563;
-      color: #9ca3af;
-    }
-    :host-context(.dark) .markdown-view a {
-      color: #a5b4fc;
-    }
-    :host-context(.dark) .markdown-view a:hover {
-      color: #c7d2fe;
-    }
-    :host-context(.dark) .markdown-view hr {
-      border-color: #4b5563;
-    }
-  `;
+  `,
+  ];
 
   @property({ type: String })
   value = '';

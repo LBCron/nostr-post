@@ -63,7 +63,7 @@ export function renderEditButton(
 ): TemplateResult | typeof nothing {
   if (!editable) return nothing;
   return html`
-    <button type="button" class="view-edit-button" @click=${() => onEditRequest(event)}>
+    <button type="button" class="view-edit-button np-button np-small" part="button" @click=${() => onEditRequest(event)}>
       ${showInlineComposer ? messages.close : messages.edit}
     </button>
   `;
@@ -107,7 +107,7 @@ export function renderInlineComposer(
   const isAuthor = editPubkey === event.pubkey;
   return html`
     <div class="view-inline-composer">
-      ${isAuthor ? nothing : html`<p class="view-edit-hint">${m.suggestHint}</p>`}
+      ${isAuthor ? nothing : html`<p class="view-edit-hint np-hint">${m.suggestHint}</p>`}
       <nostr-post-composer
         .manifest=${manifest}
         .prefill=${prefill}

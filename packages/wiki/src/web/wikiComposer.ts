@@ -2,7 +2,8 @@ import { fieldDescription, fieldLabel } from '@nostr-post/core/manifest';
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import { SIGNING_EVENT, type SigningDetail } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
@@ -33,8 +34,8 @@ import { composerStyles } from './wikiComposerStyles';
 import { publishWikiPage } from './wikiPublish';
 
 @customElement('nostr-wiki-composer')
-export class NostrWikiComposer extends LitElement {
-  static styles = composerStyles;
+export class NostrWikiComposer extends NpElement {
+  static override styles = [...npStyles, composerStyles];
   @property({ type: String, attribute: 'entity-id' })
   entityId?: string;
 
@@ -374,17 +375,19 @@ export class NostrWikiComposer extends LitElement {
     }
 
     return html`
-      <form class="nostr-wiki-composer" @submit=${(e: Event) => {
+      <form class="nostr-wiki-composer np-card np-outlined" part="container" @submit=${(
+        e: Event
+      ) => {
         e.preventDefault();
         void this._onSave();
       }}>
-        <header class="wiki-composer-header">
+        <header class="wiki-composer-header" part="header">
           <h3>${this._baseEvent ? m.editEntity(this._headerTitle()) : m.newEntity}</h3>
           ${this._baseEvent ? html`<small>${m.forkingFrom(this._baseEvent.pubkey.slice(0, 8))}</small>` : nothing}
           ${
             this._wikiConfig
               ? html`
-            <div class="wiki-identity-preview">
+            <div class="wiki-identity-preview np-message np-info">
               <span class="preview-item">
                 <span class="preview-label">${m.titleLabel}</span>
                 <span class="preview-value">${this._previewTitle ?? html`<em>—</em>`}</span>
@@ -407,19 +410,23 @@ export class NostrWikiComposer extends LitElement {
             .map((f) => this._renderField(f))}
         </div>
 
-        ${this._error ? html`<p class="wiki-error" role="alert">${this._error}</p>` : nothing}
+        ${this._error ? html`<p class="wiki-error np-message np-error" part="error" role="alert">${this._error}</p>` : nothing}
 
         ${renderPublishSummaries(this.manifest, this._formData, (id, value) =>
           this._onFieldChange(id, value)
         )}
 
-        <div class="wiki-composer-actions">
-          <button type="submit" ?disabled=${this._publishing || !!this._dTagError()}>
+        <div class="wiki-composer-actions" part="actions">
+          <button
+            type="submit"
+            class="np-button np-filled"
+            part="button primary"
+            ?disabled=${this._publishing || !!this._dTagError()}>
             ${this._publishing ? m.publishing : m.publish}
           </button>
           ${
             this._publishing && this._signing
-              ? html`<span class="wiki-signing">${m.waitingForSigner}</span>`
+              ? html`<span class="wiki-signing np-hint">${m.waitingForSigner}</span>`
               : nothing
           }
         </div>
@@ -437,14 +444,12 @@ export class NostrWikiComposer extends LitElement {
     const value = this._formData[f.id];
     const label = fieldLabel(f);
     const description = fieldDescription(f);
-    const help = description
-      ? html`<div class="wiki-field-description">${description}</div>`
-      : nothing;
+    const help = description ? html`<div class="np-hint">${description}</div>` : nothing;
 
     if (f.visibility?.edit === 'readonly') {
       return html`
-        <div class="wiki-field">
-          <label>${label}</label>
+        <div class="wiki-field np-field">
+          <label class="np-label">${label}</label>
           <span>${String(value ?? '')}</span>
         </div>
       `;
@@ -456,9 +461,11 @@ export class NostrWikiComposer extends LitElement {
       ? this._renderPluginControl(f, value, plugin.inputTagName)
       : renderNativeControl(f, value, (v) => this._onFieldChange(f.id, v), this._m);
     return html`
-      <div class="wiki-field">
-        <label for=${ifDefined(plugin?.inputTagName ? undefined : `field-${f.id}`)}>
-          ${label}${f.required ? ' *' : ''}
+      <div class="wiki-field np-field">
+        <label
+          class="np-label ${f.required ? 'np-required' : ''}"
+          for=${ifDefined(plugin?.inputTagName ? undefined : `field-${f.id}`)}>
+          ${label}
         </label>
         ${help} ${control}
       </div>

@@ -21,7 +21,8 @@ import {
   resolveEntityManifest,
 } from '@nostr-post/wiki';
 import type { CreatedEntity, WikiEvent } from '@nostr-post/wiki';
-import { LitElement, html, nothing } from 'lit';
+import { html, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import { customElement, property, state } from 'lit/decorators.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import '@nostr-post/wiki/web';
@@ -52,8 +53,8 @@ import { type EntitySearchResult, searchEntities } from './search';
 import { pickerStyles } from './webStyles';
 
 @customElement('wiki-entity-picker')
-export class WikiEntityPicker extends LitElement {
-  static override styles = pickerStyles;
+export class WikiEntityPicker extends NpElement {
+  static override styles = [...npStyles, pickerStyles];
   /** One entity, or a list with `metadata.multiple` */
   @property({ attribute: false })
   value?: WikiEntityData | WikiEntityData[];
@@ -390,7 +391,7 @@ export class WikiEntityPicker extends LitElement {
     return html`
       <button
         type="button"
-        class="preview-btn"
+        class="preview-btn np-icon-button" part="button"
         title=${this._m.preview}
         aria-label=${this._m.previewLabel(dTag)}
         @click=${open}
@@ -451,7 +452,7 @@ export class WikiEntityPicker extends LitElement {
       <div class="picker">
         ${picked.filter(isShown).map((entity) => this._renderPicked(entity))}
         <input
-          class="search-input"
+          class="np-input" part="input"
           type="search"
           placeholder=${this._m.searchPlaceholder}
           .value=${this._query}
@@ -462,7 +463,7 @@ export class WikiEntityPicker extends LitElement {
         ${
           showDropdown
             ? html`
-              <div class="dropdown" role="listbox">
+              <div class="dropdown np-menu" part="menu" role="listbox">
                 ${this._searching ? html`<div class="status-row">${this._m.searching}</div>` : nothing}
                 ${this._results.map((result) => this._renderResult(result))}
                 ${

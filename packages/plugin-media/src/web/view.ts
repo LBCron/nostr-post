@@ -10,15 +10,18 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { isImageUrl, isVideoUrl, type MediaPluginConfig, toArray } from '../core';
 import { mediaFileOf } from '../mediaFiles';
 import { otherServersOf } from './otherServers';
 
 @customElement('np-media-view')
-export class NpMediaView extends LitElement {
-  static styles = css`
+export class NpMediaView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
       line-height: 1.3;
@@ -29,10 +32,10 @@ export class NpMediaView extends LitElement {
       gap: 0.4rem;
     }
     .media-view {
-      border-radius: 8px;
+      border-radius: var(--np-radius-sm);
       overflow: hidden;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: var(--np-color-surface-container-low);
+      border: 1px solid var(--np-color-outline-variant);
       max-width: min(220px, 100%);
     }
     img {
@@ -40,38 +43,39 @@ export class NpMediaView extends LitElement {
       width: 100%;
       max-height: 180px;
       object-fit: contain;
-      border-radius: 8px;
+      border-radius: var(--np-radius-sm);
     }
     video {
       display: block;
       width: 100%;
       max-height: 180px;
-      border-radius: 8px;
+      border-radius: var(--np-radius-sm);
     }
     .media-link {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       padding: 0.75rem;
-      color: #6366f1;
+      color: var(--np-color-primary);
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: var(--np-text-md);
       word-break: break-all;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
+      border: 1px solid var(--np-color-outline-variant);
+      border-radius: var(--np-radius-sm);
     }
     .media-link:hover {
       text-decoration: underline;
     }
     .media-icon {
-      font-size: 1.25rem;
+      font-size: var(--np-text-xl);
       flex-shrink: 0;
     }
     .empty {
-      font-size: 0.875rem;
-      color: #9ca3af;
+      font-size: var(--np-text-md);
+      color: var(--np-color-on-surface-variant);
     }
-  `;
+  `,
+  ];
 
   @property({ type: Array })
   value: string | string[] = [];

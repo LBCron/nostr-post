@@ -60,7 +60,7 @@ export function renderRawData(event: RawEvent, m: RawDataMessages): TemplateResu
       <div class="view-tags">
         ${event.tags.map(
           (tag) =>
-            html`<span class="tag"><span class="tag-name">${tag[0]}:</span> ${tag.slice(1).join(', ')}</span>`
+            html`<span class="tag np-chip" part="chip"><span class="tag-name">${tag[0]}:</span> ${tag.slice(1).join(', ')}</span>`
         )}
       </div>
       ${event.content ? html`<h4>${m.content}</h4><pre>${event.content}</pre>` : ''}

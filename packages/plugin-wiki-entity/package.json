@@ -33,6 +33,7 @@
     "@nostr-post/core": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
     "@nostr-post/signer": "workspace:*",
+    "@nostr-post/ui": "workspace:*",
     "@nostr-post/wiki": "workspace:*",
     "lit": "^3.3.3"
   },

@@ -9,7 +9,8 @@
 import type { PostSection } from '@nostr-post/core/types';
 import { fetchReferences } from '@nostr-post/posts';
 import { DEFAULT_RELAYS, fetchProfiles } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { type MediaItem, type MediaSource, mediaOfEvents } from '../eventMedia';
 import { DEFAULT_MEDIA_GALLERY_MESSAGES, type MediaGalleryMessages } from './galleryMessages';
@@ -27,8 +28,8 @@ export interface MediaGalleryConfig {
 }
 
 @customElement('np-media-gallery')
-export class NpMediaGallery extends LitElement {
-  static override styles = galleryStyles;
+export class NpMediaGallery extends NpElement {
+  static override styles = [...npStyles, galleryStyles];
 
   /** A section's posts (the `gallery` view of `<nostr-post-sections>`): no loading, no heading */
   @property({ attribute: false }) items?: MediaSource[];
@@ -116,17 +117,17 @@ export class NpMediaGallery extends LitElement {
     const items = this._items;
     return html`
       ${this.items ? nothing : html`<h3>${this.config.label ?? m.heading}</h3>`}
-      ${items === undefined ? html`<div class="status">${m.loading}</div>` : nothing}
-      ${items?.length === 0 ? html`<div class="status">${m.empty}</div>` : nothing}
+      ${items === undefined ? html`<div class="np-hint">${m.loading}</div>` : nothing}
+      ${items?.length === 0 ? html`<div class="np-hint">${m.empty}</div>` : nothing}
       ${items?.length ? renderGrid(items.slice(0, this._shown), this._names, m, (i) => this._openItem(i)) : nothing}
       ${
         items && items.length > this._shown
-          ? html`<button type="button" class="more" @click=${() => {
+          ? html`<button type="button" class="more np-button np-text np-small" part="button" @click=${() => {
               this._shown *= 2;
             }}>${m.showMore}</button>`
           : nothing
       }
-      <dialog class="large-view" @close=${() => {
+      <dialog class="large-view np-dialog" part="dialog" @close=${() => {
         this._open = undefined;
       }}>
         ${renderLarge(this._open, this._names, m, () => this._closeItem())}

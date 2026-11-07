@@ -16,11 +16,12 @@ export const renderPublishFormatPicker = (
   const selectedFormat = formats.find((f) => f.id === selectedId);
 
   return html`
-    <div class="publish-format-panel">
-      <label class="publish-format-label" for="publish-format-select">Publish as</label>
+    <div class="publish-format-panel np-field">
+      <label class="np-label" for="publish-format-select">Publish as</label>
       <select
         id="publish-format-select"
-        class="publish-format-select"
+        class="np-input"
+        part="input"
         .value=${selectedId}
         @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}
       >
@@ -30,7 +31,7 @@ export const renderPublishFormatPicker = (
       </select>
       ${
         selectedFormat?.description
-          ? html`<p class="publish-format-description">${selectedFormat.description}</p>`
+          ? html`<p class="np-hint">${selectedFormat.description}</p>`
           : ''
       }
     </div>

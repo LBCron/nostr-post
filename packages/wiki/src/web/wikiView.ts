@@ -3,7 +3,8 @@ import type { NostrPostManifest } from '@nostr-post/core/types';
 import { eventActionsFor } from '@nostr-post/plugins/entities';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import { type EventManifest, fetchEvents, fetchManifestForEvent } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
@@ -29,8 +30,8 @@ import { viewStyles } from './wikiViewStyles';
 const ALL_RELAYS = { waitForAll: true, relayTimeoutMs: 5000 };
 
 @customElement('nostr-wiki-view')
-export class NostrWikiView extends LitElement {
-  static styles = viewStyles;
+export class NostrWikiView extends NpElement {
+  static override styles = [...npStyles, viewStyles];
   @property({ type: String, attribute: 'entity-id' })
   entityId?: string;
 
@@ -320,10 +321,10 @@ export class NostrWikiView extends LitElement {
       : String(eventTitleTag ?? data.__dTag ?? '');
 
     return html`
-      <div class="wiki-view">
-        <header class="wiki-header">
+      <div class="wiki-view" part="container">
+        <header class="wiki-header" part="header">
           <h2>${titleValue}</h2>
-          <span class="wiki-badge">${
+          <span class="wiki-badge np-badge" part="badge">${
             this.event
               ? `${this.event.pubkey.slice(0, 8)}… · ${new Date(this.event.created_at * 1000).toLocaleString()}`
               : m.contributors(countContributors(_allEvents))

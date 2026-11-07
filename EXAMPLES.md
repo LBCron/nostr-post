@@ -290,12 +290,14 @@ When a `manifestRef` is provided the components will fetch the manifest (once, c
 ### Example 2: Composer with Custom Theme
 
 ```html
-<nostr-post-composer
-  id="my-composer"
-  theme-primary-color="#8b5cf6"
-  theme-background-color="#ffffff"
-  theme-border-radius="12px"
-></nostr-post-composer>
+<style>
+  /* The design tokens of @nostr-post/ui: see packages/ui/README.md */
+  :root {
+    --np-color-primary: #8b5cf6;
+    --np-radius: 12px;
+  }
+</style>
+<nostr-post-composer id="my-composer"></nostr-post-composer>
 
 <script type="module">
   import "@nostr-post/web";
@@ -524,17 +526,12 @@ function BlogApp({ pubkey }: { pubkey: string }) {
 ```tsx
 import { NostrPostComposer } from "@nostr-post/react";
 
+// Colors, type and shape come from the --np-* tokens: set them in your CSS
+// (:root { --np-color-primary: #8b5cf6; --np-radius: 12px; })
 function StyledComposer({ pubkey }: { pubkey: string }) {
   return (
     <NostrPostComposer
       pubkey={pubkey}
-      theme={{
-        primaryColor: "#8b5cf6",
-        backgroundColor: "#ffffff",
-        textColor: "#1f2937",
-        borderRadius: "12px",
-        borderColor: "#e5e7eb",
-      }}
       style={{
         maxWidth: "600px",
         margin: "0 auto",

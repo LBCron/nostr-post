@@ -72,6 +72,11 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
 
 ## Package tiers
 
+- `@nostr-post/ui`: the design system, below everything else: tokens, shared primitives, part names
+  and style overrides. `web`, `react`, `outbox`, domains and plugins' `/web` entries depend on it; it
+  depends on nothing of ours. Main entry framework-free (tokens as data, generated CSS, names);
+  `/web` for Lit; later `/react`, `/react-native` or other UI libraries on the same tokens.
+  `@nostr-post/react` wraps the Lit components.
 - `@nostr-post/core`, `signer`, `plugins`, `posts`, `web` (and `react`, `cdn`): the base. `posts` is
   the UI-free logic of posts (kind 1 and manifest-made events, NIP-78 included): publishing,
   replies, threads, reactions, feeds, update comments; `web` (Lit) and `react` build their
@@ -102,14 +107,28 @@ Apply them to new and changed code; existing exceptions are listed so you don't 
 - Keep `examples/*` and `tools/manifest-creator` thin: they compose package features. Logic or UI
   that other apps would need belongs in a package.
 
-## Dark theme
+## Styling
 
-- Every web component supports the dark theme, including plugins' `/web` components. Apps turn it
-  on with a `dark` class on an ancestor (the React wrappers' `dark` prop sets it).
-- In a component's styles, follow each light color with a `:host-context(.dark)` override, using the
-  dark values of `colors` in `packages/web/src/theme.ts` (e.g. `packages/web/src/feedStyle.ts`).
-  Text that inherits its color needs none.
-- When you add or restyle a component, check it with the `dark` class too.
+One visual language for every component and the larger apps (manifest creator, gigs), from
+`@nostr-post/ui` (see its README). Material 3 is the reference for new UI (roles, states, spacing),
+not a dependency.
+
+- **Share, don't restyle**: for a button, field, chip, badge, card, list item, dialog, menu,
+  message and the like, use the primitive (`np-button np-filled`, `np-input`, `np-message np-error`,
+  …). Components extend `NpElement` and put `npStyles` first in `styles`; apps load `ui.css`. A
+  missing variant or a new kind of generic piece is added to `@nostr-post/ui`, not built in a
+  component or app. Keep a component's own class next to the primitive's when code or tests use it
+  (`class="preview-btn np-icon-button"`).
+- **Tokens only**: colors, font sizes, radii, spacing and shadows come from `--np-*` tokens; no
+  hex/rgb values or px font sizes in component or app styles (no colors in React style objects).
+  A new token goes into the token data in `packages/ui/src/tokens.ts` and its README.
+- **Dark theme from the tokens**: the `dark` class on an ancestor swaps token values. No
+  `:host-context(.dark)` rules. Still check every new or restyled component and app page with
+  the `dark` class.
+- **Parts**: expose `part`s on key elements with the shared names (`npPart`: `card`, `header`,
+  `button`, `primary`, `input`, …), forward them from nested components
+  (`exportparts=${npExportParts}`), and list them in the package README.
+- Component styles live in their own module (`*Styles.ts`), not inline in the element.
 
 ## User-facing text
 

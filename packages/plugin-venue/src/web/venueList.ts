@@ -5,7 +5,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import type { VenueData } from '../core';
@@ -23,8 +24,9 @@ const shortName = (v: VenueData): string =>
   v.name?.split(',')[0]?.trim() || v.wikiEntity?.dTag || v.geohash;
 
 @customElement('np-venue-list')
-export class NpVenueList extends LitElement {
+export class NpVenueList extends NpElement {
   static override styles = [
+    ...npStyles,
     venueInputStyles,
     css`
       /* One venue per row: its name, and × to remove it at the end */
@@ -35,10 +37,7 @@ export class NpVenueList extends LitElement {
         margin-bottom: 0.375rem;
       }
       .venue-entry .clear-btn {
-        align-self: center;
-        font-size: 1.125rem;
-        line-height: 1;
-        text-decoration: none;
+        color: var(--np-color-error);
       }
     `,
   ];
@@ -76,7 +75,7 @@ export class NpVenueList extends LitElement {
             <span class="venue-name">📍 ${shortName(venue)}</span>
             <button
               type="button"
-              class="clear-btn"
+              class="clear-btn np-icon-button" part="button"
               aria-label="Remove"
               @click=${() => this._emit(this.value.filter((_, i) => i !== index))}
             >

@@ -18,115 +18,15 @@ import {
   subscribeActivities,
 } from '@nostr-post/plugins/activity';
 import { RELAYS_PENDING_EVENT, type RelaysPendingDetail } from '@nostr-post/signer';
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type ActivityMessages, activityMessages } from './activityMessages';
+import { activityStyles } from './activityStyles';
 
 @customElement('np-activity')
-export class NpActivity extends LitElement {
-  static override styles = css`
-    :host {
-      position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 2147483000;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      width: min(22rem, calc(100vw - 2rem));
-      pointer-events: none;
-      font-family: inherit;
-    }
-    .item {
-      pointer-events: auto;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.25rem 0.5rem;
-      padding: 0.625rem 0.75rem;
-      background: #fff;
-      color: #111827;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      font-size: 0.875rem;
-    }
-    .item.done {
-      border-color: #a7f3d0;
-    }
-    .item.failed {
-      border-color: #fecaca;
-    }
-    .label {
-      font-weight: 600;
-      overflow-wrap: anywhere;
-    }
-    .detail {
-      grid-column: 1 / -1;
-      color: #6b7280;
-      font-size: 0.8125rem;
-      overflow-wrap: anywhere;
-    }
-    .item.failed .detail {
-      color: #b91c1c;
-    }
-    .bar {
-      grid-column: 1 / -1;
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .fill {
-      height: 100%;
-      background: #6366f1;
-      transition: width 0.3s;
-    }
-    .bar.unknown .fill {
-      width: 30%;
-      animation: slide 1.2s ease-in-out infinite;
-    }
-    @keyframes slide {
-      from {
-        transform: translateX(-100%);
-      }
-      to {
-        transform: translateX(340%);
-      }
-    }
-    .dismiss {
-      border: none;
-      background: none;
-      color: inherit;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 0 0.25rem;
-    }
-
-    :host-context(.dark) .item {
-      background: #1f2937;
-      color: #f3f4f6;
-      border-color: #4b5563;
-    }
-    :host-context(.dark) .item.done {
-      border-color: #059669;
-    }
-    :host-context(.dark) .item.failed {
-      border-color: #dc2626;
-    }
-    :host-context(.dark) .detail {
-      color: #9ca3af;
-    }
-    :host-context(.dark) .item.failed .detail {
-      color: #fca5a5;
-    }
-    :host-context(.dark) .bar {
-      background: #4b5563;
-    }
-    :host-context(.dark) .fill {
-      background: #4f46e5;
-    }
-  `;
+export class NpActivity extends NpElement {
+  static override styles = [...npStyles, activityStyles];
 
   @property({ type: Object }) messages: Partial<ActivityMessages> = {};
 
@@ -166,7 +66,8 @@ const renderActivityButton = (activity: Activity, m: ActivityMessages) => {
   const label = cancel ? m.cancel : m.dismiss;
   return html`<button
     type="button"
-    class="dismiss"
+    class="dismiss np-icon-button"
+    part="button"
     title=${label}
     aria-label=${label}
     @click=${() => (cancel ? cancel() : dismissActivity(activity.id))}

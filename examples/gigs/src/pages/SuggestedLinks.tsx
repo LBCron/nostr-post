@@ -24,9 +24,9 @@ export function SuggestedLinks({
       return next;
     });
   return (
-    <section className="step">
+    <section className="step np-card np-outlined">
       <h3>Links the AI suggested</h3>
-      <p className="hint">
+      <p className="np-hint">
         Not in the post: check each one. Ticked ones exist under the performer's name, but may be
         someone else's with the same name: play them. The others couldn't be checked: open them.
         Keep ticked only those that are really them.
@@ -48,7 +48,7 @@ export function SuggestedLinks({
           </label>
         </div>
       ))}
-      <button type="button" onClick={() => onContinue([...ticked])}>
+      <button type="button" className="np-button np-filled" onClick={() => onContinue([...ticked])}>
         Continue
       </button>
     </section>

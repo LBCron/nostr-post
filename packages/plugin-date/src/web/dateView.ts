@@ -8,15 +8,18 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { dateDisplay } from '../dateDisplay';
 import { type DateValue, isDateValue } from '../dateValue';
 import { type DateMessages, DEFAULT_DATE_MESSAGES } from './dateMessages';
 
 @customElement('np-date-view')
-export class NpDateView extends LitElement {
-  static override styles = css`
+export class NpDateView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -27,19 +30,16 @@ export class NpDateView extends LitElement {
 
     .tz,
     .viewer {
-      font-size: 0.8125rem;
-      color: #6b7280;
+      font-size: var(--np-text-sm);
+      color: var(--np-color-on-surface-variant);
     }
 
     .tz {
       margin-left: 0.375rem;
     }
 
-    :host-context(.dark) .tz,
-    :host-context(.dark) .viewer {
-      color: #9ca3af;
-    }
-  `;
+  `,
+  ];
 
   @property({ type: Object }) value?: DateValue;
   @property({ type: Object }) field?: PostField;

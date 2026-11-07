@@ -1,0 +1,178 @@
+/*
+ * Gigs' look: @nostr-post/ui's tokens and primitives (ui.css), branded here.
+ * Everything below is ordinary page CSS, so it wins over the library's layered defaults.
+ */
+
+/* ── Brand: a few tokens restyle the app and every nostr-post component in it ── */
+:root {
+  --np-color-primary: #b3125f;
+  --np-color-secondary: #6d5a63;
+  --np-radius: 10px;
+  --np-font-size: 15px;
+}
+
+.dark {
+  --np-color-primary: #ffb0cb;
+  --np-color-on-primary: #5e0030;
+  --np-color-secondary: #d9c0c9;
+}
+
+/* ── Structural customization: ::part() reaches inside the components ── */
+nostr-post-view::part(card),
+nostr-calendar-event::part(card) {
+  border-left: 4px solid var(--np-color-primary);
+}
+
+nostr-post-composer::part(primary) {
+  letter-spacing: 0.02em;
+}
+
+/* ── App chrome, from the tokens ── */
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--np-color-surface);
+  color: var(--np-color-on-surface);
+  font-family: var(--np-font-family);
+  font-size: var(--np-text-md);
+  line-height: var(--np-line-height);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--np-color-primary);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--np-color-primary);
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--np-space-3) var(--np-space-5);
+  padding: var(--np-space-3) var(--np-space-4);
+  background: var(--np-color-surface-container);
+  border-bottom: 1px solid var(--np-color-outline-variant);
+}
+
+header h1 {
+  margin: 0;
+  font-size: var(--np-text-xl);
+  font-weight: 600;
+}
+
+header nav {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
+  gap: var(--np-space-1);
+}
+
+header nav a {
+  padding: var(--np-space-1) var(--np-space-3);
+  border-radius: var(--np-radius-full);
+  color: var(--np-color-on-surface);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+header nav a:hover {
+  background: var(--np-color-secondary-container);
+  color: var(--np-color-on-secondary-container);
+}
+
+.banner {
+  padding: var(--np-space-2) var(--np-space-4);
+  background: var(--np-color-warning-container);
+  color: var(--np-color-on-warning-container);
+  font-size: var(--np-text-sm);
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--np-space-4);
+}
+
+/* Labels around inputs: the label text above, the field below */
+main label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--np-space-1);
+  color: var(--np-color-on-surface-variant);
+  font-size: var(--np-text-sm);
+  font-weight: 500;
+}
+
+main label:has(> input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--np-space-2);
+}
+
+textarea.np-input {
+  margin: var(--np-space-2) 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--np-space-3);
+  margin-bottom: var(--np-space-4);
+}
+
+.share-buttons {
+  display: flex;
+  gap: var(--np-space-2);
+  margin-left: auto;
+}
+
+.step {
+  margin-bottom: var(--np-space-4);
+}
+
+.step h3 {
+  margin: 0;
+  font-size: var(--np-text-lg);
+  font-weight: 500;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--np-space-3);
+}
+
+.share input {
+  width: 100%;
+}
+
+.drafts {
+  padding-left: var(--np-space-5);
+}
+
+.drafts li {
+  margin: var(--np-space-1) 0;
+}
+
+.performer {
+  margin: var(--np-space-2) 0 var(--np-space-4);
+}
+
+.performer .np-message {
+  display: inline-block;
+  margin: var(--np-space-1) 0 0;
+  padding: var(--np-space-1) var(--np-space-2);
+  font-size: var(--np-text-sm);
+}

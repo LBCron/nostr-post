@@ -7,9 +7,10 @@
 
 import { panelPosition } from '@nostr-post/plugins/panelPosition';
 import type { FieldActionSetting } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing, unsafeCSS } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { baseStyles, colors } from './theme';
+import { fieldActionStyles } from './fieldActionStyles';
 
 /** A field action bound to its field (composerField's toolbar) */
 export interface PanelFieldAction {
@@ -22,101 +23,9 @@ export interface PanelFieldAction {
   dropFiles?: (files: File[]) => void | Promise<void>;
 }
 
-const { light, dark } = colors;
-const u = unsafeCSS;
-
 @customElement('np-field-action-panel')
-export class NpFieldActionPanel extends LitElement {
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-block;
-      }
-      .panel {
-        position: fixed;
-        inset: auto;
-        margin: 0;
-        width: min(20rem, calc(100vw - 1rem));
-        max-height: calc(100vh - 1rem);
-        overflow: auto;
-        padding: 0.75rem;
-        background: ${u(light.bg)};
-        color: ${u(light.text)};
-        border: 1px solid ${u(light.border)};
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        font-size: 0.875rem;
-      }
-      .drop {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.75rem;
-        border: 2px dashed ${u(light.border)};
-        border-radius: 8px;
-        color: ${u(light.textSecondary)};
-        font-size: 0.8125rem;
-      }
-      .drop.over {
-        border-color: ${u(light.primary)};
-      }
-      fieldset {
-        margin: 0.75rem 0 0;
-        padding: 0;
-        border: none;
-      }
-      legend {
-        padding: 0;
-        margin-bottom: 0.375rem;
-        font-weight: 600;
-      }
-      .option {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0 0.5rem;
-        padding: 0.375rem 0.25rem;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-      .option:hover {
-        background: ${u(light.inputBg)};
-      }
-      .option input {
-        grid-row: span 2;
-        align-self: start;
-        margin: 0.2rem 0 0;
-      }
-      .description,
-      .hint {
-        color: ${u(light.textSecondary)};
-        font-size: 0.8125rem;
-      }
-      .hint {
-        margin: 0.5rem 0 0;
-      }
-      :host-context(.dark) .panel {
-        background: ${u(dark.bg)};
-        color: ${u(dark.text)};
-        border-color: ${u(dark.border)};
-      }
-      :host-context(.dark) .drop {
-        border-color: ${u(dark.border)};
-        color: ${u(dark.textSecondary)};
-      }
-      :host-context(.dark) .drop.over {
-        border-color: ${u(dark.primary)};
-      }
-      :host-context(.dark) .option:hover {
-        background: ${u(dark.inputBg)};
-      }
-      :host-context(.dark) .description,
-      :host-context(.dark) .hint {
-        color: ${u(dark.textSecondary)};
-      }
-    `,
-  ];
+export class NpFieldActionPanel extends NpElement {
+  static override styles = [...npStyles, fieldActionStyles];
 
   @property({ attribute: false }) action?: PanelFieldAction;
 
@@ -193,7 +102,8 @@ export class NpFieldActionPanel extends LitElement {
     return html`
       <button
         type="button"
-        class="field-action"
+        class="field-action np-icon-button"
+        part="button"
         title=${action.label}
         aria-label=${action.label}
         aria-haspopup="dialog"
@@ -203,6 +113,7 @@ export class NpFieldActionPanel extends LitElement {
       <div
         id="panel"
         class="panel"
+        part="menu"
         popover="auto"
         role="dialog"
         aria-label=${action.label}
@@ -220,7 +131,7 @@ export class NpFieldActionPanel extends LitElement {
           }}
           @drop=${this._drop}
         >
-          <button type="button" class="primary" @click=${this._run}>
+          <button type="button" class="np-button np-filled np-small" part="button primary" @click=${this._run}>
             ${action.runLabel ?? action.label}
           </button>
           ${action.dropFiles && action.dropLabel ? html`<span>${action.dropLabel}</span>` : nothing}
@@ -247,7 +158,7 @@ export class NpFieldActionPanel extends LitElement {
             `
           )}
         </fieldset>
-        ${setting.hint ? html`<p class="hint">${setting.hint}</p>` : nothing}
+        ${setting.hint ? html`<p class="hint np-hint">${setting.hint}</p>` : nothing}
       </div>
     `;
   }

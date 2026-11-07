@@ -5,7 +5,8 @@
  * calendar manifests, next to RSVP. Accepts .target (the event's address) and .relays.
  */
 
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { fetchEventsAsIcs } from '../icsRelays';
 import { isCalendarEventAddress } from '../rsvp';
@@ -13,8 +14,8 @@ import { DEFAULT_ICS_MESSAGES, type IcsMessages } from './icsMessages';
 import { rsvpStyles } from './rsvpStyles';
 
 @customElement('np-ics-download')
-export class NpIcsDownload extends LitElement {
-  static override styles = rsvpStyles;
+export class NpIcsDownload extends NpElement {
+  static override styles = [...npStyles, rsvpStyles];
 
   @property() target = '';
   @property({ type: Array }) relays?: string[];
@@ -50,10 +51,10 @@ export class NpIcsDownload extends LitElement {
     if (!isCalendarEventAddress(this.target)) return nothing;
     const m = this._m;
     return html`
-      <button type="button" title=${m.title} ?disabled=${this._busy} @click=${this._download}>
+      <button type="button" class="np-chip" part="chip" title=${m.title} ?disabled=${this._busy} @click=${this._download}>
         ${this._busy ? m.preparing : m.download}
       </button>
-      ${this._error ? html`<p class="error" role="alert">${this._error}</p>` : nothing}
+      ${this._error ? html`<p class="error np-field-error" part="error" role="alert">${this._error}</p>` : nothing}
     `;
   }
 }

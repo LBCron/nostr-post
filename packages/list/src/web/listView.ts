@@ -11,7 +11,8 @@
  */
 
 import { getPublicKey, hasNostrSigner } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { fetchItemTitles } from '../itemTitles';
 import { deleteList, fetchLists, fetchMyLists, removeFromList } from '../lists';
@@ -21,8 +22,8 @@ import { DEFAULT_LIST_MESSAGES, type ListMessages } from './listMessages';
 import { listStyles } from './styles';
 
 @customElement('np-list-view')
-export class NpListView extends LitElement {
-  static override styles = listStyles;
+export class NpListView extends NpElement {
+  static override styles = [...npStyles, listStyles];
 
   /** The list to show; empty: the signed-in user's lists */
   @property() address = '';
@@ -110,13 +111,13 @@ export class NpListView extends LitElement {
     const m = this._m;
     const own = list.pubkey === this._me;
     return html`
-      <section class="list">
-        <div class="list-header">
+      <section class="list" part="card">
+        <div class="list-header" part="header">
           <h3>${listTitles(this._lists ?? [], m).get(list.address) ?? listTitle(list, m)}</h3>
-          <span class="count">${m.itemCount(list.items.length)}</span>
+          <span class="count np-badge" part="badge">${m.itemCount(list.items.length)}</span>
           ${
             own && list.kind === BOOKMARK_SET_KIND
-              ? html`<button class="danger" ?disabled=${this._busy} @click=${() => this._delete(list)}>
+              ? html`<button class="np-button np-text np-small np-danger" part="button" ?disabled=${this._busy} @click=${() => this._delete(list)}>
                   ${m.deleteList}
                 </button>`
               : nothing
@@ -125,7 +126,7 @@ export class NpListView extends LitElement {
         ${list.description ? html`<p class="list-description">${list.description}</p>` : nothing}
         ${
           list.items.length === 0
-            ? html`<div class="muted">${m.emptyList}</div>`
+            ? html`<div class="np-hint">${m.emptyList}</div>`
             : html`<ul>
                 ${list.items.map((item) => {
                   const title = this._titles.get(item.value) ?? m.unknownItem(item.value);
@@ -135,7 +136,12 @@ export class NpListView extends LitElement {
                     </button>
                     ${
                       own
-                        ? html`<button ?disabled=${this._busy} @click=${() => this._remove(list, item)}>
+                        ? html`<button
+                          class="np-button np-text np-small"
+                          part="button"
+                          ?disabled=${this._busy}
+                          @click=${() => this._remove(list, item)}
+                        >
                             ${m.remove}
                           </button>`
                         : nothing
@@ -150,13 +156,14 @@ export class NpListView extends LitElement {
 
   override render() {
     const m = this._m;
-    if (this._error && !this._lists) return html`<div class="error">${this._error}</div>`;
-    if (!this._lists) return html`<div class="muted">${m.loading}</div>`;
+    if (this._error && !this._lists)
+      return html`<div class="np-message np-error" part="error">${this._error}</div>`;
+    if (!this._lists) return html`<div class="np-hint">${m.loading}</div>`;
     // The bookmarks list is always there; with nothing in it and no sets, say so instead
     const shown = this._lists.filter((l) => l.items.length > 0 || l.createdAt > 0);
     return html`
-      ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-      ${shown.length === 0 ? html`<div class="muted">${m.noLists}</div>` : shown.map((l) => this._renderList(l))}
+      ${this._error ? html`<div class="np-message np-error" part="error">${this._error}</div>` : nothing}
+      ${shown.length === 0 ? html`<div class="np-hint">${m.noLists}</div>` : shown.map((l) => this._renderList(l))}
     `;
   }
 }

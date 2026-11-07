@@ -23,12 +23,12 @@ function statusMessage({ status, dTag, messages, onCheckAgain }: SlugCheckProps)
     case 'unknown':
       return html`<p>
         ${messages.slugUnknown(dTag)}
-        <button type="button" @click=${onCheckAgain}>${messages.checkAgain}</button>
+        <button type="button" class="np-button np-small" part="button" @click=${onCheckAgain}>${messages.checkAgain}</button>
       </p>`;
     case 'free':
-      return html`<p class="wiki-dtag-status">${messages.slugFree(dTag)}</p>`;
+      return html`<p class="wiki-dtag-status np-hint">${messages.slugFree(dTag)}</p>`;
     default:
-      return html`<p class="wiki-dtag-status">${messages.checkingSlug}</p>`;
+      return html`<p class="wiki-dtag-status np-hint">${messages.checkingSlug}</p>`;
   }
 }
 
@@ -42,14 +42,16 @@ export function renderSlugCheck(props: SlugCheckProps) {
   const needsInput = status === 'taken' || status === 'unknown' || !!qualifier;
   if (!needsInput) return statusMessage(props);
   return html`
-    <div class="wiki-disambiguation" role=${status === 'taken' ? 'alert' : 'status'}>
+    <div class="wiki-disambiguation np-message np-warning" role=${status === 'taken' ? 'alert' : 'status'}>
       ${statusMessage(props)}
       ${
         suggestions.length > 0
           ? html`<div class="wiki-suggestions">
             ${suggestions.map(
               (text) =>
-                html`<button type="button" @click=${() => onQualifier(text)}>${text}</button>`
+                html`<button type="button" class="np-chip" part="chip" @click=${() => onQualifier(text)}>
+                  ${text}
+                </button>`
             )}
           </div>`
           : nothing
@@ -57,6 +59,8 @@ export function renderSlugCheck(props: SlugCheckProps) {
       <label>
         ${messages.distinguishBy}
         <input
+          class="np-input"
+          part="input"
           type="text"
           .value=${qualifier}
           placeholder=${placeholder}

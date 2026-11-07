@@ -3,10 +3,10 @@
  *
  * Draws an `agendaSummary` on a canvas, e.g. "this week's gigs" for a story or a chat: a title,
  * the dates, the events day by day, and a footer (where to see it all). Portrait 1080×1350 by
- * default; light or dark with the theme's colors.
+ * default; light or dark with the design tokens (`resolveTokens` of @nostr-post/ui).
  */
 
-import { colors } from '@nostr-post/web';
+import { type ResolvedTokens, resolveTokens } from '@nostr-post/ui';
 import type { AgendaSummary } from '../agendaShare';
 
 export interface AgendaImageOptions {
@@ -32,7 +32,7 @@ const fit = (ctx: CanvasRenderingContext2D, text: string, width: number): string
   return `${cut.trimEnd()}…`;
 };
 
-type Theme = (typeof colors)['light'] | (typeof colors)['dark'];
+type Theme = ResolvedTokens['color'];
 
 /** Where and how a drawing step draws: the context, theme, left edge, width and scale */
 interface Pen {
@@ -67,9 +67,9 @@ const drawRow = (pen: Pen, row: Row, y: number) => {
   }
   const { time, title, place } = row.item;
   const x = left + 120 * unit;
-  if (time) text(pen, time, left, y + 32 * unit, `500 ${32 * unit}px`, theme.textSecondary);
-  text(pen, title, x, y + 34 * unit, `600 ${38 * unit}px`, theme.text);
-  if (place) text(pen, place, x, y + 70 * unit, `400 ${28 * unit}px`, theme.textSecondary);
+  if (time) text(pen, time, left, y + 32 * unit, `500 ${32 * unit}px`, theme['on-surface-variant']);
+  text(pen, title, x, y + 34 * unit, `600 ${38 * unit}px`, theme['on-surface']);
+  if (place) text(pen, place, x, y + 70 * unit, `400 ${28 * unit}px`, theme['on-surface-variant']);
 };
 
 /** Draws the rows that fit above `bottom`, from `y`; returns where it stopped and the events left out */
@@ -97,18 +97,18 @@ export const drawAgendaImage = (
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) return canvas;
-  const theme = dark ? colors.dark : colors.light;
+  const theme = resolveTokens(dark ? 'dark' : 'light').color;
   const unit = width / 1080;
   const pad = Math.round(width * 0.07);
-  const accent = dark ? '#a5b4fc' : theme.primary;
+  const accent = theme.primary;
   const pen: Pen = { ctx, theme, accent, left: pad, width: width - 2 * pad, unit };
 
-  ctx.fillStyle = dark ? '#111827' : theme.bg;
+  ctx.fillStyle = theme.surface;
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = theme.primary;
   ctx.fillRect(0, 0, width, 16 * unit);
-  text(pen, title, pad, pad + 40 * unit, `700 ${64 * unit}px`, theme.text);
-  text(pen, summary.range, pad, pad + 96 * unit, `500 ${36 * unit}px`, theme.textSecondary);
+  text(pen, title, pad, pad + 40 * unit, `700 ${64 * unit}px`, theme['on-surface']);
+  text(pen, summary.range, pad, pad + 96 * unit, `500 ${36 * unit}px`, theme['on-surface-variant']);
 
   const rows: Row[] = summary.days.flatMap((day) => [
     { day: day.label },
@@ -118,8 +118,10 @@ export const drawAgendaImage = (
   const drawn = drawRows(pen, rows, pad + 168 * unit, bottom);
   const hidden = summary.more + drawn.hidden;
   const note = summary.days.length ? (hidden ? moreText(hidden) : '') : emptyText;
-  if (note) text(pen, note, pad, drawn.y + 32 * unit, `500 ${32 * unit}px`, theme.textSecondary);
-  if (footer) text(pen, footer, pad, height - pad, `500 ${30 * unit}px`, theme.textSecondary);
+  if (note)
+    text(pen, note, pad, drawn.y + 32 * unit, `500 ${32 * unit}px`, theme['on-surface-variant']);
+  if (footer)
+    text(pen, footer, pad, height - pad, `500 ${30 * unit}px`, theme['on-surface-variant']);
   return canvas;
 };
 

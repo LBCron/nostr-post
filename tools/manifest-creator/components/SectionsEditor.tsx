@@ -14,9 +14,9 @@ const cardStyle = {
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: '0.5rem',
   padding: '0.5rem',
-  border: '1px solid #e5e7eb',
-  borderRadius: '0.375rem',
-  background: 'white',
+  border: '1px solid var(--np-color-outline-variant)',
+  borderRadius: 'var(--np-radius-sm)',
+  background: 'var(--np-color-surface-container-lowest)',
 } as const;
 
 const inputStyle = { ...styles.input, minWidth: 0 } as const;
@@ -76,7 +76,7 @@ export function SectionsEditor({ sections: related, onChange }: SectionsEditorPr
         </div>
         <button
           type="button"
-          style={styles.smallButton}
+          className="np-button np-small"
           onClick={() => onChange([...related, { label: '' }])}
         >
           + Add Section
@@ -314,7 +314,8 @@ function SectionCard({
         </label>
         <button
           type="button"
-          style={{ ...styles.deleteButton, marginLeft: 'auto' }}
+          className="np-button np-text np-small np-danger"
+          style={{ marginLeft: 'auto' }}
           onClick={() => drop()}
         >
           Remove

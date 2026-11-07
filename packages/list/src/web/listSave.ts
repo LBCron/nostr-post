@@ -13,7 +13,8 @@
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { panelPosition } from '@nostr-post/plugins/panelPosition';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { hasItem, itemFor, listWithTitle, manifestListPresets } from '../core';
 import { addToList, createList, removeFromList } from '../lists';
@@ -25,8 +26,8 @@ import { renderLoadState } from './loadState';
 import { listStyles } from './styles';
 
 @customElement('np-list-save')
-export class NpListSave extends LitElement {
-  static override styles = listStyles;
+export class NpListSave extends NpElement {
+  static override styles = [...npStyles, listStyles];
 
   /** What to save: an `a` address (e.g. `30818:<pubkey>:<d-tag>`) or an event id */
   @property() target = '';
@@ -183,8 +184,8 @@ export class NpListSave extends LitElement {
     const lists = this._lists;
     const titles = listTitles(lists, m);
     return html`
-      <div class="panel" popover="manual" role="dialog" aria-label=${m.save}>
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+      <div class="panel np-menu" part="menu" popover="manual" role="dialog" aria-label=${m.save}>
+        ${this._error ? html`<div class="np-message np-error" part="error">${this._error}</div>` : nothing}
         ${lists.map(
           (list) => html`
             <label class="list-option">
@@ -195,15 +196,17 @@ export class NpListSave extends LitElement {
                 @change=${() => this._toggle(list)}
               />
               <span>${titles.get(list.address)}</span>
-              <span class="count">${m.itemCount(list.items.length)}</span>
+              <span class="count np-badge" part="badge">${m.itemCount(list.items.length)}</span>
             </label>
           `
         )}
         ${renderLoadState(this._my, m, () => void this._load())}
         ${
           this._my.lists
-            ? html`<form class="new-list" @submit=${this._create}>
+            ? html`<form class="new-list np-toolbar" @submit=${this._create}>
                 <input
+                  class="np-input"
+                  part="input"
                   .value=${this._newTitle}
                   placeholder=${m.newListPlaceholder}
                   aria-label=${m.newListPlaceholder}
@@ -211,14 +214,14 @@ export class NpListSave extends LitElement {
                     this._newTitle = (e.target as HTMLInputElement).value;
                   }}
                 />
-                <button type="submit" ?disabled=${this._busy !== '' || !this._newTitle.trim()}>
+                <button type="submit" class="np-button np-small" part="button" ?disabled=${this._busy !== '' || !this._newTitle.trim()}>
                   ${this._busy === 'new' ? m.creating : m.createList}
                 </button>
               </form>`
             : nothing
         }
         <div class="actions">
-          <button type="button" @click=${this._toggleOpen}>${m.close}</button>
+          <button type="button" class="np-button np-small" part="button" @click=${this._toggleOpen}>${m.close}</button>
         </div>
       </div>
     `;
@@ -230,7 +233,8 @@ export class NpListSave extends LitElement {
     return html`
       <button
         type="button"
-        class="save-btn"
+        class="save-btn np-button np-small"
+        part="button"
         aria-pressed=${saved ? 'true' : 'false'}
         aria-expanded=${this._open ? 'true' : 'false'}
         @click=${this._toggleOpen}

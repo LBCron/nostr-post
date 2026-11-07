@@ -11,7 +11,8 @@
 
 import { dismissActivity, startActivity } from '@nostr-post/plugins/activity';
 import type { PostField } from '@nostr-post/plugins/types';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   isImageUrl,
@@ -38,8 +39,8 @@ import {
 import { uploadMedia } from './uploadMedia';
 
 @customElement('np-media-input')
-export class NpMediaInput extends LitElement {
-  static override styles = mediaInputStyles;
+export class NpMediaInput extends NpElement {
+  static override styles = [...npStyles, mediaInputStyles];
 
   @property({ type: Array })
   value: string[] = [];
@@ -299,7 +300,7 @@ export class NpMediaInput extends LitElement {
             ? html`
               <div class="url-row">
                 <input
-                  class="url-input"
+                  class="url-input np-input" part="input"
                   type="url"
                   placeholder=${m.urlPlaceholder}
                   .value=${this._urlInput}
@@ -313,9 +314,9 @@ export class NpMediaInput extends LitElement {
             : nothing
         }
         ${this._uploading ? this._renderUploadStatus() : nothing}
-        ${this._uploadError ? html`<div class="error">${this._uploadError}</div>` : nothing}
+        ${this._uploadError ? html`<div class="np-message np-error" part="error">${this._uploadError}</div>` : nothing}
 
-        <div class="hint">${m.fileCount(this._urls.length, this._maxFiles)}</div>
+        <div class="np-hint" part="hint">${m.fileCount(this._urls.length, this._maxFiles)}</div>
       </div>
     `;
   }
@@ -330,7 +331,7 @@ export class NpMediaInput extends LitElement {
         ${this._uploading}
         ${this._uploadProgress === undefined ? nothing : `${this._uploadProgress}%`}
         ${this._uploadDetail ? html`· ${this._uploadDetail}` : nothing}
-        <button type="button" class="cancel-btn" @click=${() => this._abort?.abort()}>
+        <button type="button" class="np-button np-text np-small" part="button" @click=${() => this._abort?.abort()}>
           ${this._m.cancel}
         </button>
       </div>
@@ -340,7 +341,7 @@ export class NpMediaInput extends LitElement {
   private _renderUploadLater() {
     const m = this._m;
     return html`
-      <label class="upload-later">
+      <label class="upload-later np-checkbox">
         <input
           type="checkbox"
           .checked=${this._uploadLater}
@@ -352,7 +353,7 @@ export class NpMediaInput extends LitElement {
         />
         ${m.uploadLater}
       </label>
-      <span class="hint">${this._uploadNote || (this._uploadLater ? m.uploadLaterHint : '')}</span>
+      <span class="np-hint" part="hint">${this._uploadNote || (this._uploadLater ? m.uploadLaterHint : '')}</span>
     `;
   }
 
@@ -363,6 +364,8 @@ export class NpMediaInput extends LitElement {
       <label class="quality">
         ${m.quality}
         <select
+          class="np-input"
+          part="input"
           ?disabled=${this._uploading !== ''}
           @change=${(e: Event) => this._pickQuality((e.target as HTMLSelectElement).value)}
         >
@@ -372,7 +375,7 @@ export class NpMediaInput extends LitElement {
           )}
         </select>
       </label>
-      <span class="hint">
+      <span class="np-hint" part="hint">
         ${m.qualityDescription(selected, MEDIA_QUALITY_PRESETS[selected]?.maxSide)}
       </span>
     `;
@@ -400,7 +403,7 @@ export class NpMediaInput extends LitElement {
               }
               <button
                 type="button"
-                class="remove-btn"
+                class="remove-btn" part="button"
                 title=${m.remove}
                 aria-label=${m.remove}
                 @click=${() => this._removeUrl(i)}
@@ -420,7 +423,7 @@ export class NpMediaInput extends LitElement {
   private _renderAlt(url: string) {
     const m = this._m;
     return html`<input
-      class="alt-input"
+      class="alt-input np-input" part="input"
       type="text"
       .value=${mediaFileOf(url).alt ?? ''}
       placeholder=${m.altPlaceholder}

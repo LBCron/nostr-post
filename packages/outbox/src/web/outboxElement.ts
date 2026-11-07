@@ -8,7 +8,8 @@
  */
 
 import { getPublicKey } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   isLate,
@@ -16,6 +17,7 @@ import {
   nowSeconds,
   type OutboxAction,
   type OutboxItem,
+  type OutboxState,
   pendingBytes,
   waitingFor,
 } from '../item';
@@ -27,9 +29,19 @@ import { browserOutbox, connectionConditions, ensureOutboxRunner } from './runne
 /** Items waiting this long get the warning that browsers may clear them */
 const OLD_SECONDS = 4 * 86400;
 
+/** Badge tone of each state */
+const STATE_TONE: Record<OutboxState, string> = {
+  draft: '',
+  waiting: 'np-warning',
+  uploading: 'np-info',
+  publishing: 'np-info',
+  published: 'np-success',
+  failed: 'np-error',
+};
+
 @customElement('nostr-post-outbox')
-export class NostrPostOutbox extends LitElement {
-  static override styles = outboxStyles;
+export class NostrPostOutbox extends NpElement {
+  static override styles = [...npStyles, outboxStyles];
 
   /** The outbox; default the browser's */
   @property({ attribute: false }) outbox?: Outbox;
@@ -115,8 +127,10 @@ export class NostrPostOutbox extends LitElement {
     else if (item.state !== 'draft') parts.push(m.waited(waitingFor(item, now)));
     if (bytes > 0 && item.wifiOnly && item.state === 'waiting') parts.push(m.onWifi);
     if (item.signLater && item.events.length === 0) parts.push(m.signLater);
+    const [state, ...rest] = parts;
     return html`<div class="meta">
-      <span class="state-${item.state}">${parts.join(' · ')}</span>
+      <span class="np-badge ${STATE_TONE[item.state]}" part="badge">${state}</span>
+      ${rest.join(' · ')}
       ${isLate(item, now) ? html` · <span class="late">${m.late}</span>` : nothing}
     </div>`;
   }
@@ -125,15 +139,20 @@ export class NostrPostOutbox extends LitElement {
     const m = this._m;
     const image = item.uploads.find((u) => u.type.startsWith('image/'));
     const thumb = image ? this._thumbs.get(image.fileKey) : undefined;
-    return html`<li>
-      ${thumb ? html`<img class="thumb" src=${thumb} alt="" />` : nothing}
+    return html`<li class="np-list-item" part="card">
+      ${thumb ? html`<img class="thumb" part="media" src=${thumb} alt="" />` : nothing}
       <div class="body">
         <div class="title">${item.title || m.untitled}</div>
         ${this._meta(item, now)}
-        ${item.error ? html`<div class="error">${item.error}</div>` : nothing}
-        <div class="actions">
+        ${item.error ? html`<div class="np-field-error" part="error">${item.error}</div>` : nothing}
+        <div class="actions np-toolbar" part="actions">
           ${itemActions(item, now).map(
-            (action) => html`<button type="button" @click=${() => this._act(item, action)}>
+            (action) => html`<button
+              type="button"
+              class="np-button np-small ${action === 'remove' ? 'np-danger np-text' : ''}"
+              part="button"
+              @click=${() => this._act(item, action)}
+            >
               ${m.actions[action]}
             </button>`
           )}
@@ -148,11 +167,16 @@ export class NostrPostOutbox extends LitElement {
     const canSend = this._items.some((i) => i.state === 'waiting' || i.state === 'failed');
     const old = this._items.some((i) => waitingFor(i, now) > OLD_SECONDS);
     return html`
-      <div class="head">
-        <h3>${m.heading}</h3>
+      <div class="head" part="header">
+        <h3 class="np-title" part="title">${m.heading}</h3>
         ${
           canSend
-            ? html`<button type="button" class="primary" @click=${() => this._sendAll()}>
+            ? html`<button
+                type="button"
+                class="np-button np-filled np-small"
+                part="button primary"
+                @click=${() => this._sendAll()}
+              >
                 ${m.sendAll}
               </button>`
             : nothing
@@ -160,10 +184,10 @@ export class NostrPostOutbox extends LitElement {
       </div>
       ${
         this._items.length === 0
-          ? html`<div class="empty">${m.empty}</div>`
-          : html`<ul>${this._items.map((item) => this._row(item, now))}</ul>`
+          ? html`<div class="empty np-empty">${m.empty}</div>`
+          : html`<ul class="np-list">${this._items.map((item) => this._row(item, now))}</ul>`
       }
-      ${old ? html`<p class="warning">${m.oldWarning}</p>` : nothing}
+      ${old ? html`<p class="np-message np-warning">${m.oldWarning}</p>` : nothing}
     `;
   }
 }

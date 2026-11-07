@@ -53,12 +53,12 @@ export const renderModal = ({ title, body, closeLabel, onClose }: ModalOptions) 
       if (e.currentTarget) pressed.delete(e.currentTarget);
     }}
   >
-    <div class="modal" role="dialog" aria-modal="true" aria-label=${title} ${ref(isolate)}>
-      <div class="modal-header">
+    <div class="modal np-dialog" part="dialog" role="dialog" aria-modal="true" aria-label=${title} ${ref(isolate)}>
+      <div class="np-dialog-header" part="header">
         <span>${title}</span>
-        <button type="button" class="clear-btn" aria-label=${closeLabel} @click=${onClose}>×</button>
+        <button type="button" class="np-icon-button" part="button" aria-label=${closeLabel} @click=${onClose}>×</button>
       </div>
-      <div class="modal-body">${body}</div>
+      <div class="np-dialog-body">${body}</div>
     </div>
   </div>
 `;

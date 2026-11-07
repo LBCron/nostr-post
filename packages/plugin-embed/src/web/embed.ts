@@ -6,15 +6,16 @@
  * Accepts .url; `autoplay-load` loads the player right away.
  */
 
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { embedFor } from '../core';
 import { DEFAULT_EMBED_MESSAGES, type EmbedMessages } from './embedMessages';
 import { embedStyles } from './embedStyles';
 
 @customElement('np-embed')
-export class NpEmbed extends LitElement {
-  static override styles = embedStyles;
+export class NpEmbed extends NpElement {
+  static override styles = [...npStyles, embedStyles];
 
   @property() url = '';
   /** Load the player without waiting for a click */

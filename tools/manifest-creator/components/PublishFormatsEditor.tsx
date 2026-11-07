@@ -72,11 +72,17 @@ export function PublishFormatsEditor({
       >
         <div>
           <div style={styles.label}>Publish Formats:</div>
-          <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280' }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 'var(--np-text-sm)',
+              color: 'var(--np-color-on-surface-variant)',
+            }}
+          >
             Optional event-selection choices shown in the composer UI.
           </p>
         </div>
-        <button type="button" style={styles.secondaryButton} onClick={addPublishFormat}>
+        <button type="button" className="np-button np-tonal" onClick={addPublishFormat}>
           + Add Format
         </button>
       </div>
@@ -94,10 +100,10 @@ export function PublishFormatsEditor({
             <div
               key={formatKeys.keys[index]}
               style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
+                border: '1px solid var(--np-color-outline-variant)',
+                borderRadius: 'var(--np-radius-sm)',
                 padding: '0.75rem',
-                background: '#f9fafb',
+                background: 'var(--np-color-surface-container-low)',
               }}
             >
               <div
@@ -248,7 +254,7 @@ export function PublishFormatsEditor({
               <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
-                  style={{ ...styles.secondaryButton, background: '#dc2626' }}
+                  className="np-button np-small np-danger"
                   onClick={() => deletePublishFormat(index)}
                 >
                   Delete Format
@@ -262,10 +268,10 @@ export function PublishFormatsEditor({
           style={{
             marginTop: '0.75rem',
             padding: '0.75rem',
-            borderRadius: '0.5rem',
-            background: '#f5f3ff',
-            color: '#5b21b6',
-            fontSize: '0.875rem',
+            borderRadius: 'var(--np-radius-sm)',
+            background: 'var(--np-color-primary-container)',
+            color: 'var(--np-color-primary)',
+            fontSize: 'var(--np-text-md)',
           }}
         >
           No publish formats yet. Add one to let users choose between Kind 1, NIP-78, or hybrid

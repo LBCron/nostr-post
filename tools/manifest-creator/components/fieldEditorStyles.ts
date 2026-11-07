@@ -1,9 +1,9 @@
 export const styles = {
   fieldItem: {
     padding: '1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '0.375rem',
-    background: '#f9fafb',
+    border: '1px solid var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    background: 'var(--np-color-surface-container-low)',
   },
   fieldHeader: {
     display: 'flex',
@@ -13,16 +13,7 @@ export const styles = {
   },
   fieldTitle: {
     fontWeight: 600,
-    color: '#111827',
-  },
-  deleteButton: {
-    padding: '0.25rem 0.75rem',
-    background: '#dc2626',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
+    color: 'var(--np-color-on-surface)',
   },
   grid: {
     display: 'grid',
@@ -35,43 +26,34 @@ export const styles = {
     gap: '0.25rem',
   },
   label: {
-    fontSize: '0.875rem',
+    fontSize: 'var(--np-text-md)',
     fontWeight: 500,
-    color: '#374151',
+    color: 'var(--np-color-on-surface)',
   },
   input: {
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    border: '1px solid var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    fontSize: 'var(--np-text-md)',
   },
   select: {
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    border: '1px solid var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    fontSize: 'var(--np-text-md)',
   },
   checkbox: {
     width: '1rem',
     height: '1rem',
   },
   helperText: {
-    fontSize: '0.75rem',
-    color: '#6b7280',
+    fontSize: 'var(--np-text-sm)',
+    color: 'var(--np-color-on-surface-variant)',
   },
   mappingCard: {
-    border: '1px dashed #d1d5db',
-    borderRadius: '0.375rem',
+    border: '1px dashed var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
     padding: '0.75rem',
-    background: 'white',
-  },
-  smallButton: {
-    padding: '0.35rem 0.65rem',
-    background: '#6b7280',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
+    background: 'var(--np-color-surface-container-lowest)',
   },
 } as const;

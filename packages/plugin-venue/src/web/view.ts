@@ -12,8 +12,9 @@
 
 import { eventActionsFor } from '@nostr-post/plugins/entities';
 import type { PostField } from '@nostr-post/plugins/types';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import { type EntityManifestRef, getEntityManifest, resolveEntityManifest } from '@nostr-post/wiki';
-import { css, html, LitElement, nothing } from 'lit';
+import { css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { html as staticHtml, unsafeStatic } from 'lit/static-html.js';
 import { googleMapsPlaceUrl, osmUrl, pageAddress, type VenueData } from '../core';
@@ -27,16 +28,18 @@ import '@nostr-post/plugin-geo/web';
 import '@nostr-post/wiki/web';
 
 @customElement('np-venue-view')
-export class NpVenueView extends LitElement {
-  static styles = css`
+export class NpVenueView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
 
     .venue-name {
       font-weight: 600;
-      font-size: 0.9375rem;
-      color: #166534;
+      font-size: var(--np-text-md);
+      color: var(--np-color-success);
       display: flex;
       align-items: center;
       gap: 0.375rem;
@@ -50,12 +53,12 @@ export class NpVenueView extends LitElement {
 
     .venue-wiki {
       margin-top: 0.5rem;
-      font-size: 0.85rem;
+      font-size: var(--np-text-md);
     }
 
     .venue-wiki summary {
       cursor: pointer;
-      color: #166534;
+      color: var(--np-color-success);
       font-weight: 500;
       margin-bottom: 0.375rem;
     }
@@ -64,7 +67,7 @@ export class NpVenueView extends LitElement {
       width: 100%;
       height: 18rem;
       border: 0;
-      border-radius: 0.375rem;
+      border-radius: var(--np-radius-sm);
     }
 
     .venue-links {
@@ -74,8 +77,8 @@ export class NpVenueView extends LitElement {
     }
 
     .venue-link {
-      font-size: 0.8125rem;
-      color: #6366f1;
+      font-size: var(--np-text-sm);
+      color: var(--np-color-primary);
       text-decoration: none;
     }
 
@@ -87,25 +90,15 @@ export class NpVenueView extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      font-size: 0.75rem;
-      color: #065f46;
-      background: #d1fae5;
+      font-size: var(--np-text-sm);
+      color: var(--np-color-on-success-container);
+      background: var(--np-color-success-container);
       padding: 0.125rem 0.5rem;
-      border-radius: 9999px;
+      border-radius: var(--np-radius-full);
     }
 
-    :host-context(.dark) .venue-name,
-    :host-context(.dark) .venue-wiki summary {
-      color: #86efac;
-    }
-    :host-context(.dark) .venue-link {
-      color: #a5b4fc;
-    }
-    :host-context(.dark) .osm-badge {
-      color: #a7f3d0;
-      background: #064e3b;
-    }
-  `;
+  `,
+  ];
 
   @property({ type: Object })
   value: VenueData | string | null = null;

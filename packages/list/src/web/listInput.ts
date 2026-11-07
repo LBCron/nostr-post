@@ -8,7 +8,8 @@
  */
 
 import type { NostrPostManifest, PostField } from '@nostr-post/core/types';
-import { html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type ListPreset, listWithTitle } from '../core';
 import { choiceValue, fieldPresets, type ListChoice, listChoices } from '../listField';
@@ -20,8 +21,8 @@ import { renderLoadState } from './loadState';
 import { listStyles } from './styles';
 
 @customElement('np-list-input')
-export class NpListInput extends LitElement {
-  static override styles = listStyles;
+export class NpListInput extends NpElement {
+  static override styles = [...npStyles, listStyles];
 
   @property({ attribute: false }) value: unknown = null;
   @property({ attribute: false }) field: PostField | null = null;
@@ -133,7 +134,7 @@ export class NpListInput extends LitElement {
             @change=${(e: Event) => this._toggle(list, (e.target as HTMLInputElement).checked)}
           />
           <span>${titles.get(list.address)}</span>
-          <span class="count">${m.itemCount(list.items.length)}</span>
+          <span class="count np-badge" part="badge">${m.itemCount(list.items.length)}</span>
         </label>`
       )}
       ${newOnes.map(
@@ -147,8 +148,10 @@ export class NpListInput extends LitElement {
         </label>`
       )}
       ${renderLoadState(this._my, m, () => void this._load())}
-      <form class="new-list" @submit=${this._addNew}>
+      <form class="new-list np-toolbar" @submit=${this._addNew}>
         <input
+          class="np-input"
+          part="input"
           .value=${this._newTitle}
           placeholder=${m.newListPlaceholder}
           aria-label=${m.newListPlaceholder}
@@ -156,9 +159,9 @@ export class NpListInput extends LitElement {
             this._newTitle = (e.target as HTMLInputElement).value;
           }}
         />
-        <button type="submit" ?disabled=${!this._newTitle.trim()}>${m.addNewList}</button>
+        <button type="submit" class="np-button np-small" part="button" ?disabled=${!this._newTitle.trim()}>${m.addNewList}</button>
       </form>
-      <div class="muted">${m.fieldHint}</div>
+      <div class="np-hint">${m.fieldHint}</div>
     `;
   }
 }

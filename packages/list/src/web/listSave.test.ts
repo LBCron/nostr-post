@@ -111,7 +111,7 @@ describe('<np-list-view>', () => {
     el.shadowRoot?.querySelector<HTMLButtonElement>('li button:not(.item-title)')?.click();
     await settle();
     await el.updateComplete;
-    expect(el.shadowRoot?.querySelector('.muted')?.textContent).toBe('Nothing saved yet');
+    expect(el.shadowRoot?.querySelector('.np-hint')?.textContent).toBe('Nothing saved yet');
   });
 });
 

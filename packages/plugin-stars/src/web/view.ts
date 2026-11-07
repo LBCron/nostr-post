@@ -9,13 +9,16 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { StarsPluginConfig } from '../core';
 
 @customElement('np-stars-view')
-export class NpStarsView extends LitElement {
-  static styles = css`
+export class NpStarsView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: inline-flex;
       align-items: center;
@@ -28,24 +31,25 @@ export class NpStarsView extends LitElement {
     }
 
     .star {
-      font-size: 1.25rem;
+      font-size: var(--np-text-xl);
       line-height: 1;
     }
 
     .active {
-      color: #fbbf24;
+      color: var(--np-color-rating);
     }
 
     .inactive {
-      color: #d1d5db;
+      color: var(--np-color-outline-variant);
     }
 
     .rating-text {
-      font-size: 0.875rem;
-      color: #6b7280;
+      font-size: var(--np-text-md);
+      color: var(--np-color-on-surface-variant);
       margin-left: 0.25rem;
     }
-  `;
+  `,
+  ];
 
   @property({ type: Number })
   value = 0;

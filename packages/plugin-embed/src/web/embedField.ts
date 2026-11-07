@@ -7,7 +7,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { embedFor, linkFromEmbedCode, linkProvider, linksOf } from '../core';
@@ -16,8 +17,8 @@ import { DEFAULT_EMBED_MESSAGES, type EmbedMessages } from './embedMessages';
 import { embedStyles } from './embedStyles';
 
 @customElement('np-embed-view')
-export class NpEmbedView extends LitElement {
-  static override styles = embedStyles;
+export class NpEmbedView extends NpElement {
+  static override styles = [...npStyles, embedStyles];
 
   @property({ type: Array }) value?: string | string[];
   @property({ type: Object }) field?: PostField;
@@ -33,7 +34,7 @@ export class NpEmbedView extends LitElement {
 }
 
 @customElement('np-embed-input')
-export class NpEmbedInput extends LitElement {
+export class NpEmbedInput extends NpElement {
   static override styles = embedStyles;
 
   @property({ type: Array }) value?: string | string[];
@@ -77,6 +78,8 @@ export class NpEmbedInput extends LitElement {
         (row, index) => html`
           <div class="row">
             <input
+              class="np-input"
+              part="input"
               type="text"
               inputmode="url"
               placeholder=${m.placeholder}
@@ -91,7 +94,8 @@ export class NpEmbedInput extends LitElement {
               rows.length > 1
                 ? html`<button
                     type="button"
-                    class="small"
+                    class="np-button np-text np-small"
+                    part="button"
                     @click=${() => this._emit(rows.filter((_, i) => i !== index))}
                   >
                     ${m.remove}
@@ -102,7 +106,7 @@ export class NpEmbedInput extends LitElement {
           ${row.trim() ? html`<np-embed .url=${row.trim()} .messages=${this.messages}></np-embed>` : nothing}
           ${
             linkProvider(row) === 'bandcamp' && !embedFor(row)
-              ? html`<p class="hint">${m.bandcampHint}</p>`
+              ? html`<p class="np-hint">${m.bandcampHint}</p>`
               : nothing
           }
         `

@@ -9,8 +9,8 @@ import { draftLink } from '../lib/routes';
 
 export function Outbox() {
   return (
-    <section className="step">
-      <p className="hint">
+    <section className="step np-card np-outlined">
+      <p className="np-hint">
         Gigs not published yet, kept in this browser: drafts, gigs to publish at a set time, and
         gigs whose poster uploads on wifi or when you choose.
       </p>

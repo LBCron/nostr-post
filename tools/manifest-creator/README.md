@@ -23,6 +23,10 @@ A visual tool for creating and testing nostr-post manifests.
 - 🔎 Wiki panel for entity manifests: find an entity, view it, edit it (from the newest or any
   older version) and publish it with your signer (or into the test log in test mode), browse its
   versions and find its reviews
+- 🌗 Light, dark or the system's theme (header switch), for the page and every component in it
+- 🖌️ Theme and styling panel: try the three levels of customization of `@nostr-post/ui` live on
+  the previews (tokens, `::part()` rules, `registerStyles` overrides, unstyled components), copy
+  the CSS, and see every shared primitive in light and dark
 - 🗂️ Sections editor (`sections`): what the page of an event made with the manifest lists, e.g. its
   reviews by manifest, photos and videos, gigs, or wiki entities of another type in a role, each with
   its view and an optional "Add"

@@ -8,6 +8,7 @@ import {
   type ReplyTarget,
   summarizeReactionsWithAuthors,
 } from '@nostr-post/posts';
+import { npExportParts } from '@nostr-post/ui';
 import { html, type TemplateResult } from 'lit';
 import { renderReactionSummary } from './feedActions';
 import { isReplyComposerOpen, renderReplies } from './feedComments';
@@ -53,6 +54,7 @@ export const renderFeedThread = (thread: FeedThread, ctx: FeedThreadContext): Te
   return html`
     <div class="event-item">
       <nostr-post-view
+        exportparts=${npExportParts}
         .event=${thread.root}
         .manifest=${ctx.manifest}
         .interactionEvents=${thread.replies}

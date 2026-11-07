@@ -9,7 +9,8 @@
 
 import type { PostField } from '@nostr-post/plugins/types';
 import { fetchProfiles, type NostrProfile } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import {
@@ -29,8 +30,8 @@ import { profileStyles } from './profileStyles';
 const SEARCH_DELAY_MS = 350;
 
 @customElement('np-profile-input')
-export class NpProfileInput extends LitElement {
-  static override styles = profileStyles;
+export class NpProfileInput extends NpElement {
+  static override styles = [...npStyles, profileStyles];
 
   @property({ type: Array }) value?: Person[];
   @property({ type: Object }) field?: PostField;
@@ -119,20 +120,21 @@ export class NpProfileInput extends LitElement {
 
   _renderResults() {
     const m = this._m;
-    if (this._error) return html`<div class="results"><div class="note">${this._error}</div></div>`;
+    if (this._error)
+      return html`<div class="results np-menu" part="menu"><div class="note">${this._error}</div></div>`;
     if (this._searching && !this._results) {
-      return html`<div class="results"><div class="note">${m.searching}</div></div>`;
+      return html`<div class="results np-menu" part="menu"><div class="note">${m.searching}</div></div>`;
     }
     if (!this._results) return nothing;
     if (this._results.length === 0) {
-      return html`<div class="results"><div class="note">${m.noResults}</div></div>`;
+      return html`<div class="results np-menu" part="menu"><div class="note">${m.noResults}</div></div>`;
     }
-    return html`<div class="results" role="listbox">
+    return html`<div class="results np-menu" part="menu" role="listbox">
       ${this._results.map(
         ({ pubkey, profile }) => html`
           <button
             type="button"
-            class="result"
+            class="result np-menu-item"
             role="option"
             @click=${() => this._pick({ pubkey }, profile)}
           >
@@ -157,7 +159,8 @@ export class NpProfileInput extends LitElement {
             <div class="person">
               ${renderPersonName(person.pubkey, profile)}
               <input
-                class="role-input"
+                class="role-input np-input"
+                part="input"
                 list="np-profile-roles"
                 aria-label=${m.role}
                 placeholder=${m.rolePlaceholder}
@@ -175,7 +178,8 @@ export class NpProfileInput extends LitElement {
               />
               <button
                 type="button"
-                class="remove"
+                class="remove np-icon-button"
+                part="button"
                 aria-label=${m.remove(name)}
                 @click=${() => this._emit(withoutPerson(this._people, person.pubkey))}
               >
@@ -190,6 +194,8 @@ export class NpProfileInput extends LitElement {
       </datalist>
       <div class="search">
         <input
+          class="np-input"
+          part="input"
           type="search"
           autocomplete="off"
           placeholder=${m.searchPlaceholder}

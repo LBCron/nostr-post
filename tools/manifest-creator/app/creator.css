@@ -1,0 +1,67 @@
+/* The manifest creator's page: @nostr-post/ui's tokens and primitives (ui.css), no brand */
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--np-color-surface-container-low);
+  color: var(--np-color-on-surface);
+  font-family: var(--np-font-family);
+  font-size: var(--np-text-md);
+  line-height: var(--np-line-height);
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--np-space-4);
+}
+
+.theme-panel {
+  margin-bottom: var(--np-space-6);
+}
+
+.theme-panel summary {
+  cursor: pointer;
+}
+
+.theme-level {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--np-space-2);
+}
+
+.theme-level > .np-field,
+.theme-level > .np-message,
+.theme-level > .np-toolbar,
+.theme-level > textarea,
+.theme-level > pre {
+  align-self: stretch;
+}
+
+.theme-control {
+  min-width: 10rem;
+}
+
+.theme-code {
+  font-family: var(--np-font-family-mono);
+  font-size: var(--np-text-sm);
+}
+
+.theme-output {
+  margin: 0;
+  padding: var(--np-space-3);
+  border-radius: var(--np-radius-sm);
+  background: var(--np-color-surface-container-high);
+  white-space: pre-wrap;
+}
+
+input[type="range"],
+input[type="checkbox"] {
+  accent-color: var(--np-color-primary);
+}

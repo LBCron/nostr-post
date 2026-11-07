@@ -162,7 +162,7 @@ export function FieldEditor({ field, kinds, fieldIds = [], onChange, onDelete }:
     <div style={styles.fieldItem}>
       <div style={styles.fieldHeader}>
         <span style={styles.fieldTitle}>{label}</span>
-        <button type="button" style={styles.deleteButton} onClick={onDelete}>
+        <button type="button" className="np-button np-text np-small np-danger" onClick={onDelete}>
           Delete
         </button>
       </div>

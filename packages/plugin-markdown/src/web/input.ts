@@ -13,7 +13,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { MarkdownPluginConfig } from '../core';
 import { markdownInputStyles } from './inputStyles';
@@ -136,8 +137,8 @@ function htmlToMarkdown(htmlStr: string): string {
 }
 
 @customElement('np-markdown-input')
-export class NpMarkdownInput extends LitElement {
-  static styles = markdownInputStyles;
+export class NpMarkdownInput extends NpElement {
+  static override styles = [...npStyles, markdownInputStyles];
 
   /** Composers pass `undefined` for an empty field */
   @property({ type: String })
@@ -275,7 +276,7 @@ export class NpMarkdownInput extends LitElement {
     const placeholder = this.config.placeholder ?? 'Write your content...';
 
     return html`
-      <div class="container">
+      <div class="container" part="input">
         ${this.renderToolbar()}
         ${
           this.mode === 'wysiwyg'
@@ -316,7 +317,7 @@ export class NpMarkdownInput extends LitElement {
             ? html`
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Bold (Ctrl+B)"
                 @click=${() => this.execCommand('bold')}
               >
@@ -324,7 +325,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Italic (Ctrl+I)"
                 @click=${() => this.execCommand('italic')}
                 style="font-style:italic"
@@ -333,7 +334,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Strikethrough"
                 @click=${() => this.execCommand('strikeThrough')}
                 style="text-decoration:line-through"
@@ -343,7 +344,7 @@ export class NpMarkdownInput extends LitElement {
               <div class="toolbar-sep"></div>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Heading 1"
                 @click=${() => this.insertHeading(1)}
               >
@@ -351,7 +352,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Heading 2"
                 @click=${() => this.insertHeading(2)}
               >
@@ -359,7 +360,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Heading 3"
                 @click=${() => this.insertHeading(3)}
               >
@@ -368,7 +369,7 @@ export class NpMarkdownInput extends LitElement {
               <div class="toolbar-sep"></div>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Unordered list"
                 @click=${() => this.execCommand('insertUnorderedList')}
               >
@@ -376,7 +377,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Blockquote"
                 @click=${() => this.execCommand('formatBlock', 'blockquote')}
               >
@@ -384,7 +385,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Code block"
                 @click=${this.insertCodeBlock}
               >
@@ -392,7 +393,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Link"
                 @click=${this.insertLink}
               >
@@ -400,7 +401,7 @@ export class NpMarkdownInput extends LitElement {
               </button>
               <button
                 type="button"
-                class="toolbar-btn"
+                class="toolbar-btn np-icon-button" part="button"
                 title="Horizontal rule"
                 @click=${this.insertHR}
               >
@@ -412,20 +413,26 @@ export class NpMarkdownInput extends LitElement {
 
         <div class="toolbar-spacer"></div>
 
-        <button
-          type="button"
-          class="mode-toggle ${this.mode === 'wysiwyg' ? 'active' : ''}"
-          @click=${() => this.switchMode('wysiwyg')}
-        >
-          Visual
-        </button>
-        <button
-          type="button"
-          class="mode-toggle ${this.mode === 'raw' ? 'active' : ''}"
-          @click=${() => this.switchMode('raw')}
-        >
-          Markdown
-        </button>
+        <div class="np-segmented" role="group">
+          <button
+            type="button"
+            class="np-segment"
+            part="button"
+            aria-pressed=${this.mode === 'wysiwyg'}
+            @click=${() => this.switchMode('wysiwyg')}
+          >
+            Visual
+          </button>
+          <button
+            type="button"
+            class="np-segment"
+            part="button"
+            aria-pressed=${this.mode === 'raw'}
+            @click=${() => this.switchMode('raw')}
+          >
+            Markdown
+          </button>
+        </div>
       </div>
     `;
   }

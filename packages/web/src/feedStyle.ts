@@ -1,58 +1,13 @@
 import { css } from 'lit';
 
 export const feedStyle = css`
-  .feed {
-    font-family:
-      system-ui,
-      -apple-system,
-      sans-serif;
-  }
-
-  .loading,
-  .empty {
-    text-align: center;
-    padding: 2rem;
-    color: var(--nl-text-secondary, #6b7280);
-  }
-
-  :host-context(.dark) .loading,
-  :host-context(.dark) .empty {
-    color: #9ca3af;
-  }
 
   .event-item {
     margin-bottom: 0.75rem;
   }
 
   .event-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 0.75rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .action-button,
-  .reaction-button {
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .action-button {
-    padding: 0.4rem 0.8rem;
-    border-radius: 999px;
-    border: 1px solid var(--nl-primary, #6366f1);
-    background: white;
-    color: var(--nl-primary, #6366f1);
-  }
-
-  .reaction-button {
-    padding: 0.35rem 0.65rem;
-    border-radius: 999px;
-    border: 1px solid var(--nl-border, #d1d5db);
-    background: white;
-    color: var(--nl-text, #1f2937);
+    margin: var(--np-space-3) 0 var(--np-space-2);
   }
 
   .reaction-summary,
@@ -68,20 +23,9 @@ export const feedStyle = css`
     flex-wrap: wrap;
   }
 
-  .reaction-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    background: var(--nl-tag-bg, #e5e7eb);
-    color: var(--nl-text-secondary, #6b7280);
-    font-size: 0.75rem;
-  }
-
   .reaction-authors {
     margin-left: 0.15rem;
-    font-size: 0.7rem;
+    font-size: var(--np-text-xs);
     opacity: 0.9;
     max-width: 280px;
     overflow: hidden;
@@ -92,13 +36,13 @@ export const feedStyle = css`
   .reply-list {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--nl-border, #e5e7eb);
+    border-top: 1px solid var(--np-color-outline-variant);
   }
 
   .reply-header {
-    font-size: 0.8rem;
+    font-size: var(--np-text-sm);
     font-weight: 600;
-    color: var(--nl-text-secondary, #6b7280);
+    color: var(--np-color-on-surface-variant);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -108,21 +52,7 @@ export const feedStyle = css`
   }
 
   .status {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
+    margin-bottom: var(--np-space-4);
   }
 
-  .status.info {
-    border: 1px solid #bfdbfe;
-    background: #eff6ff;
-    color: #1d4ed8;
-  }
-
-  .status.error {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #b91c1c;
-  }
 `;

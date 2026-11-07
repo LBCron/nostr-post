@@ -63,7 +63,8 @@ export const renderSuggestions = (
               id
                 ? html`<button
                     type="button"
-                    class="view-suggestion-toggle"
+                    class="view-suggestion-toggle np-chip"
+                    part="chip"
                     aria-pressed=${isAccepted ? 'true' : 'false'}
                     @click=${() => onToggle(id)}
                   >

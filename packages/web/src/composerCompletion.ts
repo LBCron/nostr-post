@@ -13,7 +13,8 @@ import {
   completionAt,
 } from '@nostr-post/core/textCompletion';
 import type { PostField, TextCompletion } from '@nostr-post/plugins/types';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 
@@ -29,7 +30,7 @@ const SEARCH_DELAY_MS = 300;
 const MIN_QUERY = 2;
 
 @customElement('np-completing-textarea')
-export class NpCompletingTextarea extends LitElement {
+export class NpCompletingTextarea extends NpElement {
   @property({ attribute: false }) value = '';
   @property({ attribute: false }) completers: Completer[] = [];
   @property({ attribute: false }) onInput?: (value: string) => void;

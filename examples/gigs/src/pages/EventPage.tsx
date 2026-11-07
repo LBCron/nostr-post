@@ -9,7 +9,13 @@ export function EventPage({ address }: { address: string }) {
       </p>
       <nostr-calendar-event manifest={GIG_MANIFEST} address={address} thread editable />
       <p className="share">
-        Share: <input readOnly value={location.href} onFocus={(e) => e.target.select()} />
+        Share:{' '}
+        <input
+          className="np-input"
+          readOnly
+          value={location.href}
+          onFocus={(e) => e.target.select()}
+        />
       </p>
     </>
   );

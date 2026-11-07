@@ -20,7 +20,9 @@ import {
 } from '@nostr-post/signer';
 import { type FeedLayout, renderFeedThread } from '@nostr-post/web';
 import '@nostr-post/web';
-import { css, html, LitElement, nothing } from 'lit';
+import { npExportParts } from '@nostr-post/ui';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { latestByAddress } from '../agenda';
 import { CALENDAR_EVENT_MANIFEST } from '../calendarManifest';
@@ -28,13 +30,16 @@ import { calendarEventFilters } from '../calendars';
 import { isCalendarEventAddress } from '../rsvp';
 
 @customElement('nostr-calendar-event')
-export class NostrCalendarEvent extends LitElement {
-  static override styles = css`
+export class NostrCalendarEvent extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
       margin: 0.5rem 0;
     }
-  `;
+  `,
+  ];
 
   @property() address = '';
   @property({ type: Array }) relays?: string[];
@@ -97,6 +102,7 @@ export class NostrCalendarEvent extends LitElement {
     if (!sections?.length || !this.thread || this.hideSections) return nothing;
     if (!isCalendarEventAddress(this.address)) return nothing;
     return html`<nostr-post-sections
+  exportparts=${npExportParts}
       .sections=${sections}
       .target=${{ addresses: [this.address], ids: [], links: [] }}
       .linkValue=${this.address}
@@ -108,6 +114,7 @@ export class NostrCalendarEvent extends LitElement {
     if (this.thread) {
       return this._filters.length
         ? html`<nostr-post-feed
+  exportparts=${npExportParts}
             .filters=${this._filters}
             .relays=${this.relays}
             .manifest=${this.manifest}
@@ -118,6 +125,7 @@ export class NostrCalendarEvent extends LitElement {
     }
     return this._event
       ? html`<nostr-post-view
+  exportparts=${npExportParts}
           .event=${this._event}
           .manifest=${this.manifest}
           .editable=${this.editable}

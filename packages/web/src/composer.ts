@@ -449,9 +449,9 @@ export class NostrPostComposer extends NostrPostElement {
       this.showReplyTarget || this.editableReplyTarget || hasReplyTarget(replyTarget);
 
     return html`
-      <div class="composer">
+      <div class="composer np-card np-outlined" part="container">
         ${renderComposerHeader(manifest.metadata)}
-        ${this.successMessage ? html`<div class="success-message">${this.successMessage}</div>` : ''}
+        ${this.successMessage ? html`<div class="np-message np-success" role="status">${this.successMessage}</div>` : ''}
         ${renderHiddenFieldErrors(manifest, this.errors, this.excludeFields, this.prefill)}
         <form @submit=${this.handleSubmit}>
           ${renderPublishFormatPicker(

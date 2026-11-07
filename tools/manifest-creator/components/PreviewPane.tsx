@@ -247,10 +247,10 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
           style={{
             padding: '0.5rem 0.75rem',
             marginBottom: '1rem',
-            borderRadius: '0.375rem',
-            background: '#ede9fe',
-            color: '#5b21b6',
-            fontSize: '0.875rem',
+            borderRadius: 'var(--np-radius-sm)',
+            background: 'var(--np-color-primary-container)',
+            color: 'var(--np-color-primary)',
+            fontSize: 'var(--np-text-md)',
           }}
         >
           Fetching parent manifests…
@@ -279,7 +279,7 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
         This preserves its internal state (form values) across tab switches.
       */}
       <div style={activeTab !== 'preview' ? styles.hidden : undefined}>
-        <div style={styles.composerContainer}>
+        <div className="composer-scroll">
           <h3 style={styles.feedHeader}>Composer</h3>
           <nostr-post-composer
             key={manifest.id}
@@ -303,13 +303,13 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
               marginTop: '2rem',
               marginBottom: '2rem',
               padding: '1rem',
-              background: '#fff7ed',
-              borderRadius: '0.5rem',
-              border: '1px solid #fdba74',
+              background: 'var(--np-color-warning-container)',
+              borderRadius: 'var(--np-radius-sm)',
+              border: '1px solid color-mix(in srgb, var(--np-color-warning) 40%, transparent)',
             }}
           >
             <p style={styles.eventPreviewLabel}>Preview pending. Fix these fields:</p>
-            <ul style={{ margin: '0.5rem 0 0 1.25rem', color: '#9a3412' }}>
+            <ul style={{ margin: '0.5rem 0 0 1.25rem', color: 'var(--np-color-warning)' }}>
               {previewValidationErrors.slice(0, 6).map((error) => (
                 <li key={error}>{error}</li>
               ))}
@@ -330,11 +330,11 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
                 style={{
                   marginTop: '0.75rem',
                   padding: '0.5rem 1.25rem',
-                  background: '#8b5cf6',
-                  color: 'white',
+                  background: 'var(--np-color-primary)',
+                  color: 'var(--np-color-on-primary)',
                   border: 'none',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
+                  borderRadius: 'var(--np-radius-sm)',
+                  fontSize: 'var(--np-text-md)',
                   fontWeight: 500,
                   cursor: 'pointer',
                 }}
@@ -393,7 +393,7 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
             <div>
               <div style={styles.headerRow}>
                 <h3 style={styles.feedHeader}>Published Events ({publishedEvents.length})</h3>
-                <button type="button" style={styles.clearButton} onClick={clearEvents}>
+                <button type="button" className="np-button np-text np-small" onClick={clearEvents}>
                   Clear all
                 </button>
               </div>

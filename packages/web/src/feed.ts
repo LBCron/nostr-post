@@ -453,7 +453,7 @@ export class NostrPostFeed extends NostrPostElement {
     const m = this._m;
     // A layout shows its own loading state, keeping the previous posts meanwhile
     if (this.isLoading && !this.layout) {
-      return html`<div class="feed"><div class="loading">${m.loading}</div></div>`;
+      return html`<div class="feed"><div class="loading np-loading">${m.loading}</div></div>`;
     }
 
     const threads = buildThreads(this.events, this.interactionEvents);
@@ -461,14 +461,14 @@ export class NostrPostFeed extends NostrPostElement {
     const body = this.layout
       ? this.layout(threads, ctx, { loading: this.isLoading })
       : threads.length === 0
-        ? html`<div class="empty">${m.empty}</div>`
+        ? html`<div class="empty np-empty">${m.empty}</div>`
         : threads.map((thread) => renderFeedThread(thread, ctx));
 
     return html`
       <div class="feed">
         ${
           this.statusMessage
-            ? html`<div class="status ${this.statusTone}">${this.statusMessage}</div>`
+            ? html`<div class="status np-message np-${this.statusTone}" role="status">${this.statusMessage}</div>`
             : ''
         }
         ${body}

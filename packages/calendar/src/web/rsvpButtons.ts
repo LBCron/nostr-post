@@ -6,7 +6,8 @@
  * Accepts .target (the event's address) and .relays; reading needs no signer, answering does.
  */
 
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   isCalendarEventAddress,
@@ -22,8 +23,8 @@ import { rsvpStyles } from './rsvpStyles';
 import { renderRsvpWho } from './rsvpWho';
 
 @customElement('np-rsvp')
-export class NpRsvp extends LitElement {
-  static override styles = rsvpStyles;
+export class NpRsvp extends NpElement {
+  static override styles = [...npStyles, rsvpStyles];
 
   /** The calendar event's address, `kind:pubkey:d` */
   @property() target = '';
@@ -77,12 +78,13 @@ export class NpRsvp extends LitElement {
     const counts = this._summary?.counts;
     const answers = counts ? counts.accepted + counts.tentative + counts.declined : 0;
     return html`
-      <div class="rsvp" role="group" aria-label=${m.label}>
+      <div class="rsvp" part="actions" role="group" aria-label=${m.label}>
         ${RSVP_STATUSES.map(
           (status) => html`
             <button
               type="button"
-              class=${status === this._mine ? 'chosen' : ''}
+              class="np-chip ${status === this._mine ? 'np-selected' : ''}"
+              part="chip"
               aria-pressed=${status === this._mine ? 'true' : 'false'}
               ?disabled=${this._busy}
               @click=${() => this._answer(status)}
@@ -95,7 +97,8 @@ export class NpRsvp extends LitElement {
           answers > 0
             ? html`<button
                 type="button"
-                class="who-button"
+                class="who-button np-chip"
+                part="chip"
                 aria-expanded=${this._whoOpen ? 'true' : 'false'}
                 @click=${() => {
                   this._whoOpen = !this._whoOpen;
@@ -105,10 +108,10 @@ export class NpRsvp extends LitElement {
               </button>`
             : ''
         }
-        ${this._busy ? html`<span class="note">${m.saving}</span>` : ''}
+        ${this._busy ? html`<span class="np-hint">${m.saving}</span>` : ''}
       </div>
       ${this._whoOpen ? renderRsvpWho(this._summary, m) : ''}
-      ${this._error ? html`<p class="error" role="alert">${this._error}</p>` : ''}
+      ${this._error ? html`<p class="error np-field-error" part="error" role="alert">${this._error}</p>` : ''}
     `;
   }
 }

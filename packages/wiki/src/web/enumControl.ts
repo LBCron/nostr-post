@@ -35,6 +35,8 @@ export function renderEnumControl(
     // Typed text that matches no option clears the value; live() then clears the text too
     return html`
       <input
+        class="np-input"
+        part="input"
         id="field-${f.id}"
         type="search"
         list=${listId}
@@ -54,6 +56,8 @@ export function renderEnumControl(
 
   return html`
     <select
+      class="np-input"
+      part="input"
       id="field-${f.id}"
       ?required=${f.required}
       @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}

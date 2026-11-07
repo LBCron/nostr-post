@@ -13,8 +13,9 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import L from 'leaflet';
-import { html, LitElement, nothing } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { decodeGeohash, encodeGeohash, type GeoCoordinates, type GeoPluginConfig } from '../core';
 import { geoInputStyles } from './inputStyles';
@@ -34,8 +35,8 @@ interface NominatimResult {
 }
 
 @customElement('np-geo-input')
-export class NpGeoInput extends LitElement {
-  static override styles = geoInputStyles;
+export class NpGeoInput extends NpElement {
+  static override styles = [...npStyles, geoInputStyles];
 
   /** Geohash string (external value) */
   @property({ type: String })
@@ -243,7 +244,7 @@ export class NpGeoInput extends LitElement {
             ? nothing
             : html`<div class="search-row">
                 <input
-                  class="search-input"
+                  class="search-input np-input" part="input"
                   type="text"
                   placeholder="Search for a place..."
                   .value=${this.searchQuery}
@@ -258,7 +259,7 @@ export class NpGeoInput extends LitElement {
                   }}
                 />
                 <button
-                  class="btn btn-primary"
+                  class="np-button np-filled" part="button primary"
                   type="button"
                   @click=${this.handleSearch}
                   ?disabled=${this.searching}
@@ -298,7 +299,7 @@ export class NpGeoInput extends LitElement {
         <!-- Actions -->
         <div class="actions-row">
           <button
-            class="btn btn-secondary"
+            class="np-button np-small" part="button"
             type="button"
             @click=${this.handleLocateMe}
           >
@@ -309,9 +310,9 @@ export class NpGeoInput extends LitElement {
         <!-- Coordinate inputs -->
         <div class="coords-row">
           <div class="coord-field">
-            <label class="coord-label">Latitude</label>
+            <label class="np-label" part="label">Latitude</label>
             <input
-              class="coord-input"
+              class="coord-input np-input" part="input"
               type="number"
               step="0.00001"
               min="-90"
@@ -327,9 +328,9 @@ export class NpGeoInput extends LitElement {
             />
           </div>
           <div class="coord-field">
-            <label class="coord-label">Longitude</label>
+            <label class="np-label" part="label">Longitude</label>
             <input
-              class="coord-input"
+              class="coord-input np-input" part="input"
               type="number"
               step="0.00001"
               min="-180"
@@ -348,7 +349,7 @@ export class NpGeoInput extends LitElement {
 
         ${this.value ? html`<div class="geohash-display">Geohash: ${this.value}</div>` : nothing}
 
-        <div class="hint">Click on the map or search to set location</div>
+        <div class="np-hint" part="hint">Click on the map or search to set location</div>
       </div>
     `;
   }

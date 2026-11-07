@@ -8,7 +8,8 @@
 
 import type { PostSection } from '@nostr-post/core/types';
 import type { SignedEvent } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { isCalendarEventAddress } from '../rsvp';
 import './agenda';
@@ -17,7 +18,7 @@ const addressOf = (event: SignedEvent): string =>
   `${event.kind}:${event.pubkey}:${event.tags.find((t) => t[0] === 'd')?.[1] ?? ''}`;
 
 @customElement('nostr-calendar-section-agenda')
-export class NostrCalendarSectionAgenda extends LitElement {
+export class NostrCalendarSectionAgenda extends NpElement {
   /** The section's events */
   @property({ attribute: false }) items: SignedEvent[] = [];
   @property({ attribute: false }) section?: PostSection;

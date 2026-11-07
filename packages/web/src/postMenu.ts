@@ -10,156 +10,18 @@
 import type { DisplayableEvent } from '@nostr-post/core/types';
 import { type RawEventData, rawEventData } from '@nostr-post/posts';
 import { DRY_RUN_CHANGE_EVENT, getDryRunEntries, type SignedEvent } from '@nostr-post/signer';
-import { css, html, LitElement, nothing, unsafeCSS } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import './dryRunPublish';
 import type { DryRunPublishMessages } from './dryRunPublishMessages';
 import { DEFAULT_POST_MENU_MESSAGES, type PostMenuMessages } from './postMenuMessages';
 import { type CopyTarget, copyText, renderMenuItems, renderRawPanel } from './postMenuPanel';
-import { colors } from './theme';
-
-const light = colors.light;
-const dark = colors.dark;
-const u = unsafeCSS;
+import { postMenuStyles } from './postMenuStyles';
 
 @customElement('nostr-post-menu')
-export class NostrPostMenu extends LitElement {
-  static override styles = css`
-    :host {
-      position: relative;
-      display: inline-block;
-      font-size: 13px;
-    }
-    .toggle {
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 0 0.375rem;
-      font-size: 16px;
-      line-height: 1;
-      color: ${u(light.textSecondary)};
-    }
-    .menu {
-      position: absolute;
-      right: 0;
-      top: 100%;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      min-width: 12rem;
-      padding: 0.25rem 0;
-      background: ${u(light.bg)};
-      border: 1px solid ${u(light.border)};
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
-    }
-    .menu button {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
-      border: none;
-      background: none;
-      padding: 0.375rem 0.75rem;
-      text-align: left;
-      cursor: pointer;
-      color: ${u(light.text)};
-      font: inherit;
-    }
-    .menu button:hover {
-      background: ${u(light.inputBg)};
-    }
-    .copied {
-      color: ${u(light.textSecondary)};
-    }
-    dialog {
-      width: min(48rem, 92vw);
-      max-height: 85vh;
-      overflow: auto;
-      color: ${u(light.text)};
-      background: ${u(light.bg)};
-      border: 1px solid ${u(light.border)};
-      border-radius: 8px;
-    }
-    .dialog-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .raw {
-      display: grid;
-      grid-template-columns: max-content 1fr;
-      gap: 0.25rem 0.75rem;
-    }
-    dt {
-      color: ${u(light.textSecondary)};
-    }
-    dd {
-      margin: 0;
-      overflow-wrap: anywhere;
-    }
-    ul {
-      margin: 0;
-      padding-left: 1rem;
-    }
-    h4 {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-      margin: 1rem 0 0.25rem;
-    }
-    .tags td {
-      padding: 0.125rem 0.5rem 0.125rem 0;
-      vertical-align: top;
-      overflow-wrap: anywhere;
-    }
-    pre,
-    .sig {
-      display: block;
-      padding: 0.5rem;
-      overflow: auto;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      background: ${u(light.inputBg)};
-      border-radius: 4px;
-    }
-    .copy,
-    .close {
-      font: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      color: ${u(light.text)};
-      background: ${u(light.inputBg)};
-      border: 1px solid ${u(light.border)};
-      border-radius: 4px;
-      padding: 0.125rem 0.5rem;
-      margin-left: 0.5rem;
-    }
-    :host-context(.dark) .toggle,
-    :host-context(.dark) .copied,
-    :host-context(.dark) dt {
-      color: ${u(dark.textSecondary)};
-    }
-    :host-context(.dark) .menu,
-    :host-context(.dark) dialog {
-      color: ${u(dark.text)};
-      background: ${u(dark.bg)};
-      border-color: ${u(dark.border)};
-    }
-    :host-context(.dark) .menu button {
-      color: ${u(dark.text)};
-    }
-    :host-context(.dark) .menu button:hover,
-    :host-context(.dark) pre,
-    :host-context(.dark) .sig {
-      background: ${u(dark.inputBg)};
-    }
-    :host-context(.dark) .copy,
-    :host-context(.dark) .close {
-      color: ${u(dark.text)};
-      background: ${u(dark.inputBg)};
-      border-color: ${u(dark.border)};
-    }
-  `;
+export class NostrPostMenu extends NpElement {
+  static override styles = [...npStyles, postMenuStyles];
 
   @property({ attribute: false }) event?: SignedEvent;
   /** Where the event was found; default: the relays this session fetched it from */
@@ -237,7 +99,8 @@ export class NostrPostMenu extends LitElement {
     return html`
       <button
         type="button"
-        class="toggle"
+        class="np-icon-button"
+        part="button"
         aria-label=${m.menu}
         title=${m.menu}
         aria-haspopup="menu"
@@ -267,17 +130,24 @@ export class NostrPostMenu extends LitElement {
           : nothing
       }
       <dialog
-        class="publish-dialog"
+        class="publish-dialog np-dialog"
+        part="dialog"
         @close=${() => {
           this._publishOpen = false;
         }}
       >
-        <div class="dialog-head">
-          <strong>${m.publishForReal}</strong>
-          <button type="button" class="close" @click=${() => this._publishDialog?.close()}>
+        <div class="np-dialog-header">
+          <h2 class="np-dialog-title">${m.publishForReal}</h2>
+          <button
+            type="button"
+            class="np-button np-text"
+            part="button"
+            @click=${() => this._publishDialog?.close()}
+          >
             ${m.close}
           </button>
         </div>
+        <div class="np-dialog-body">
         ${
           this._publishOpen
             ? html`<nostr-dry-run-publish
@@ -286,15 +156,23 @@ export class NostrPostMenu extends LitElement {
               ></nostr-dry-run-publish>`
             : nothing
         }
+        </div>
       </dialog>
-      <dialog class="raw-dialog">
-        <div class="dialog-head">
-          <strong>${m.rawData}</strong>
-          <button type="button" class="close" @click=${() => this._dialog?.close()}>
+      <dialog class="raw-dialog np-dialog" part="dialog">
+        <div class="np-dialog-header">
+          <h2 class="np-dialog-title">${m.rawData}</h2>
+          <button
+            type="button"
+            class="np-button np-text"
+            part="button"
+            @click=${() => this._dialog?.close()}
+          >
             ${m.close}
           </button>
         </div>
-        ${renderRawPanel(raw, m, (target) => void this._copy(target))}
+        <div class="np-dialog-body">
+          ${renderRawPanel(raw, m, (target) => void this._copy(target))}
+        </div>
       </dialog>
     `;
   }

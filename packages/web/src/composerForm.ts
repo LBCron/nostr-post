@@ -14,7 +14,7 @@ export const renderHiddenFieldErrors = (
   if (hiddenErrors.length === 0) return '';
 
   return html`
-    <div class="hidden-field-errors" role="alert" aria-live="polite">
+    <div class="hidden-field-errors np-message np-error" part="error" role="alert" aria-live="polite">
       <div class="hidden-field-errors-title">Some hidden fields failed validation:</div>
       <ul>
         ${hiddenErrors.map(

@@ -17,83 +17,18 @@ import {
   newerOnRelays,
   publishDryRunEntries,
 } from '@nostr-post/signer';
-import { css, html, LitElement, nothing, unsafeCSS } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   DEFAULT_DRY_RUN_PUBLISH_MESSAGES,
   type DryRunPublishMessages,
 } from './dryRunPublishMessages';
-import { colors } from './theme';
-
-const light = colors.light;
-const dark = colors.dark;
-const u = unsafeCSS;
+import { dryRunPublishStyles } from './dryRunPublishStyles';
 
 @customElement('nostr-dry-run-publish')
-export class NostrDryRunPublish extends LitElement {
-  static override styles = css`
-    :host {
-      display: block;
-      font-size: 14px;
-      color: ${u(light.text)};
-    }
-    h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1rem;
-    }
-    p {
-      margin: 0 0 0.75rem;
-      color: ${u(light.textSecondary)};
-    }
-    ul {
-      margin: 0 0 0.75rem;
-      padding-left: 1.25rem;
-    }
-    li {
-      margin: 0.25rem 0;
-    }
-    .kind,
-    .note {
-      color: ${u(light.textSecondary)};
-    }
-    .ok {
-      color: ${u(light.successText)};
-    }
-    .error {
-      color: ${u(light.error)};
-    }
-    button {
-      font: inherit;
-      cursor: pointer;
-      padding: 0.375rem 0.875rem;
-      border-radius: 6px;
-      border: 1px solid ${u(light.primary)};
-      background: ${u(light.primary)};
-      color: #fff;
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    :host-context(.dark) {
-      color: ${u(dark.text)};
-    }
-    :host-context(.dark) p,
-    :host-context(.dark) .kind,
-    :host-context(.dark) .note {
-      color: ${u(dark.textSecondary)};
-    }
-    :host-context(.dark) .ok {
-      color: ${u(dark.successText)};
-    }
-    :host-context(.dark) .error {
-      color: ${u(dark.error)};
-    }
-    :host-context(.dark) button {
-      border-color: ${u(dark.primary)};
-      background: ${u(dark.primary)};
-    }
-  `;
+export class NostrDryRunPublish extends NpElement {
+  static override styles = [...npStyles, dryRunPublishStyles];
 
   /** The logged post's id */
   @property({ attribute: 'event-id' }) eventId = '';
@@ -167,6 +102,8 @@ export class NostrDryRunPublish extends LitElement {
           ? nothing
           : html`<button
               type="button"
+              class="np-button np-filled"
+              part="button primary"
               ?disabled=${this._publishing || !this._newer || toSend === 0}
               @click=${() => void this._publish()}
             >

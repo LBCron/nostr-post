@@ -170,7 +170,7 @@ kind view of 31922/31923, so a post linking an event (`nostr:naddr…`) shows it
 | `manifest`, `relays` | Default `CALENDAR_EVENT_MANIFEST` and the default relays |
 | `thread`             | The event's own page: also its comments, reactions and update comments (a `<nostr-post-feed>` of the one event) |
 | `editable`           | An Edit button: the author republishes the event, anyone else suggests the changes as an update comment (applied for the event's editors) |
-| `hide-sections`      | With `thread`, the manifest's `sections` show below the event, e.g. the photos and videos of the event and its comments (`<nostr-post-sections>`, see [MANIFEST.md](../../MANIFEST.md#sections)); `hide-sections` hides them |
+| `hide-sections`      | With `thread`, the manifest's `sections` show below the event, e.g. the photos and videos of the event and its comments (`<nostr-post-sections>`, see [MANIFEST.md](../../MANIFEST.md#sections)); a section's "Add" gets the event's address (`31922\|31923:<pubkey>:<d-tag>`) in its `field`; `hide-sections` hides them |
 
 ### Section view `agenda`
 

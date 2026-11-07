@@ -4,15 +4,15 @@
  * Shared functionality for all nostr-post Web Components
  */
 
-import { LitElement } from 'lit';
+import { NpElement } from '@nostr-post/ui/web';
 
 // Re-export theme
-export { baseStyles, colors } from './theme';
+export { baseStyles } from './theme';
 
 /**
  * Base class for all nostr-post Web Components
  */
-export class NostrPostElement extends LitElement {
+export class NostrPostElement extends NpElement {
   /**
    * Dispatch a custom event with detail
    */

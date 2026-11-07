@@ -28,7 +28,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@nostr-post/plugins": "workspace:*"
+    "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/ui": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.3"

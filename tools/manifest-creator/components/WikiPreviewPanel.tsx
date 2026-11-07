@@ -90,7 +90,13 @@ export function WikiPreviewPanel({ manifest, manifestRef }: WikiPreviewPanelProp
       />
 
       {componentsError && (
-        <div style={{ color: '#b91c1c', padding: '0.75rem 1.25rem', fontSize: '0.875rem' }}>
+        <div
+          style={{
+            color: 'var(--np-color-error)',
+            padding: '0.75rem 1.25rem',
+            fontSize: 'var(--np-text-md)',
+          }}
+        >
           Failed to load wiki components. Check that <code>@nostr-post/wiki</code> and{' '}
           <code>@nostr-post/plugin-wiki-entity</code> are installed.
         </div>

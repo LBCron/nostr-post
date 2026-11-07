@@ -1,10 +1,12 @@
+/** Styles of <nostr-post-outbox> (colors from the --np-* tokens, light and dark) */
+
 import { css } from 'lit';
 
 export const outboxStyles = css`
   :host {
     display: block;
-    font-size: 14px;
-    color: #1f2937;
+    font-size: var(--np-text-md);
+    color: var(--np-color-on-surface);
   }
   .head {
     display: flex;
@@ -13,29 +15,23 @@ export const outboxStyles = css`
     gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
-  h3 {
-    margin: 0;
-    font-size: 1rem;
-  }
+
   ul {
     list-style: none;
     margin: 0;
     padding: 0;
   }
   li {
-    display: flex;
-    gap: 0.75rem;
     align-items: flex-start;
-    padding: 0.5rem 0;
-    border-top: 1px solid #e5e7eb;
+    padding-inline: 0;
   }
   .thumb {
     width: 3rem;
     height: 3rem;
     flex: none;
     object-fit: cover;
-    border-radius: 4px;
-    background: #f3f4f6;
+    border-radius: var(--np-radius-xs);
+    background: var(--np-color-surface-container);
   }
   .body {
     flex: 1;
@@ -47,64 +43,18 @@ export const outboxStyles = css`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .meta,
-  .empty,
-  .warning {
-    color: #6b7280;
-    font-size: 0.8125rem;
-  }
-  .state-failed,
-  .error,
-  .late {
-    color: #dc2626;
-  }
-  .actions {
+  .meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.375rem;
-    margin-top: 0.25rem;
+    align-items: center;
+    gap: var(--np-space-1) var(--np-space-2);
+    color: var(--np-color-on-surface-variant);
+    font-size: var(--np-text-sm);
   }
-  button {
-    font: inherit;
-    font-size: 0.8125rem;
-    cursor: pointer;
-    padding: 0.125rem 0.5rem;
-    color: #1f2937;
-    background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
+  .late {
+    color: var(--np-color-error);
   }
-  button.primary {
-    color: #fff;
-    background: #6366f1;
-    border-color: #6366f1;
-  }
-  :host-context(.dark) {
-    color: #f3f4f6;
-  }
-  :host-context(.dark) li {
-    border-color: #374151;
-  }
-  :host-context(.dark) .thumb {
-    background: #374151;
-  }
-  :host-context(.dark) .meta,
-  :host-context(.dark) .empty,
-  :host-context(.dark) .warning {
-    color: #9ca3af;
-  }
-  :host-context(.dark) .state-failed,
-  :host-context(.dark) .error,
-  :host-context(.dark) .late {
-    color: #fca5a5;
-  }
-  :host-context(.dark) button {
-    color: #f3f4f6;
-    background: #374151;
-    border-color: #4b5563;
-  }
-  :host-context(.dark) button.primary {
-    background: #4f46e5;
-    border-color: #4f46e5;
+  .actions {
+    margin-top: var(--np-space-2);
   }
 `;

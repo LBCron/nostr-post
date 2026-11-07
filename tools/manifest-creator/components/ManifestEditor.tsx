@@ -147,10 +147,10 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
       <div style={styles.panelHeader}>
         <h2 style={styles.panelTitle}>Manifest Editor</h2>
         <div style={styles.buttonGroup}>
-          <button type="button" style={styles.secondaryButton} onClick={exportJSON}>
+          <button type="button" className="np-button np-tonal" onClick={exportJSON}>
             Export JSON
           </button>
-          <button type="button" style={styles.secondaryButton} onClick={importJSON}>
+          <button type="button" className="np-button np-tonal" onClick={importJSON}>
             Import JSON
           </button>
         </div>
@@ -161,12 +161,7 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
         <h3 style={{ ...styles.label, margin: 0, fontSize: '1.1em' }}>Load Example:</h3>
         <div style={styles.buttonGroup}>
           {Object.keys(EXAMPLE_MANIFESTS).map((key) => (
-            <button
-              key={key}
-              type="button"
-              style={styles.secondaryButton}
-              onClick={() => loadExample(key)}
-            >
+            <button key={key} type="button" className="np-chip" onClick={() => loadExample(key)}>
               {EXAMPLE_MANIFESTS[key].metadata?.name || key}
             </button>
           ))}
@@ -267,7 +262,12 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
           Link manifest in posts
         </label>
         <span
-          style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block', marginTop: '-0.25rem' }}
+          style={{
+            fontSize: 'var(--np-text-sm)',
+            color: 'var(--np-color-on-surface-variant)',
+            display: 'block',
+            marginTop: '-0.25rem',
+          }}
         >
           When enabled, published events include an &lsquo;a&rsquo; tag so any client can auto-fetch
           this manifest to render posts correctly. Disable for manifests that only provide a
@@ -286,10 +286,10 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
                 alignItems: 'center',
                 gap: '0.25rem',
                 padding: '0.25rem 0.5rem',
-                background: '#ede9fe',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                color: '#6d28d9',
+                background: 'var(--np-color-primary-container)',
+                borderRadius: 'var(--np-radius-sm)',
+                fontSize: 'var(--np-text-md)',
+                color: 'var(--np-color-primary)',
                 fontWeight: 500,
               }}
             >
@@ -342,8 +342,8 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
       {/* Fields */}
       <div style={styles.section}>
         <div style={styles.panelHeader}>
-          <h3 style={{ ...styles.panelTitle, fontSize: '1.125rem' }}>Fields</h3>
-          <button style={styles.button} type="button" onClick={addField}>
+          <h3 style={{ ...styles.panelTitle, fontSize: 'var(--np-text-xl)' }}>Fields</h3>
+          <button className="np-button np-filled" type="button" onClick={addField}>
             + Add Field
           </button>
         </div>
@@ -365,18 +365,23 @@ export function ManifestEditor({ manifest, resolvedManifest, onChange }: Manifes
       <div style={styles.section}>
         <details>
           <summary
-            style={{ cursor: 'pointer', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}
+            style={{
+              cursor: 'pointer',
+              fontWeight: 500,
+              color: 'var(--np-color-on-surface)',
+              marginBottom: '0.5rem',
+            }}
           >
             Manifest JSON
           </summary>
           <pre
             style={{
-              background: '#1f2937',
-              color: '#e5e7eb',
+              background: 'var(--np-color-inverse-surface)',
+              color: 'var(--np-color-on-surface-variant)',
               padding: '1rem',
-              borderRadius: '0.375rem',
-              fontFamily: 'monospace',
-              fontSize: '0.875rem',
+              borderRadius: 'var(--np-radius-sm)',
+              fontFamily: 'var(--np-font-family-mono)',
+              fontSize: 'var(--np-text-md)',
               overflowX: 'auto',
               maxHeight: '400px',
               overflowY: 'auto',

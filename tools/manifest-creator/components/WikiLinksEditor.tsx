@@ -16,9 +16,9 @@ const cardStyle = {
   gap: '0.375rem',
   alignItems: 'center',
   padding: '0.375rem',
-  border: '1px solid #e5e7eb',
-  borderRadius: '0.375rem',
-  background: 'white',
+  border: '1px solid var(--np-color-outline-variant)',
+  borderRadius: 'var(--np-radius-sm)',
+  background: 'var(--np-color-surface-container-lowest)',
 } as const;
 
 const inputStyle = { ...styles.input, minWidth: 0 } as const;
@@ -32,7 +32,15 @@ export function WikiLinksEditor({ links, fieldIds, onChange }: WikiLinksEditorPr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div style={styles.label}>Links</div>
           <div style={styles.helperText}>
@@ -43,7 +51,7 @@ export function WikiLinksEditor({ links, fieldIds, onChange }: WikiLinksEditorPr
         </div>
         <button
           type="button"
-          style={styles.smallButton}
+          className="np-button np-small"
           onClick={() => onChange([...links, { label: '', url: '' }])}
         >
           + Add Link
@@ -71,7 +79,8 @@ export function WikiLinksEditor({ links, fieldIds, onChange }: WikiLinksEditorPr
           />
           <button
             type="button"
-            style={{ ...styles.deleteButton, gridRow: '1 / span 2', gridColumn: 3 }}
+            className="np-button np-text np-small np-danger"
+            style={{ gridRow: '1 / span 2', gridColumn: 3 }}
             onClick={() => onChange(links.filter((_, i) => i !== index))}
           >
             ×

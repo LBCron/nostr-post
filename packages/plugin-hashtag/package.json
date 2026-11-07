@@ -31,6 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/ui": "workspace:*",
     "lit": "^3.3.3"
   },
   "devDependencies": {

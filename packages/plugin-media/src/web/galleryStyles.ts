@@ -1,4 +1,4 @@
-/** Styles of <np-media-gallery>, light and dark (`.dark` on an ancestor) */
+/** Styles of <np-media-gallery> (colors from the --np-* tokens, light and dark) */
 
 import { css } from 'lit';
 
@@ -14,7 +14,7 @@ export const galleryStyles = css`
     gap: 0.5rem;
   }
   h3 {
-    font-size: 0.95rem;
+    font-size: var(--np-text-lg);
     margin: 0 0 0.375rem;
   }
   .grid {
@@ -25,8 +25,8 @@ export const galleryStyles = css`
   .thumb {
     padding: 0;
     border: none;
-    background: #f3f4f6;
-    border-radius: 0.375rem;
+    background: var(--np-color-surface-container);
+    border-radius: var(--np-radius-sm);
     overflow: hidden;
     cursor: pointer;
     aspect-ratio: 1;
@@ -46,40 +46,22 @@ export const galleryStyles = css`
     right: 0.25rem;
     bottom: 0.25rem;
     padding: 0.125rem 0.375rem;
-    font-size: 0.75rem;
-    color: #fff;
-    background: rgb(0 0 0 / 55%);
-    border-radius: 0.25rem;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-scrim);
+    background: color-mix(in srgb, var(--np-color-scrim) 55%, transparent);
+    border-radius: var(--np-radius-xs);
   }
   .status,
   .byline {
-    color: #6b7280;
-    font-size: 0.8125rem;
-  }
-  button.add,
-  button.more,
-  button.close {
-    font: inherit;
-    font-size: 0.8125rem;
-    cursor: pointer;
-    color: #1f2937;
-    background: #f9fafb;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    padding: 0.25rem 0.625rem;
+    color: var(--np-color-on-surface-variant);
+    font-size: var(--np-text-sm);
   }
   button.more {
     margin-top: 0.5rem;
   }
   dialog {
-    width: min(48rem, 94vw);
-    max-height: 92vh;
-    overflow: auto;
-    padding: 0.75rem;
-    color: #1f2937;
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
+    width: min(48rem, calc(100vw - 2 * var(--np-space-4)));
+    padding: var(--np-space-3);
   }
   .large {
     margin: 0;
@@ -90,7 +72,7 @@ export const galleryStyles = css`
     max-width: 100%;
     max-height: 75vh;
     margin: 0 auto;
-    border-radius: 0.375rem;
+    border-radius: var(--np-radius-sm);
   }
   figcaption {
     display: flex;
@@ -98,40 +80,16 @@ export const galleryStyles = css`
     align-items: center;
     gap: 0.5rem 1rem;
     margin-top: 0.5rem;
-    font-size: 0.875rem;
+    font-size: var(--np-text-md);
   }
   .alt {
     flex-basis: 100%;
   }
   a {
-    color: #4f46e5;
+    color: var(--np-color-primary);
   }
-  :host-context(.dark) {
-    color: #f3f4f6;
-  }
-  :host-context(.dark) a {
-    color: #a5b4fc;
-  }
+
   .close {
     margin-left: auto;
-  }
-  :host-context(.dark) .thumb {
-    background: #374151;
-  }
-  :host-context(.dark) .status,
-  :host-context(.dark) .byline {
-    color: #9ca3af;
-  }
-  :host-context(.dark) button.add,
-  :host-context(.dark) button.more,
-  :host-context(.dark) button.close {
-    color: #f3f4f6;
-    background: #374151;
-    border-color: #4b5563;
-  }
-  :host-context(.dark) dialog {
-    color: #f3f4f6;
-    background: #1f2937;
-    border-color: #4b5563;
   }
 `;

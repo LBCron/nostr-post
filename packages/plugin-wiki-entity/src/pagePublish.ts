@@ -7,7 +7,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { pickedEntities, type WikiEntityData } from './core';
 import { isUnconfirmed } from './entityMatch';
@@ -18,27 +19,20 @@ import {
 } from './pickerMessages';
 
 @customElement('np-wiki-entity-publish')
-export class NpWikiEntityPublish extends LitElement {
-  static override styles = css`
-    :host { display: block; margin: 0.75rem 0; font-size: 0.85rem; }
+export class NpWikiEntityPublish extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
+    :host { display: block; margin: 0.75rem 0; font-size: var(--np-text-md); }
     .pages {
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--nl-border, #e5e7eb);
-      border-radius: 0.5rem;
-      background: var(--nl-card-bg, #f9fafb);
+      gap: 0;
     }
     label { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
-    .hint { margin: 0.15rem 0 0.5rem 1.4rem; color: var(--nl-text-secondary, #6b7280); }
-    .check { margin-bottom: 0.4rem; color: #92400e; }
+    .hint { margin: 0.15rem 0 0.5rem 1.4rem; color: var(--np-color-on-surface-variant); }
+    .check { margin-bottom: 0.4rem; color: var(--np-color-warning); }
 
-    :host-context(.dark) { color: #f3f4f6; }
-    :host-context(.dark) .pages {
-      border-color: var(--nl-border, #374151);
-      background: var(--nl-card-bg, #1f2937);
-    }
-    :host-context(.dark) .hint { color: var(--nl-text-secondary, #9ca3af); }
-    :host-context(.dark) .check { color: #fcd34d; }
-  `;
+  `,
+  ];
 
   /** The picker's value: one entity, or a list (`metadata.multiple`) */
   @property({ attribute: false }) value: WikiEntityData | WikiEntityData[] | null = null;
@@ -60,7 +54,7 @@ export class NpWikiEntityPublish extends LitElement {
     const withoutPage = picked.filter((e) => e.unlinked && e.displayName);
     const unconfirmed = picked.filter(isUnconfirmed);
     if (!withoutPage.length && !unconfirmed.length) return nothing;
-    return html`<div class="pages">
+    return html`<div class="pages np-card" part="card">
       ${unconfirmed.map(
         (entity) =>
           html`<div class="check">${m.checkFound(entity.displayName ?? entity.dTag)}</div>`

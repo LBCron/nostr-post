@@ -36,12 +36,12 @@ export const renderPickedChip = (
     ${
       entity.unlinked
         ? html`<span class="selected-slug">${m.noPage}</span>
-            <button type="button" class="chip-create" @click=${onCreate}>${m.createPage}</button>`
+            <button type="button" class="chip-create np-button np-text np-small" part="button" @click=${onCreate}>${m.createPage}</button>`
         : html`<span class="selected-slug"
               >${entity.match ? m.foundBy(entity.match.by) : entity.dTag}</span
             >${preview(entity.dTag)}`
     }
-    <button type="button" class="clear-btn" @click=${onRemove} aria-label=${m.remove}>×</button>
+    <button type="button" class="clear-btn np-icon-button" part="button" @click=${onRemove} aria-label=${m.remove}>×</button>
   </div>
 `;
 
@@ -57,8 +57,8 @@ export const renderMatchActions = (
   { messages: m, onConfirm, onReject }: MatchActions
 ): TemplateResult | typeof nothing =>
   entity && isUnconfirmed(entity)
-    ? html`<div class="match-actions">
-        <button type="button" class="match-confirm" @click=${onConfirm}>${m.itsThem}</button>
-        <button type="button" class="match-reject" @click=${onReject}>${m.notThem}</button>
+    ? html`<div class="match-actions np-toolbar" part="actions">
+        <button type="button" class="match-confirm np-button np-filled np-small" part="button primary" @click=${onConfirm}>${m.itsThem}</button>
+        <button type="button" class="match-reject np-button np-small" part="button" @click=${onReject}>${m.notThem}</button>
       </div>`
     : nothing;

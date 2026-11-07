@@ -13,6 +13,7 @@
     "@nostr-post/calendar": "workspace:*",
     "@nostr-post/core": "workspace:*",
     "@nostr-post/list": "workspace:*",
+    "@nostr-post/outbox": "workspace:*",
     "@nostr-post/plugin-date": "workspace:*",
     "@nostr-post/plugin-embed": "workspace:*",
     "@nostr-post/plugin-geo": "workspace:*",
@@ -25,9 +26,9 @@
     "@nostr-post/plugin-venue": "workspace:*",
     "@nostr-post/plugin-wiki-entity": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
-    "@nostr-post/outbox": "workspace:*",
     "@nostr-post/posts": "workspace:*",
     "@nostr-post/signer": "workspace:*",
+    "@nostr-post/ui": "workspace:*",
     "@nostr-post/web": "workspace:*",
     "@nostr-post/wiki": "workspace:*"
   },

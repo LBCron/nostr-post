@@ -16,7 +16,8 @@ export const renderTimeZoneInput = (
   <label>
     ${label}
     <input
-      class="tz"
+      class="tz np-input"
+      part="input"
       type="text"
       list="np-date-time-zones"
       autocomplete="off"
@@ -45,5 +46,7 @@ export const renderDateProblems = (
     problems.endTooEarly ? m.endBeforeStart : undefined,
     problems.unknownZone !== undefined ? m.unknownTimeZone(problems.unknownZone) : undefined,
   ];
-  return texts.flatMap((text) => (text ? [html`<p class="error" role="alert">${text}</p>`] : []));
+  return texts.flatMap((text) =>
+    text ? [html`<p class="error np-field-error" role="alert">${text}</p>`] : []
+  );
 };

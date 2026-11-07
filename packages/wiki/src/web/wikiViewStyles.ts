@@ -4,41 +4,36 @@ import { css } from 'lit';
 export const viewStyles = css`
   :host {
     display: block;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px;
+    font-family: var(--np-font-family);
+    font-size: var(--np-text-md);
     line-height: 1.5;
   }
 
   * { box-sizing: border-box; }
 
   .wiki-view {
-    border: 1px solid var(--nl-border, #e5e7eb);
-    border-radius: 8px;
-    background: var(--nl-bg, white);
+    border: 1px solid var(--np-color-outline-variant);
+    border-radius: var(--np-radius-md);
+    background: var(--np-color-surface);
     overflow: hidden;
   }
 
   /* ── Header ── */
   .wiki-header {
     padding: 0.875rem 1.25rem;
-    border-bottom: 1px solid var(--nl-border, #e5e7eb);
-    background: var(--nl-card-bg, #f9fafb);
+    border-bottom: 1px solid var(--np-color-outline-variant);
+    background: var(--np-color-surface-container-low);
     display: flex;
     align-items: baseline;
     gap: 0.625rem;
     flex-wrap: wrap;
   }
   .wiki-header h2 {
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-size: var(--np-text-xl);
+    font-weight: 500;
     margin: 0;
-    color: var(--nl-text, #111827);
+    color: var(--np-color-on-surface);
     flex: 1;
-  }
-  .wiki-badge {
-    font-size: 0.7rem;
-    color: var(--nl-text-secondary, #9ca3af);
-    white-space: nowrap;
   }
 
   /* ── Infobox table ── */
@@ -48,35 +43,34 @@ export const viewStyles = css`
     grid-template-columns: minmax(80px, auto) minmax(0, 1fr);
     margin: 0;
     padding: 0;
-    border-bottom: 1px solid var(--nl-border, #e5e7eb);
+    border-bottom: 1px solid var(--np-color-outline-variant);
   }
   .wiki-field { display: contents; }
 
   .wiki-field dt,
   .wiki-field dd {
     padding: 0.45rem 1rem;
-    border-bottom: 1px solid var(--nl-border, #f3f4f6);
+    border-bottom: 1px solid var(--np-color-outline-variant);
     margin: 0;
   }
   .wiki-field:last-child dt,
   .wiki-field:last-child dd { border-bottom: none; }
 
-
   .wiki-field dt[title] { cursor: help; text-decoration: underline dotted; }
 
   .wiki-field dt {
-    font-size: 0.69rem;
+    font-size: var(--np-text-xs);
     font-weight: 600;
-    color: var(--nl-text-secondary, #6b7280);
+    color: var(--np-color-on-surface-variant);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    background: var(--nl-card-bg, #f9fafb);
+    background: var(--np-color-surface-container-low);
     display: flex;
     align-items: center;
   }
   .wiki-field dd {
-    color: var(--nl-text, #111827);
-    font-size: 0.875rem;
+    color: var(--np-color-on-surface);
+    font-size: var(--np-text-md);
     display: flex;
     align-items: center;
     min-width: 0;
@@ -87,9 +81,9 @@ export const viewStyles = css`
   /* ── Prose ── */
   .wiki-prose {
     padding: 0.875rem 1.25rem;
-    color: var(--nl-text, #374151);
+    color: var(--np-color-on-surface);
     line-height: 1.7;
-    font-size: 0.875rem;
+    font-size: var(--np-text-md);
     white-space: pre-wrap;
     word-break: break-word;
   }
@@ -98,12 +92,12 @@ export const viewStyles = css`
   nostr-post-sections { padding: 0 1.25rem 0.75rem; }
 
   /* ── Contributors ── */
-  details.wiki-contributors { border-top: 1px solid var(--nl-border, #e5e7eb); }
+  details.wiki-contributors { border-top: 1px solid var(--np-color-outline-variant); }
   details.wiki-contributors summary {
     padding: 0.5rem 1.25rem;
     cursor: pointer;
-    font-size: 0.75rem;
-    color: var(--nl-primary, #6366f1);
+    font-size: var(--np-text-sm);
+    color: var(--np-color-primary);
     font-weight: 500;
     user-select: none;
   }
@@ -111,35 +105,24 @@ export const viewStyles = css`
     display: flex;
     justify-content: space-between;
     padding: 0.2rem 1.25rem;
-    font-size: 0.72rem;
-    color: var(--nl-text-secondary, #6b7280);
-    font-family: monospace;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-surface-variant);
+    font-family: var(--np-font-family-mono);
   }
 
   /* ── State messages ── */
   p {
     padding: 1.5rem;
     text-align: center;
-    color: var(--nl-text-secondary, #6b7280);
+    color: var(--np-color-on-surface-variant);
     margin: 0;
   }
 
-  /* ── Dark mode ── */
-  :host-context(.dark) .wiki-view   { background: #1f2937; border-color: #374151; }
-  :host-context(.dark) .wiki-header,
-  :host-context(.dark) .wiki-field dt { background: #111827; border-color: #374151; }
-  :host-context(.dark) .wiki-header h2,
-  :host-context(.dark) .wiki-field dd  { color: #f3f4f6; }
-  :host-context(.dark) .wiki-field dt,
-  :host-context(.dark) .wiki-badge     { color: #9ca3af; }
-  :host-context(.dark) .wiki-field dd  { border-color: #374151; }
-  :host-context(.dark) .wiki-prose     { color: #d1d5db; }
-  :host-context(.dark) dl.wiki-infobox { border-color: #374151; }
   .wiki-sources {
     padding: 0.4rem 1.25rem;
-    border-top: 1px solid var(--nl-border, #e5e7eb);
-    font-size: 0.7rem;
-    color: var(--nl-text-secondary, #6b7280);
+    border-top: 1px solid var(--np-color-outline-variant);
+    font-size: var(--np-text-xs);
+    color: var(--np-color-on-surface-variant);
   }
   .wiki-sources a { color: inherit; }
   .wiki-links {
@@ -147,25 +130,25 @@ export const viewStyles = css`
     flex-wrap: wrap;
     gap: 0.75rem;
     padding: 0.5rem 1.25rem;
-    border-top: 1px solid var(--nl-border, #e5e7eb);
-    font-size: 0.8rem;
+    border-top: 1px solid var(--np-color-outline-variant);
+    font-size: var(--np-text-sm);
   }
   .wiki-links-label {
     font-weight: 600;
-    color: var(--nl-text-secondary, #6b7280);
+    color: var(--np-color-on-surface-variant);
   }
-  .wiki-links a { color: var(--nl-primary, #6366f1); }
+  .wiki-links a { color: var(--np-color-primary); }
   details.wiki-all-data {
-    border-top: 1px solid var(--nl-border, #e5e7eb);
+    border-top: 1px solid var(--np-color-outline-variant);
     padding: 0.5rem 1.25rem;
-    font-size: 0.75rem;
+    font-size: var(--np-text-sm);
   }
   details.wiki-all-data summary {
     cursor: pointer;
-    color: var(--nl-text-secondary, #6b7280);
+    color: var(--np-color-on-surface-variant);
     font-weight: 500;
   }
-  details.wiki-all-data h4 { margin: 0.6rem 0 0.25rem; font-size: 0.75rem; }
+  details.wiki-all-data h4 { margin: 0.6rem 0 0.25rem; font-size: var(--np-text-sm); }
   details.wiki-all-data dl {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -180,7 +163,7 @@ export const viewStyles = css`
     max-height: 16rem;
     overflow: auto;
     white-space: pre-wrap;
-    background: var(--nl-card-bg, #f9fafb);
-    border-radius: 0.375rem;
+    background: var(--np-color-surface-container-low);
+    border-radius: var(--np-radius-sm);
   }
 `;

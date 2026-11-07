@@ -8,8 +8,9 @@
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import type { PostField } from '@nostr-post/plugins/types';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import type { CreatedEntity } from '@nostr-post/wiki';
-import { html, LitElement, nothing } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type NominatimResult, nominatimToVenue, searchNominatim, type VenueData } from '../core';
 import { venueInputStyles } from './inputStyles';
@@ -39,8 +40,8 @@ const createdFrom = (tags: string[][], venue: VenueData): CreatedEntity | undefi
 };
 
 @customElement('np-venue-entity-create')
-export class NpVenueEntityCreate extends LitElement {
-  static override styles = venueInputStyles;
+export class NpVenueEntityCreate extends NpElement {
+  static override styles = [...npStyles, venueInputStyles];
 
   @property({ attribute: false }) manifest?: NostrPostManifest;
   /** What the user typed in the picker */
@@ -106,8 +107,8 @@ export class NpVenueEntityCreate extends LitElement {
             this._venue = e.detail.value;
           }}
         ></np-venue-wiki-publish>
-        ${this._error ? html`<div class="error-message">${this._error}</div>` : nothing}
-        <button class="btn" type="button" ?disabled=${this._busy} @click=${() => this._create()}>
+        ${this._error ? html`<div class="np-message np-error" part="error">${this._error}</div>` : nothing}
+        <button class="np-button" part="button" type="button" ?disabled=${this._busy} @click=${() => this._create()}>
           ${this._busy ? m.creating : m.create}
         </button>
       `;
@@ -116,7 +117,7 @@ export class NpVenueEntityCreate extends LitElement {
       <p>${m.intro}</p>
       <div class="search-row">
         <input
-          class="search-input"
+          class="search-input np-input" part="input"
           type="text"
           placeholder=${m.searchPlaceholder}
           .value=${this.query}
@@ -125,11 +126,11 @@ export class NpVenueEntityCreate extends LitElement {
           }}
           @keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this._search()}
         />
-        <button class="btn" type="button" ?disabled=${this._busy} @click=${() => this._search()}>
+        <button class="np-button" part="button" type="button" ?disabled=${this._busy} @click=${() => this._search()}>
           ${this._busy ? m.searching : m.search}
         </button>
       </div>
-      ${this._error ? html`<div class="error-message">${this._error}</div>` : nothing}
+      ${this._error ? html`<div class="np-message np-error" part="error">${this._error}</div>` : nothing}
       ${this._results?.length === 0 ? html`<div class="loading">${m.noResults}</div>` : nothing}
       ${
         this._results?.length

@@ -5,28 +5,14 @@ export const listStyles = css`
   :host {
     display: inline-block;
     position: relative;
-    font-size: 0.875rem;
-    color: #111827;
-  }
-
-  button {
-    font: inherit;
-    cursor: pointer;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #fff;
-    padding: 0.25rem 0.625rem;
-  }
-
-  button:disabled {
-    cursor: default;
-    opacity: 0.6;
+    font-size: var(--np-text-md);
+    color: var(--np-color-on-surface);
   }
 
   .save-btn[aria-pressed='true'] {
-    border-color: #166534;
-    color: #166534;
-    font-weight: 600;
+    background: var(--np-color-secondary-container);
+    border-color: transparent;
+    color: var(--np-color-on-secondary-container);
   }
 
   .panel {
@@ -35,14 +21,9 @@ export const listStyles = css`
     top: calc(100% + 0.25rem);
     left: 0;
     min-width: 16rem;
-    padding: 0.5rem;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
+    padding: var(--np-space-3);
+    border: 0;
+    gap: var(--np-space-2);
   }
 
   /* Shown as a popover (top layer): placed by <np-list-save> next to its button */
@@ -54,7 +35,7 @@ export const listStyles = css`
     max-height: calc(100vh - 1rem);
     overflow: auto;
   }
-    /* In a view's header the button sits at the right edge: open the panel leftwards */
+  /* In a view's header the button sits at the right edge: open the panel leftwards */
   :host(.view-action) .panel {
     left: auto;
     right: 0;
@@ -68,33 +49,14 @@ export const listStyles = css`
     cursor: pointer;
   }
 
-  .count,
-  .muted {
-    color: #6b7280;
-    font-size: 0.8125rem;
-  }
-
   .count {
     margin-left: auto;
   }
 
-  .new-list {
-    display: flex;
-    gap: 0.375rem;
-  }
-
-  .new-list input {
+  .new-list .np-input {
     flex: 1;
     min-width: 0;
-    font: inherit;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-  }
-
-  .error {
-    color: #b91c1c;
-    font-size: 0.8125rem;
+    min-height: 2.25em;
   }
 
   .actions {
@@ -120,12 +82,13 @@ export const listStyles = css`
 
   .list-header h3 {
     margin: 0 0 0.375rem;
-    font-size: 1rem;
+    font-size: var(--np-text-lg);
+    font-weight: 500;
   }
 
   .list-description {
     margin: 0 0 0.375rem;
-    color: #4b5563;
+    color: var(--np-color-on-surface-variant);
   }
 
   ul {
@@ -139,38 +102,17 @@ export const listStyles = css`
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--np-color-outline-variant);
   }
 
   .item-title {
+    flex: 1;
+    padding: 0;
     border: 0;
     background: none;
-    padding: 0;
-    color: #166534;
+    color: var(--np-color-primary);
+    font: inherit;
     text-align: left;
-    flex: 1;
-  }
-
-  .danger {
-    color: #b91c1c;
-    border-color: #fecaca;
-  }
-
-  :host-context(.dark) {
-    color: #f3f4f6;
-  }
-  :host-context(.dark) button,
-  :host-context(.dark) .panel,
-  :host-context(.dark) .new-list input {
-    background: #1f2937;
-    border-color: #374151;
-    color: #f3f4f6;
-  }
-  :host-context(.dark) .item-title {
-    background: none;
-    color: #86efac;
-  }
-  :host-context(.dark) li {
-    border-color: #374151;
+    cursor: pointer;
   }
 `;

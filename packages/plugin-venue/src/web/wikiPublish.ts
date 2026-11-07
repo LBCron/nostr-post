@@ -9,6 +9,7 @@
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import type { PostField } from '@nostr-post/plugins/types';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import {
   type DTagAvailability,
   type EntityManifestRef,
@@ -17,7 +18,7 @@ import {
   normalizeDTag,
   resolveEntityManifest,
 } from '@nostr-post/wiki';
-import { html, LitElement, nothing } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { VenueData } from '../core';
 import { type GoogleLinkProblem, googleLinkChange, lacksGoogleLink } from '../venueLinks';
@@ -39,8 +40,8 @@ type Plan =
   | { kind: 'update' | 'none'; title: string };
 
 @customElement('np-venue-wiki-publish')
-export class NpVenueWikiPublish extends LitElement {
-  static styles = wikiPublishStyles;
+export class NpVenueWikiPublish extends NpElement {
+  static override styles = [...npStyles, wikiPublishStyles];
 
   /** One venue, or a list (`metadata.multiple`): then one panel per venue */
   @property({ attribute: false }) value: VenueData | VenueData[] | null = null;
@@ -212,6 +213,8 @@ export class NpVenueWikiPublish extends LitElement {
       <label class="extra-link">
         ${m.googleLinkLabel}
         <input
+          class="np-input"
+          part="input"
           type="url"
           .value=${text}
           placeholder=${m.googleLinkPlaceholder}
@@ -235,7 +238,7 @@ export class NpVenueWikiPublish extends LitElement {
       <div class="qualifier">
         ${venueQualifierSuggestions(this._venue).map(
           (text) =>
-            html`<button type="button" @click=${() => this._emit({ wikiSlug: `${body}-${normalizeDTag(text)}` })}>
+            html`<button type="button" class="np-chip" part="chip" @click=${() => this._emit({ wikiSlug: `${body}-${normalizeDTag(text)}` })}>
               + ${text}
             </button>`
         )}
@@ -273,11 +276,11 @@ export class NpVenueWikiPublish extends LitElement {
     const required = !!this.field && venuePageRequired(this.field);
     const checked = required || this._venue.syncWiki !== false;
     return html`
-      <div class="wiki-publish">
+      <div class="wiki-publish np-card" part="card">
         ${
           required
             ? nothing
-            : html`<label class="sync">
+            : html`<label class="sync np-checkbox">
                 <input
                   type="checkbox"
                   .checked=${checked}

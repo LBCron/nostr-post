@@ -1,5 +1,6 @@
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { normalizeExternalUrl, type ReferenceValue } from '../core';
 
@@ -17,8 +18,10 @@ const decodeValue = (value: unknown): ReferenceValue => {
 };
 
 @customElement('np-reference-input')
-export class NpReferenceInput extends LitElement {
-  static styles = css`
+export class NpReferenceInput extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -35,32 +38,8 @@ export class NpReferenceInput extends LitElement {
       align-items: center;
     }
 
-    .input {
+    .row .np-input {
       flex: 1;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      outline: none;
-    }
-
-    .input:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-    }
-
-    .button {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      background: #fff;
-      cursor: pointer;
-      font-size: 0.875rem;
-      white-space: nowrap;
-    }
-
-    .button:hover {
-      background: #f9fafb;
     }
 
     .list {
@@ -70,18 +49,14 @@ export class NpReferenceInput extends LitElement {
     }
 
     .item {
-      display: flex;
+      flex-direction: row;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      background: #fff;
+      padding: var(--np-space-1) var(--np-space-1) var(--np-space-1) var(--np-space-3);
     }
 
     .item a {
       flex: 1;
-      color: #2563eb;
+      color: var(--np-color-primary);
       text-decoration: none;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -92,20 +67,8 @@ export class NpReferenceInput extends LitElement {
       text-decoration: underline;
     }
 
-    .remove {
-      border: none;
-      background: none;
-      color: #dc2626;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-    }
-
-    .hint {
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-  `;
+  `,
+  ];
 
   @property({ type: String })
   value = '';
@@ -164,7 +127,7 @@ export class NpReferenceInput extends LitElement {
       <div class="container">
         <div class="row">
           <input
-            class="input"
+            class="np-input" part="input"
             type="url"
             .value=${this.draftUrl}
             placeholder="https://example.com"
@@ -178,19 +141,19 @@ export class NpReferenceInput extends LitElement {
               }
             }}
           />
-          <button type="button" class="button" @click=${this.addUrl} title="Add URL">
+          <button type="button" class="np-button" part="button" @click=${this.addUrl} title="Add URL">
             Add URL
           </button>
         </div>
-        <div class="hint">Add external links manually. URLs found in the attached field are also extracted automatically.</div>
+        <div class="np-hint" part="hint">Add external links manually. URLs found in the attached field are also extracted automatically.</div>
         <div class="list">
           ${refs.urls.map(
             (url) => html`
-              <div class="item">
+              <div class="item np-card np-outlined" part="card">
                 <a href=${url} target="_blank" rel="noopener">${url}</a>
                 <button
                   type="button"
-                  class="remove"
+                  class="np-icon-button np-danger" part="button"
                   title="Remove URL"
                   @click=${() => this.removeUrl(url)}
                 >×</button>

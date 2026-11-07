@@ -70,7 +70,7 @@ export const renderLarge = (
       ${item.alt ? html`<div class="alt">${item.alt}</div>` : nothing}
       <div class="byline">${m.byline(author, date(item))}</div>
       <a href=${postLink(item)} target="_blank" rel="noopener noreferrer">${m.openPost}</a>
-      <button type="button" class="close" @click=${onClose}>${m.close}</button>
+      <button type="button" class="close np-button np-text np-small" part="button" @click=${onClose}>${m.close}</button>
     </figcaption>
   </figure>`;
 };

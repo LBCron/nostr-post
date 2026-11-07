@@ -40,25 +40,31 @@ const signed = await nostrTools.finalizeEvent(
 
 **Styling Approach**
 
-Instead of bundling Tailwind (~3MB), we use CSS Custom Properties:
+Instead of bundling a UI framework, every component builds on `@nostr-post/ui`: Material 3 style
+design tokens (`--np-*` CSS custom properties, generated from token data) and shared primitives
+(`np-button`, `np-input`, `np-card`, …). Tokens and primitives sit in CSS cascade layers, so a
+page's own CSS always wins:
 
 ```css
-/* Users can theme without Tailwind */
-nostr-post-composer {
-  --nostr-post-primary: #8b5cf6;
-  --nostr-post-border: #e5e7eb;
-  --nostr-post-bg: white;
+/* Brand every component with a few tokens */
+:root {
+  --np-color-primary: #8b5cf6;
+  --np-radius: 12px;
 }
 
-/* Or use Tailwind classes if they want */
-<nostr-post-composer class="p-4 border rounded-lg shadow-md">
+/* Reach inside a component through its parts */
+nostr-post-view::part(card) {
+  box-shadow: none;
+}
 ```
 
 Benefits:
 
-- Smaller bundle size
-- Works with any CSS framework (Tailwind, Bootstrap, custom CSS)
-- No framework lock-in
+- Small bundle, no UI library dependency (the CDN bundle stays one file)
+- One look for every package and plugin, light and dark (the `dark` class swaps token values)
+- Three levels of customization: tokens, `::part()`, `registerStyles` (add to or replace a
+  component's styles), and an unstyled mode
+- Tokens are data too (`resolveTokens`), for canvas drawing or other UI libraries
 
 ### 3. Plugin System: Framework-Agnostic
 

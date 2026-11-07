@@ -29,8 +29,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@nostr-post/plugins": "workspace:*",
     "@nostr-post/plugin-media": "workspace:*",
+    "@nostr-post/plugins": "workspace:*",
+    "@nostr-post/ui": "workspace:*",
     "lit": "^3.3.3",
     "nostr-tools": "^2.25.2"
   },

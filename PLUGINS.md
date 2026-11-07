@@ -99,21 +99,21 @@ The input element **must**:
 
 ```ts
 import type { PostField } from "@nostr-post/plugins/types";
-import { LitElement, css, html } from "lit";
+import { NpElement, npStyles } from "@nostr-post/ui/web";
+import { css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 @customElement("np-my-plugin-input")
-export class NpMyPluginInput extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      box-sizing: border-box;
-    }
-  `;
+export class NpMyPluginInput extends NpElement {
+  // The shared look first (tokens, np-button, np-input, …), then the plugin's own layout
+  static override styles = [
+    ...npStyles,
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
 
   @property({ type: String })
   value = "";
@@ -135,6 +135,8 @@ export class NpMyPluginInput extends LitElement {
   render() {
     const label = (this.field?.metadata?.placeholder as string) || "";
     return html`<input
+      class="np-input"
+      part="input"
       .value=${this.value}
       placeholder=${label}
       @input=${this.handleInput}
@@ -149,16 +151,20 @@ The view element **must** accept `.value` and `.field` properties.
 
 ```ts
 import type { PostField } from "@nostr-post/plugins/types";
-import { LitElement, css, html } from "lit";
+import { NpElement, npStyles } from "@nostr-post/ui/web";
+import { css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 @customElement("np-my-plugin-view")
-export class NpMyPluginView extends LitElement {
-  static styles = css`
-    :host {
-      display: inline;
-    }
-  `;
+export class NpMyPluginView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
+      :host {
+        display: inline;
+      }
+    `,
+  ];
 
   @property({ type: String })
   value = "";
@@ -171,6 +177,12 @@ export class NpMyPluginView extends LitElement {
   }
 }
 ```
+
+**Styling:** extend `NpElement` and put `npStyles` first, so the plugin looks like every other
+component and follows the page's tokens, dark theme and `registerStyles` overrides. Use the
+shared primitives (`np-button`, `np-input`, `np-chip`, `np-message`, …) and `--np-*` tokens for
+colors, sizes and radii instead of your own; expose `part`s with the shared names. See
+[packages/ui](packages/ui/README.md). The plugin's package depends on `@nostr-post/ui`.
 
 ### 6. Register with the plugin registry (`src/web.ts`)
 

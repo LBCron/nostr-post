@@ -6,12 +6,15 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 @customElement('np-hashtag-view')
-export class NpHashtagView extends LitElement {
-  static styles = css`
+export class NpHashtagView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -23,15 +26,12 @@ export class NpHashtagView extends LitElement {
       max-width: 100%;
     }
     .tag {
-      display: inline-block;
-      padding: 0.2rem 0.6rem;
-      background: #ede9fe;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      color: #6d28d9;
-      font-weight: 500;
+      border-color: transparent;
+      background: var(--np-color-tertiary-container);
+      color: var(--np-color-on-tertiary-container);
     }
-  `;
+  `,
+  ];
 
   @property({ type: Array })
   value: string[] = [];
@@ -43,7 +43,7 @@ export class NpHashtagView extends LitElement {
     const tags = Array.isArray(this.value) ? this.value : [];
     if (tags.length === 0) return nothing;
 
-    return html`<div class="tags">${tags.map((tag) => html`<span class="tag">#${tag}</span>`)}</div>`;
+    return html`<div class="tags">${tags.map((tag) => html`<span class="tag np-chip" part="chip">#${tag}</span>`)}</div>`;
   }
 }
 

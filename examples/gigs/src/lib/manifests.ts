@@ -96,6 +96,114 @@ const GIG_FIELD_METADATA: Record<string, PostField['metadata']> = {
   },
 };
 
+const MEDIA_KINDS = [20, 21, 22];
+
+/**
+ * Photos and videos of a gig: a NIP-68 picture (kind 20) or a NIP-71 video (kind 21, or 22 for a
+ * short portrait one) linking the gig (`a` tag), shown in its "Photos and videos" section, which
+ * offers "Add" with it and fills `event` with the gig's address
+ */
+export const EVENT_MEDIA_MANIFEST: NostrPostManifest = {
+  id: 'event-media-v1',
+  version: '1.0.0',
+  publishFormats: [
+    {
+      id: 'picture',
+      label: 'Photos',
+      description: 'A photo post (NIP-68, kind 20), shown by Nostr photo apps',
+      kinds: [20],
+      default: true,
+      userSelectable: true,
+    },
+    {
+      id: 'video',
+      label: 'Video',
+      description: 'A video post (NIP-71, kind 21), shown by Nostr video apps',
+      kinds: [21],
+      userSelectable: true,
+    },
+    {
+      id: 'short-video',
+      label: 'Short video',
+      description: 'A short portrait video (NIP-71, kind 22), like a story or reel',
+      kinds: [22],
+      userSelectable: true,
+    },
+  ],
+  fields: [
+    {
+      id: 'photos',
+      type: 'string',
+      uiPlugin: 'media',
+      required: true,
+      // One `imeta` tag per photo (url, type, hash, size, dimensions, description)
+      mapTo: { kind: 20, target: 'tag', tagName: 'imeta' },
+      metadata: {
+        label: 'Photos',
+        description: 'Photos of the event: the stage, the crowd, the place',
+        accept: ['image/*'],
+        maxFiles: 10,
+        alt: true,
+        allowUrl: false,
+      },
+    },
+    {
+      id: 'video',
+      type: 'string',
+      uiPlugin: 'media',
+      required: true,
+      mapTo: [
+        { kind: 21, target: 'tag', tagName: 'imeta' },
+        { kind: 22, target: 'tag', tagName: 'imeta' },
+      ],
+      metadata: {
+        label: 'Video',
+        accept: ['video/*'],
+        maxFiles: 1,
+        maxSize: 100 * 1024 * 1024,
+        allowUrl: false,
+      },
+    },
+    {
+      id: 'title',
+      type: 'string',
+      uiPlugin: 'text',
+      mapTo: MEDIA_KINDS.map((kind) => ({ kind, target: 'tag' as const, tagName: 'title' })),
+      metadata: { label: 'Title' },
+    },
+    {
+      id: 'caption',
+      type: 'string',
+      uiPlugin: 'textarea',
+      mapTo: MEDIA_KINDS.map((kind) => ({ kind, target: 'content' as const })),
+      metadata: { label: 'Caption' },
+    },
+    {
+      id: 'event',
+      type: 'string',
+      uiPlugin: 'text',
+      required: true,
+      // The event's address (`31922|31923:<pubkey>:<d-tag>`), filled by the event page's "Add"
+      mapTo: MEDIA_KINDS.map((kind) => ({ kind, target: 'tag' as const, tagName: 'a' })),
+      visibility: { edit: 'hidden', view: 'hidden' },
+      metadata: { label: 'Event', description: 'The calendar event the photos or video are of' },
+    },
+    {
+      id: 'tags',
+      type: 'string',
+      uiPlugin: 'hashtag',
+      mapTo: MEDIA_KINDS.map((kind) => ({ kind, target: 'tag' as const, tagName: 't' })),
+      metadata: { label: 'Tags' },
+    },
+  ],
+  metadata: {
+    name: 'Event photos and videos',
+    description:
+      "Photos (NIP-68, kind 20) or a video (NIP-71, kind 21 or 22) of a calendar event, shown in the event page's gallery",
+    tags: ['event', 'photo', 'video', 'nip68', 'nip71'],
+  },
+};
+
 /** A gig: the calendar event manifest with performers (artist pages) and genre suggestions */
 export const GIG_MANIFEST: NostrPostManifest = {
   ...CALENDAR_EVENT_MANIFEST,
@@ -125,8 +233,17 @@ export const GIG_MANIFEST: NostrPostManifest = {
       },
     },
   ],
-  // On a gig's page: the photos and videos of the gig, its comments and posts linking it
-  sections: [{ id: 'media', label: 'Photos and videos', view: 'gallery', self: true }],
+  // On a gig's page: the photos and videos of the gig, its comments and posts linking it;
+  // "Add" posts photos or a video linking the gig (EVENT_MEDIA_MANIFEST)
+  sections: [
+    {
+      id: 'media',
+      label: 'Photos and videos',
+      view: 'gallery',
+      self: true,
+      add: { manifest: EVENT_MEDIA_MANIFEST, field: 'event' },
+    },
+  ],
   metadata: { name: 'Gig', description: 'A concert or party: when, where, who plays' },
 };
 

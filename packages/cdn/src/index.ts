@@ -315,6 +315,20 @@ export {
   type SectionView,
 } from '@nostr-post/plugins/entities';
 
+// Design system (@nostr-post/ui): tokens, primitives and style overrides
+export {
+  clearStyles,
+  npClass,
+  npPart,
+  primitivesCss,
+  registerStyles,
+  resolveTokens,
+  tokensCss,
+  uiCss,
+  unstyled,
+} from '@nostr-post/ui';
+export { installTokens } from '@nostr-post/ui/web';
+
 // Wiki (NIP-54 kind:30818)
 export {
   WIKI_KIND,

@@ -15,8 +15,8 @@ export const renderRsvpWho = (
   const people = peopleByStatus(summary);
   const groups = RSVP_STATUSES.filter((status) => people[status].length > 0);
   return html`
-    <div class="who" role="dialog" aria-label=${m.label}>
-      ${groups.length === 0 ? html`<div class="note">${m.noAnswers}</div>` : nothing}
+    <div class="who" part="menu" role="dialog" aria-label=${m.label}>
+      ${groups.length === 0 ? html`<div class="np-hint">${m.noAnswers}</div>` : nothing}
       ${groups.map(
         (status) => html`
           <div class="who-group">

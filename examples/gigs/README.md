@@ -12,7 +12,8 @@ players, RSVP, `.ics` import and export.
   copy or download.
 - **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions, and the photos
   and videos of the gig and its comments. All of it is the packages'
-  `<nostr-calendar-event thread editable>`, the app only passes the gig manifest (its `sections`: photos and videos):
+  `<nostr-calendar-event thread editable>`, the app only passes the gig manifest (its `sections`: photos and videos, with "Add" posting
+  photos or a video that link the gig, `EVENT_MEDIA_MANIFEST`):
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
   comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a
@@ -76,6 +77,10 @@ The code is in `src/`:
   `share.ts`; the draft's preview and duplicates in `draft.ts`; hash routes in `routes.ts`.
 - `pages/`: a component per page, and the add flow's parts (`SuggestedLinks`, `DraftReview`).
 - `elements.d.ts`: the custom elements' JSX types, from the packages' own element types.
+- `gigs.css`: how an app brands nostr-post. It loads `@nostr-post/ui/ui.css` (in `main.tsx`),
+  sets a few tokens (primary color, radius, font size; dark values under `.dark`) and a `::part()`
+  rule, and builds the app's header and pages from the same tokens and primitives (`np-button`,
+  `np-input`, `np-card`, …). The header's Auto / Light / Dark switch uses `followColorScheme`.
 
 Everything else comes from the packages. Run it with `pnpm --filter gigs dev`, or as in PR
 previews with `pnpm preview:pages` and open `/examples/gigs/`. Planned work is in

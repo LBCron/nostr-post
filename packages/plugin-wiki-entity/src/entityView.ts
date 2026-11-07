@@ -8,9 +8,10 @@
 
 import { fieldLabel } from '@nostr-post/core/manifest';
 import type { PostField } from '@nostr-post/plugins/types';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
 import type { WikiEvent } from '@nostr-post/wiki';
 import { DEFAULT_WIKI_RELAYS } from '@nostr-post/wiki';
-import { css, html, LitElement, nothing } from 'lit';
+import { css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   entityTypeAffixes,
@@ -30,17 +31,19 @@ const linkList = (links: string[]) =>
   );
 
 @customElement('np-wiki-entity-view')
-export class NpWikiEntityView extends LitElement {
-  static override styles = css`
-    :host { display: block; margin: 0.5rem 0; font-size: 0.875rem; }
-    .label { color: var(--nl-muted, #4b5563); margin-bottom: 0.25rem; }
+export class NpWikiEntityView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
+    :host { display: block; margin: 0.5rem 0; font-size: var(--np-text-md); }
+    .label { color: var(--np-color-on-surface-variant); margin-bottom: 0.25rem; }
     details, .named, .links { margin: 0.25rem 0; }
     summary { cursor: pointer; font-weight: 500; }
     .named { font-weight: 500; }
-    .named a, .links a { font-weight: 400; color: #4f46e5; margin-left: 0.375rem; }
-    :host-context(.dark) .label { color: var(--nl-muted, #9ca3af); }
-    :host-context(.dark) .named a, :host-context(.dark) .links a { color: #a5b4fc; }
-  `;
+    .named a, .links a { font-weight: 400; color: var(--np-color-primary); margin-left: 0.375rem; }
+
+  `,
+  ];
 
   @property({ attribute: false }) value: unknown;
   @property({ attribute: false }) field?: PostField;

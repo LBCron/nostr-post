@@ -15,7 +15,9 @@ import type { NostrPostManifest } from '@nostr-post/core/types';
 import type { FetchFilter } from '@nostr-post/signer';
 import { baseStyles, type FeedLayout, feedStyle } from '@nostr-post/web';
 import '@nostr-post/web';
-import { html, LitElement, nothing } from 'lit';
+import { npExportParts } from '@nostr-post/ui';
+import { NpElement } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type AgendaWindow, formatWindowRange, shiftWindow } from '../agenda';
 import { agendaFilters } from '../agendaQuery';
@@ -40,7 +42,7 @@ const QUERY_PROPERTIES = [
 ];
 
 @customElement('nostr-calendar-agenda')
-export class NostrCalendarAgenda extends LitElement {
+export class NostrCalendarAgenda extends NpElement {
   static override styles = [baseStyles, feedStyle, agendaStyles];
 
   /** First day, `YYYY-MM-DD` (in month view: a day of the month). Default: today */
@@ -141,6 +143,7 @@ export class NostrCalendarAgenda extends LitElement {
   _layout: FeedLayout = (threads, ctx, { loading }) => {
     if (!loading) this._shownWindow = this._window;
     return html`<nostr-calendar-days
+  exportparts=${npExportParts}
       .threads=${threads}
       .ctx=${ctx}
       .window=${this._shownWindow ?? this._window}
@@ -156,10 +159,10 @@ export class NostrCalendarAgenda extends LitElement {
     const window = this._window;
     const filters = this._filters;
     return html`
-      <nav class="agenda-nav" aria-label=${m.navigation}>
-        <button type="button" @click=${() => this._move(this._shifted(-1))}>‹ ${m.previous}</button>
-        <button type="button" @click=${() => this._move(undefined)}>${m.today}</button>
-        <button type="button" @click=${() => this._move(this._shifted(1))}>${m.next} ›</button>
+      <nav class="agenda-nav np-toolbar" part="actions" aria-label=${m.navigation}>
+        <button type="button" class="np-button np-small" part="button" @click=${() => this._move(this._shifted(-1))}>‹ ${m.previous}</button>
+        <button type="button" class="np-button np-small" part="button" @click=${() => this._move(undefined)}>${m.today}</button>
+        <button type="button" class="np-button np-small" part="button" @click=${() => this._move(this._shifted(1))}>${m.next} ›</button>
         <span class="agenda-range"
           >${this.view === 'month' ? formatMonth(monthOf(window.from, window.tzid)) : formatWindowRange(window)}</span
         >
@@ -169,8 +172,9 @@ export class NostrCalendarAgenda extends LitElement {
         !filters
           ? nothing
           : filters.length === 0
-            ? html`<div class="empty">${m.empty}</div>`
+            ? html`<div class="empty np-empty">${m.empty}</div>`
             : html`<nostr-post-feed
+  exportparts=${npExportParts}
                 .filters=${filters}
                 .relays=${this.relays}
                 .manifest=${this.manifest}

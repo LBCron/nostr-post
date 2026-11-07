@@ -23,6 +23,8 @@ export function renderNativeControl(
   if (f.uiPlugin === 'textarea') {
     return html`
       <textarea
+        class="np-input"
+        part="input"
         id="field-${f.id}"
         .value=${String(value ?? '')}
         placeholder=${placeholder}
@@ -40,6 +42,8 @@ export function renderNativeControl(
   const isNumber = f.type === 'number';
   return html`
     <input
+      class="np-input"
+      part="input"
       id="field-${f.id}"
       type=${isNumber ? 'number' : 'text'}
       .value=${String(value ?? '')}

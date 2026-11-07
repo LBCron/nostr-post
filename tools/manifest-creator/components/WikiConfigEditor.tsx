@@ -4,16 +4,25 @@ import { WikiLinksEditor } from './WikiLinksEditor';
 
 const styles = {
   section: { marginBottom: '1.5rem' },
-  label: { display: 'block', fontWeight: 500, marginBottom: '0.5rem', color: '#374151' },
+  label: {
+    display: 'block',
+    fontWeight: 500,
+    marginBottom: '0.5rem',
+    color: 'var(--np-color-on-surface)',
+  },
   input: {
     width: '100%',
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '1rem',
+    border: '1px solid var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    fontSize: 'var(--np-text-lg)',
     boxSizing: 'border-box' as const,
   },
-  hint: { fontSize: '0.8rem', color: '#6b7280', margin: '0.25rem 0 0' },
+  hint: {
+    fontSize: 'var(--np-text-sm)',
+    color: 'var(--np-color-on-surface-variant)',
+    margin: '0.25rem 0 0',
+  },
 };
 
 interface WikiConfigEditorProps {

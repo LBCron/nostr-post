@@ -2,6 +2,7 @@ import { isUpdateComment } from '@nostr-post/core/eventUpdates';
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { loadProfilesForEvents, mergeUniqueEvents, type ReplyTarget } from '@nostr-post/posts';
 import type { NostrProfile } from '@nostr-post/signer';
+import { npExportParts } from '@nostr-post/ui';
 import { html, type TemplateResult } from 'lit';
 import type { PostMenuMessages } from './postMenuMessages';
 import type { SignedEvent } from './signer';
@@ -43,11 +44,12 @@ export const renderReplies = (
 
   return html`
     <div class="reply-list">
-      <div class="reply-header">Comments</div>
+      <div class="reply-header np-label">Comments</div>
       ${visibleReplies.map(
         (reply) => html`
           <div>
             <nostr-post-view
+              exportparts=${npExportParts}
               .event=${reply}
               .manifest=${commentManifest}
               .excludeFields=${excludeFields}

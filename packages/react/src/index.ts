@@ -38,8 +38,6 @@ export {
 export {
   type SignedEvent,
   type Nip07Provider,
-  colors,
-  baseStyles,
   STANDARD_KIND1_POST_MANIFEST,
   runAfterPublish,
   runBeforePublish,

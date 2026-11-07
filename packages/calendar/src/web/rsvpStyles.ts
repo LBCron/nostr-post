@@ -23,16 +23,15 @@ export const rsvpStyles = css`
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    background: var(--np-color-surface-container);
+    border-radius: var(--np-radius-xs);
+    box-shadow: var(--np-elevation-2);
   }
 
   .who-title {
-    font-size: 0.8125rem;
+    font-size: var(--np-text-sm);
     font-weight: 600;
-    color: #6b7280;
+    color: var(--np-color-on-surface-variant);
     margin-bottom: 0.25rem;
   }
 
@@ -43,74 +42,12 @@ export const rsvpStyles = css`
     gap: 0.375rem;
   }
 
-  button {
-    font: inherit;
-    font-size: 0.8125rem;
-    cursor: pointer;
-    padding: 0.125rem 0.625rem;
-    border: 1px solid #d1d5db;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #1f2937;
-  }
-
-  button.chosen {
-    background: #6366f1;
-    border-color: #6366f1;
-    color: #ffffff;
-  }
-
-  button:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-
   .count {
     margin-left: 0.125rem;
-    color: #6b7280;
-  }
-
-  button.chosen .count {
-    color: #e0e7ff;
-  }
-
-  .note {
-    font-size: 0.8125rem;
-    color: #6b7280;
+    opacity: 0.8;
   }
 
   .error {
-    margin: 0.25rem 0 0;
-    font-size: 0.8125rem;
-    color: #dc2626;
-  }
-
-  :host-context(.dark) button {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f3f4f6;
-  }
-
-  :host-context(.dark) button.chosen {
-    background: #4f46e5;
-    border-color: #4f46e5;
-  }
-
-  :host-context(.dark) .count,
-  :host-context(.dark) .note {
-    color: #9ca3af;
-  }
-
-  :host-context(.dark) .who {
-    background: #1f2937;
-    border-color: #4b5563;
-  }
-
-  :host-context(.dark) .who-title {
-    color: #9ca3af;
-  }
-
-  :host-context(.dark) .error {
-    color: #fca5a5;
+    margin: var(--np-space-1) 0 0;
   }
 `;

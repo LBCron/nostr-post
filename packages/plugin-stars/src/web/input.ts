@@ -7,13 +7,16 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { StarsPluginConfig } from '../core';
 
 @customElement('np-stars-input')
-export class NpStarsInput extends LitElement {
-  static styles = css`
+export class NpStarsInput extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -26,7 +29,7 @@ export class NpStarsInput extends LitElement {
     }
 
     .star {
-      font-size: 1.75rem;
+      font-size: var(--np-text-2xl);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -55,30 +58,29 @@ export class NpStarsInput extends LitElement {
     }
 
     .star-bg {
-      color: #d1d5db;
+      color: var(--np-color-outline-variant);
     }
 
     .star-fill {
-      color: #fbbf24;
+      color: var(--np-color-rating);
       overflow: hidden;
       white-space: nowrap;
     }
 
     .value-label {
       margin-left: 0.5rem;
-      font-size: 0.875rem;
-      color: #6b7280;
+      font-size: var(--np-text-md);
+      color: var(--np-color-on-surface-variant);
     }
 
     .value-input {
       margin-left: 0.5rem;
-      width: 4.75rem;
-      font-size: 0.875rem;
-      padding: 0.125rem 0.375rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
+      width: 5rem;
+      min-height: 2.25em;
+      padding: var(--np-space-1) var(--np-space-2);
     }
-  `;
+  `,
+  ];
 
   @property({ type: Number })
   value = 0;
@@ -167,7 +169,8 @@ export class NpStarsInput extends LitElement {
       <div class="stars-row">
         ${stars}
         <input
-          class="value-input"
+          class="value-input np-input"
+          part="input"
           type="number"
           min="${this.min}"
           max="${this.max}"

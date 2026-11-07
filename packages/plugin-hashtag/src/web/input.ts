@@ -9,146 +9,15 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type HashtagPluginConfig, normalizeTag } from '../core';
+import { hashtagInputStyles } from './inputStyles';
 
 @customElement('np-hashtag-input')
-export class NpHashtagInput extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .chip-box {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.375rem;
-      align-items: center;
-      min-height: 2.25rem;
-      padding: 0.375rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      background: #fff;
-      cursor: text;
-      transition: border-color 0.15s;
-    }
-    .chip-box:focus-within {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-    }
-
-    :host-context(.dark) .chip-box {
-      background: #374151;
-      border-color: #4b5563;
-    }
-
-    :host-context(.dark) .chip-box:focus-within {
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.2rem 0.5rem;
-      background: #ede9fe;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      color: #6d28d9;
-      font-weight: 500;
-    }
-    .chip .remove {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #6d28d9;
-      padding: 0 2px;
-      font-size: 1rem;
-      line-height: 1;
-    }
-    .chip .remove:hover {
-      color: #4c1d95;
-    }
-
-    :host-context(.dark) .chip {
-      background: #4338ca;
-      color: #e0e7ff;
-    }
-
-    :host-context(.dark) .chip .remove {
-      color: #e0e7ff;
-    }
-
-    :host-context(.dark) .chip .remove:hover {
-      color: #c7d2fe;
-    }
-
-    .inline-input {
-      border: none;
-      outline: none;
-      flex: 1;
-      min-width: 100px;
-      font-size: 0.875rem;
-      padding: 0.2rem;
-      background: transparent;
-    }
-
-    :host-context(.dark) .inline-input {
-      color: #f3f4f6;
-    }
-
-    :host-context(.dark) .inline-input::placeholder {
-      color: #9ca3af;
-    }
-
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-    }
-    .suggestion-btn {
-      padding: 0.15rem 0.5rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 9999px;
-      background: #f9fafb;
-      cursor: pointer;
-      font-size: 0.75rem;
-      color: #6b7280;
-      transition: background 0.15s;
-    }
-    .suggestion-btn:hover {
-      background: #ede9fe;
-      color: #6d28d9;
-      border-color: #c4b5fd;
-    }
-
-    :host-context(.dark) .suggestion-btn {
-      background: #374151;
-      color: #d1d5db;
-      border-color: #4b5563;
-    }
-
-    :host-context(.dark) .suggestion-btn:hover {
-      background: #4338ca;
-      color: #e0e7ff;
-      border-color: #6366f1;
-    }
-
-    .hint {
-      font-size: 0.75rem;
-      color: #9ca3af;
-    }
-
-    :host-context(.dark) .hint {
-      color: #9ca3af;
-    }
-  `;
+export class NpHashtagInput extends NpElement {
+  static override styles = [...npStyles, hashtagInputStyles];
 
   @property({ type: Object })
   value: string[] | string = [];
@@ -241,11 +110,11 @@ export class NpHashtagInput extends LitElement {
         <div class="chip-box" @click=${this.focusInput}>
           ${tags.map(
             (tag) => html`
-              <span class="chip">
+              <span class="chip np-chip" part="chip">
                 #${tag}
                 <button
                   type="button"
-                  class="remove"
+                  class="remove" part="button"
                   @click=${() => this.removeTag(tag)}
                 >
                   ×
@@ -280,7 +149,7 @@ export class NpHashtagInput extends LitElement {
                   (s) => html`
                     <button
                       type="button"
-                      class="suggestion-btn"
+                      class="np-chip" part="chip"
                       @click=${() => this.addTags(s)}
                     >
                       #${s}
@@ -292,7 +161,7 @@ export class NpHashtagInput extends LitElement {
             : nothing
         }
 
-        <div class="hint">
+        <div class="np-hint" part="hint">
           Press Enter or comma to add. #hashtags in your post content are
           auto-included.
         </div>

@@ -20,53 +20,23 @@ export const venueInputStyles = css`
 
   .search-input {
     flex: 1;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .search-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-  }
-
-  .btn {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #f9fafb;
-    cursor: pointer;
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
-
-  .btn:hover {
-    background: #f3f4f6;
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   /* Results */
   .results {
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border: 1px solid var(--np-color-outline-variant);
+    border-radius: var(--np-radius-sm);
     max-height: 200px;
     overflow-y: auto;
-    background: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: var(--np-color-surface-container-lowest);
+    box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--np-color-shadow) 10%, transparent);
   }
 
   .result-item {
     padding: 0.5rem 0.75rem;
     cursor: pointer;
-    font-size: 0.8125rem;
-    border-bottom: 1px solid #f3f4f6;
+    font-size: var(--np-text-sm);
+    border-bottom: 1px solid var(--np-color-outline-variant);
     line-height: 1.4;
   }
 
@@ -75,12 +45,12 @@ export const venueInputStyles = css`
   }
 
   .result-item:hover {
-    background: #f0f0ff;
+    background: var(--np-color-primary-container);
   }
 
   .result-type {
-    font-size: 0.75rem;
-    color: #9ca3af;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-surface-variant);
   }
 
   /* Venue card */
@@ -89,27 +59,27 @@ export const venueInputStyles = css`
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.625rem 0.75rem;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 8px;
+    background: var(--np-color-surface-container-low);
+    border: 1px solid var(--np-color-outline-variant);
+    border-radius: var(--np-radius-md);
   }
 
   .venue-name {
     font-weight: 600;
-    font-size: 0.9375rem;
-    color: #166534;
+    font-size: var(--np-text-md);
+    color: var(--np-color-success);
   }
 
   .venue-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    font-size: 0.8125rem;
-    color: #6b7280;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-surface-variant);
   }
 
   .venue-meta a {
-    color: #6366f1;
+    color: var(--np-color-primary);
     text-decoration: none;
   }
 
@@ -117,94 +87,10 @@ export const venueInputStyles = css`
     text-decoration: underline;
   }
 
-  .clear-btn {
-    background: none;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-size: 0.8125rem;
-    padding: 0;
-    text-decoration: underline;
-    align-self: flex-start;
-  }
-
   .loading {
-    font-size: 0.8125rem;
-    color: #6b7280;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-surface-variant);
     padding: 0.25rem 0;
   }
 
-  .error-message {
-    padding: 0.625rem 0.75rem;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    color: #991b1b;
-    font-size: 0.8125rem;
-    line-height: 1.4;
-  }
-
-  .resolving {
-    padding: 0.625rem 0.75rem;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 6px;
-    color: #1e40af;
-    font-size: 0.8125rem;
-    line-height: 1.4;
-  }
-
-  :host-context(.dark) {
-    color: #f3f4f6;
-  }
-  :host-context(.dark) .search-input,
-  :host-context(.dark) .btn {
-    border-color: #4b5563;
-    background: #111827;
-    color: #f3f4f6;
-  }
-  :host-context(.dark) .btn:hover {
-    background: #1f2937;
-  }
-  :host-context(.dark) .search-input:focus {
-    border-color: #818cf8;
-  }
-  :host-context(.dark) .results {
-    border-color: #374151;
-    background: #1f2937;
-  }
-  :host-context(.dark) .result-item {
-    border-color: #374151;
-  }
-  :host-context(.dark) .result-item:hover {
-    background: #312e81;
-  }
-  :host-context(.dark) .venue-card {
-    border-color: #166534;
-    background: #052e16;
-  }
-  :host-context(.dark) .venue-name {
-    color: #86efac;
-  }
-  :host-context(.dark) .venue-meta,
-  :host-context(.dark) .loading,
-  :host-context(.dark) .result-type {
-    color: #9ca3af;
-  }
-  :host-context(.dark) .venue-meta a {
-    color: #a5b4fc;
-  }
-  :host-context(.dark) .clear-btn {
-    color: #fca5a5;
-  }
-  :host-context(.dark) .error-message {
-    border-color: #7f1d1d;
-    background: #450a0a;
-    color: #fecaca;
-  }
-  :host-context(.dark) .resolving {
-    border-color: #1e3a8a;
-    background: #172554;
-    color: #bfdbfe;
-  }
 `;

@@ -333,7 +333,8 @@ function renderFieldToolbar(
           : html`
               <button
                 type="button"
-                class="field-action"
+                class="field-action np-icon-button"
+                part="button"
                 title=${action.label}
                 aria-label=${action.label}
                 @click=${() => action.run()}
@@ -347,7 +348,9 @@ function renderFieldToolbar(
         return html`
           <button
             type="button"
-            class="field-action ${isExpanded ? 'expanded' : ''}"
+            class="field-action np-icon-button ${isExpanded ? 'np-selected' : ''}"
+            part="button"
+            aria-pressed=${isExpanded}
             title=${label}
             aria-label=${label}
             @click=${() => ctx.onToggleExpanded(attachedField.id)}
@@ -395,12 +398,12 @@ export function renderField(
       class="field ${readonly ? 'field-readonly' : ''}"
       style="${isHidden ? 'display: none;' : ''}"
     >
-      <label class="${isRequired ? 'required' : ''}">${label}</label>
-      ${description ? html`<div class="field-description">${description}</div>` : nothing}
+      <label class="np-label ${isRequired ? 'np-required' : ''}" part="label">${label}</label>
+      ${description ? html`<div class="np-hint" part="hint">${description}</div>` : nothing}
       ${toolbar}
       ${readonly ? renderFieldView(field, value) : renderFieldInput(field, value, ctx)}
       ${readonly ? nothing : renderAttachedExpandedFields(field, ctx)}
-      ${error ? html`<div class="field-error">${error}</div>` : nothing}
+      ${error ? html`<div class="np-field-error" part="error">${error}</div>` : nothing}
     </div>
   `;
 }
@@ -418,7 +421,9 @@ export function renderExpandableField(field: PostField, ctx: FieldRenderContext)
     <div class="expandable-field">
       <button
         type="button"
-        class="expand-toggle ${isExpanded ? 'expanded' : ''}"
+        class="np-chip ${isExpanded ? 'np-selected' : ''}"
+        part="chip"
+        aria-pressed=${isExpanded}
         @click=${() => ctx.onToggleExpanded(field.id)}
       >
         <span class="expand-icon">${icon}</span>

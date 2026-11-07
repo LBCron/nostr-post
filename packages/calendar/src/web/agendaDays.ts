@@ -8,6 +8,7 @@
  * actions, venue map), so a month of hundreds of events stays light.
  */
 
+import { NpElement } from '@nostr-post/ui/web';
 import {
   baseStyles,
   type FeedThread,
@@ -15,7 +16,7 @@ import {
   feedStyle,
   renderFeedThread,
 } from '@nostr-post/web';
-import { html, LitElement, nothing } from 'lit';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type AgendaWindow, eventTimeZone, formatAgendaDate, groupEventsByDay } from '../agenda';
 import { agendaItem } from '../agendaItem';
@@ -25,7 +26,7 @@ import { agendaStyles } from './agendaStyles';
 import { renderMonthGrid } from './monthGrid';
 
 @customElement('nostr-calendar-days')
-export class NostrCalendarDays extends LitElement {
+export class NostrCalendarDays extends NpElement {
   static override styles = [baseStyles, feedStyle, agendaStyles];
 
   @property({ attribute: false }) threads: FeedThread[] = [];
@@ -73,7 +74,7 @@ export class NostrCalendarDays extends LitElement {
           days.length === 0
             ? this.loading
               ? nothing
-              : html`<div class="empty">${messages.empty}</div>`
+              : html`<div class="empty np-empty">${messages.empty}</div>`
             : days.map(
                 ({ date, events }) => html`
                   <section class="agenda-day" data-date=${date}>

@@ -3,28 +3,25 @@
 import { resolveManifest } from '@nostr-post/core/manifest';
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { useEffect, useRef, useState } from 'react';
+import { ColorSchemeSwitch } from '../components/ColorSchemeSwitch';
 import { ManifestEditor } from '../components/ManifestEditor';
 import { ManifestNostrPanel } from '../components/ManifestNostrPanel';
 import { PreviewPane } from '../components/PreviewPane';
 import { TestModeLog, TestModeToggle } from '../components/TestModePanel';
+import { ThemePanel } from '../components/ThemePanel';
 import { WikiPreviewPanel } from '../components/WikiPreviewPanel';
 import { registerEntityManifests } from '../lib/entityManifests';
 import { EXAMPLE_MANIFESTS } from '../lib/examples';
 
 const styles = {
-  header: {
-    background: 'white',
-    borderBottom: '1px solid #e5e7eb',
-    padding: '1.5rem 2rem',
-  },
   title: {
-    fontSize: '1.875rem',
+    fontSize: 'var(--np-text-2xl)',
     fontWeight: 700,
-    color: '#8b5cf6',
+    color: 'var(--np-color-primary)',
     margin: '0 0 0.5rem 0',
   },
   subtitle: {
-    color: '#6b7280',
+    color: 'var(--np-color-on-surface-variant)',
     margin: 0,
   },
   headerRow: {
@@ -33,16 +30,6 @@ const styles = {
     justifyContent: 'space-between',
     gap: '1rem',
     flexWrap: 'wrap',
-  },
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '2rem',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '2rem',
   },
 } as const;
 
@@ -147,19 +134,23 @@ export default function Home() {
 
   return (
     <>
-      <header style={styles.header}>
+      <header className="creator-header">
         <div style={styles.headerRow}>
           <div>
             <h1 style={styles.title}>🎨 Manifest Creator</h1>
             <p style={styles.subtitle}>Visual tool for creating and testing nostr-post manifests</p>
           </div>
-          <TestModeToggle />
+          <div className="header-actions">
+            <TestModeToggle />
+            <ColorSchemeSwitch />
+          </div>
         </div>
         <TestModeLog />
       </header>
 
-      <div style={styles.container}>
-        <div style={styles.grid}>
+      <div className="creator-container">
+        <ThemePanel />
+        <div className="creator-grid">
           <div>
             <ManifestEditor
               manifest={manifest}

@@ -34,7 +34,15 @@ export function AdditionalMappings({
 
   return (
     <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div id={additionalMappingsHeadingId} style={styles.label}>
             Additional Event Mappings
@@ -43,7 +51,7 @@ export function AdditionalMappings({
             Add extra targets when this field should publish to both Kind 1 and NIP-78.
           </div>
         </div>
-        <button type="button" style={styles.smallButton} onClick={onAddMapping}>
+        <button type="button" className="np-button np-small" onClick={onAddMapping}>
           + Add Mapping
         </button>
       </div>
@@ -66,16 +74,20 @@ export function AdditionalMappings({
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap' as const,
+                      gap: '0.5rem',
                       alignItems: 'center',
                       marginBottom: '0.75rem',
                     }}
                   >
-                    <strong style={{ fontSize: '0.875rem', color: '#111827' }}>
+                    <strong
+                      style={{ fontSize: 'var(--np-text-md)', color: 'var(--np-color-on-surface)' }}
+                    >
                       Mapping {index + 2}
                     </strong>
                     <button
                       type="button"
-                      style={{ ...styles.smallButton, background: '#dc2626' }}
+                      className="np-button np-small np-danger"
                       onClick={() => removeMapping(index + 1)}
                     >
                       Remove

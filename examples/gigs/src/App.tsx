@@ -5,6 +5,8 @@
 
 import { ensureOutboxRunner } from '@nostr-post/outbox/web';
 import { setDryRun } from '@nostr-post/signer';
+import { type ColorScheme, colorSchemes, parseColorScheme } from '@nostr-post/ui';
+import { followColorScheme } from '@nostr-post/ui/web';
 import { setComposerDefaults } from '@nostr-post/web';
 import { useEffect, useState } from 'react';
 import { routeOf } from './lib/routes';
@@ -69,9 +71,22 @@ function Page({ hash }: { hash: string }) {
   }
 }
 
+/** Light, dark or the system's: remembered, applied to the page (the components follow it) */
+const useColorScheme = (): [ColorScheme, (scheme: ColorScheme) => void] => {
+  const [scheme, setScheme] = useState(() => parseColorScheme(store.get('gigs:theme')));
+  useEffect(() => {
+    store.set('gigs:theme', scheme);
+    return followColorScheme(scheme);
+  }, [scheme]);
+  return [scheme, setScheme];
+};
+
+const SCHEME_LABELS: Record<ColorScheme, string> = { system: 'Auto', light: 'Light', dark: 'Dark' };
+
 export function App() {
   const hash = useHash();
   const [testMode, setTestMode] = useTestMode();
+  const [scheme, setScheme] = useColorScheme();
   return (
     <>
       <header>
@@ -84,17 +99,30 @@ export function App() {
           <a href="#/outbox">Outbox</a>
           <a href="#/artist-new">Add an artist</a>
         </nav>
-        <label className="switch">
+        <label className="np-checkbox">
           <input
             type="checkbox"
             checked={testMode}
             onChange={(e) => setTestMode(e.target.checked)}
-          />{' '}
+          />
           Test mode
         </label>
+        <fieldset className="np-segmented" aria-label="Theme">
+          {colorSchemes.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="np-segment"
+              aria-pressed={scheme === s}
+              onClick={() => setScheme(s)}
+            >
+              {SCHEME_LABELS[s]}
+            </button>
+          ))}
+        </fieldset>
       </header>
       {testMode && (
-        <div className="banner">
+        <div className="banner" role="status">
           Test mode: sign in (bottom-right) to try adding gigs. Events are signed and shown, but
           nothing is sent to relays. Turn it off to publish.
         </div>

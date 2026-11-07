@@ -57,6 +57,8 @@ export class NpMediaInput extends LitElement {
   /** Percent sent; undefined while waiting to try again */
   @state() private _uploadProgress: number | undefined = 0;
   @state() private _uploadError = '';
+  /** Offer "Upload later" (the composer's `upload-later`; a field's `uploadLater: false` refuses) */
+  @property({ type: Boolean, attribute: 'upload-later' }) uploadLater = false;
   /** Upload later (on wifi or when the user asks): the user's choice, remembered */
   @state() private _uploadLater = prefersUploadLater();
   /** Why upload later didn't apply */
@@ -208,7 +210,8 @@ export class NpMediaInput extends LitElement {
       const upload = await compressImage(file, quality);
       if (upload.size > this._maxSize) throw new Error(m.tooLarge(this._maxMb));
       this._uploadDetail = m.sizes(formatBytes(file.size), formatBytes(upload.size));
-      const later = this._uploadLater ? await this._prepareLater(upload) : undefined;
+      const later =
+        this._offersUploadLater && this._uploadLater ? await this._prepareLater(upload) : undefined;
       if (later) {
         this._addUrl(later);
         activity.done();
@@ -246,6 +249,10 @@ export class NpMediaInput extends LitElement {
     }
   }
 
+  private get _offersUploadLater(): boolean {
+    return this.uploadLater && this._config.uploadLater !== false;
+  }
+
   /** Prepared to upload later: its URL (a placeholder without a Blossom server: signed later) */
   private async _prepareLater(file: File): Promise<string> {
     const { url } = await prepareUploadLater(file, this._config);
@@ -281,7 +288,7 @@ export class NpMediaInput extends LitElement {
         ${this._urls.length > 0 ? this._renderGallery() : nothing}
         ${canAddMore && showUpload ? this._renderDropZone() : nothing}
         ${canAddMore && showUpload && this._config.qualityChoice !== false ? this._renderQuality() : nothing}
-        ${canAddMore && showUpload ? this._renderUploadLater() : nothing}
+        ${canAddMore && showUpload && this._offersUploadLater ? this._renderUploadLater() : nothing}
         ${
           canAddMore && showUpload && showUrl
             ? html`<div class="url-row"><span class="separator">${m.or}</span></div>`

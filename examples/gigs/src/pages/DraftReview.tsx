@@ -162,6 +162,7 @@ export function DraftReview({
         draftId={saved?.draftId}
         drafts
         schedule
+        uploadLater
         autoPublish
         onnostr-post-published={onPublished}
       />

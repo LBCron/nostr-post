@@ -131,6 +131,8 @@ export class NostrPostComposer extends NostrPostElement {
   @property({ type: String, attribute: 'draft-id' }) draftId?: string;
   /** Offer "Publish at": a timed post waits in the outbox (`publishOrQueue`) */
   @property({ type: Boolean }) schedule = false;
+  /** Offer "Upload later, on wifi" in media fields: the post waits in the outbox */
+  @property({ type: Boolean, attribute: 'upload-later' }) uploadLater = false;
   @state() private _sendAt?: number;
 
   @state() private _formData: Record<string, unknown> = {};
@@ -429,6 +431,7 @@ export class NostrPostComposer extends NostrPostElement {
         selectedFormatId: this.selectedPublishFormatId || undefined,
       }),
       pubkey: this.pubkey,
+      uploadLater: this.uploadLater,
       getFormData: () => this._formData,
       isReadonly: (f) => isFieldReadonly(f, this.readonlyFields),
       onFieldChange: (id, val) => this.handleFieldChange(id, val),

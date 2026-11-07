@@ -62,6 +62,11 @@ export interface MediaPluginConfig {
    */
   keepMetadata?: boolean;
   /**
+   * `false`: never offer "Upload later" in this field, even where the composer does
+   * (`upload-later`), e.g. a photo the post can't wait for
+   */
+  uploadLater?: boolean;
+  /**
    * A description per photo for people who can't see it (`alt` in its `imeta` tag, NIP-92):
    * an input under each photo
    */

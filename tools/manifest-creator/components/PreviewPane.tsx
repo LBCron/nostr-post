@@ -284,6 +284,7 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
             auto-publish
             drafts
             schedule
+            upload-later
             show-reply-target
             editable-reply-target
           />

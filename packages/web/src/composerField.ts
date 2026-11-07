@@ -73,6 +73,8 @@ export interface FieldRenderContext {
   activeKinds: number[];
   /** The author, when the composer knows it (inputs that need the user's data use it) */
   pubkey?: string;
+  /** The composer offers "Upload later" (media inputs) */
+  uploadLater?: boolean;
   /** The form data as it is now, for plugin work that finishes later (an upload) */
   getFormData: () => Record<string, unknown>;
   isReadonly: (field: PostField) => boolean;
@@ -133,6 +135,7 @@ export function renderFieldInput(
         .activeKinds=${ctx.activeKinds}
         .error=${ctx.errors[field.id]}
         .pubkey=${ctx.pubkey}
+        .uploadLater=${ctx.uploadLater ?? false}
         @np-value-changed=${(e: CustomEvent) => ctx.onFieldChange(field.id, e.detail.value)}
       ></${tag}>`;
     }

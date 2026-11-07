@@ -279,6 +279,7 @@ Create and publish Nostr posts.
 - `default-format-id`, `hide-publish-format-selector` - Publish format choice
 - `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111), `show-reply-target`, `editable-reply-target` - Replies
 - `drafts` - Offer "Save draft": the form goes to the outbox (`@nostr-post/outbox`), unsigned, with its photos to upload later
+- `upload-later` - Offer "Upload later, on wifi" in media fields: the post waits in the outbox until its photos are up
 - `schedule` - Offer "Publish at": the post is signed now and waits in the outbox until then (sent while the app is open, else when it opens; `ensureOutboxRunner()` at app start)
 - `draft-id` - The draft being edited (`openDraft(item)` gives it with `manifest`/`manifestRef`, `prefill` and `dTag`): saving replaces it, publishing removes it
 
@@ -975,6 +976,7 @@ React wrapper for the composer component.
   drafts?: boolean;                  // "Save draft" (the outbox)
   draftId?: string;                  // The draft being edited (openDraft)
   schedule?: boolean;                // "Publish at" (a timed post in the outbox)
+  uploadLater?: boolean;             // "Upload later, on wifi" in media fields
   onQueued?: (item: OutboxItem) => void;     // Waits in the outbox (upload later, timed)
   onDraftSaved?: (item: OutboxItem) => void; // "Save draft" saved it
   onPublish?: (events: NostrEvent[]) => void;
@@ -1381,7 +1383,7 @@ Upload and manage image and video files with array support.
 - Upload to the user's Blossom servers (kind 10063), then nostr.build (NIP-98)
 - `imeta` tags (NIP-92) with `imeta: true`, or mapped to the `imeta` tag (NIP-68 pictures)
 - Location and other metadata removed from JPEG photos (`keepMetadata: true` keeps them)
-- "Upload later, on wifi": photos wait in the outbox (`@nostr-post/outbox`) with the post, and
+- "Upload later, on wifi" (only in a composer with `upload-later`; a field's `uploadLater: false` refuses it): photos wait in the outbox (`@nostr-post/outbox`) with the post, and
   upload on wifi or when the user asks; the post is published after. With a Blossom server the
   post is signed now; otherwise it's signed when the photos upload (the signer is asked then)
 - Image gallery with lightbox

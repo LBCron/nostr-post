@@ -26,6 +26,7 @@ interface NostrPostComposerElement extends HTMLElement {
   drafts?: boolean;
   draftId?: string;
   schedule?: boolean;
+  uploadLater?: boolean;
   rootEventId?: string;
   rootPubkey?: string;
 }
@@ -41,6 +42,7 @@ declare module 'react' {
         'auto-publish'?: boolean;
         drafts?: boolean;
         schedule?: boolean;
+        'upload-later'?: boolean;
       };
     }
   }
@@ -77,6 +79,8 @@ export interface NostrPostComposerProps {
   draftId?: string;
   /** Offer "Publish at": a timed post waits in the outbox */
   schedule?: boolean;
+  /** Offer "Upload later, on wifi" in media fields: the post waits in the outbox */
+  uploadLater?: boolean;
   /** Called after successful publish */
   onPublished?: (events: SignedEvent[], dTag?: string) => void;
   /** The post waits in the outbox (photos to upload later, or a time to publish at) */
@@ -117,6 +121,7 @@ export function NostrPostComposer({
   drafts = false,
   draftId,
   schedule = false,
+  uploadLater = false,
   onPublished,
   onQueued,
   onDraftSaved,
@@ -154,7 +159,9 @@ export function NostrPostComposer({
     element.drafts = drafts;
     element.draftId = draftId;
     element.schedule = schedule;
+    element.uploadLater = uploadLater;
   }, [
+    uploadLater,
     drafts,
     draftId,
     schedule,

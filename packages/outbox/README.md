@@ -92,7 +92,9 @@ the home screen. The queue warns when items have waited for days.
 
 ## Upload later
 
-A field prepares a file now and defers it (`deferUpload(upload, file)`): plugin-media shrinks
+Off unless a page wants it: the composer's `upload-later` offers it in media fields (a field's
+`uploadLater: false` refuses it), like `drafts` and `schedule`. A page without them never
+queues anything, and shows no outbox. A field prepares a file now and defers it (`deferUpload(upload, file)`): plugin-media shrinks
 and hashes the photo, signs its Blossom authorization (kind 24242, for 7 days) and knows its final
 URL (`<server>/<sha256>.<ext>`). The composer finds the deferred files its form data uses
 (`deferredUploadsIn(formData)`), captures the publish and queues the post with them, `wifiOnly`

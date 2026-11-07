@@ -124,7 +124,14 @@ const EMPTY_FORM = {};
  * Checking a draft (preview, duplicates, the performers' links) and correcting it in the
  * composer before publishing; without a draft, the empty form
  */
-export function DraftReview({ draft }: { draft?: GigDraft }) {
+export function DraftReview({
+  draft,
+  saved,
+}: {
+  draft?: GigDraft;
+  /** A draft from the outbox (`openDraft`): its form, and its id to replace or remove it */
+  saved?: { prefill: Record<string, unknown>; draftId: string };
+}) {
   const [published, setPublished] = useState<string>();
   const section = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -151,7 +158,11 @@ export function DraftReview({ draft }: { draft?: GigDraft }) {
       <nostr-post-composer
         manifest={GIG_MANIFEST}
         defaultFormatId={draft?.formatId}
-        prefill={draft?.formData ?? EMPTY_FORM}
+        prefill={draft?.formData ?? saved?.prefill ?? EMPTY_FORM}
+        draftId={saved?.draftId}
+        drafts
+        schedule
+        uploadLater
         autoPublish
         onnostr-post-published={onPublished}
       />

@@ -8,6 +8,7 @@ import { getActiveKinds, getSelectablePublishFormats } from '@nostr-post/core/ma
 import { type NostrPostManifest, STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
 import {
   buildInitialFormData,
+  type CoordinateOptions,
   hasReplyTarget,
   invalidFieldLabels,
   isFieldReadonly,
@@ -29,6 +30,7 @@ import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
+import { publishOrQueue, queuedMessage, removeDraft, saveDraft } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';
@@ -123,59 +125,47 @@ export class NostrPostComposer extends NostrPostElement {
   @property({ type: String, attribute: 'extra-tags' })
   extraTags?: string;
 
-  @state()
-  private _formData!: Record<string, unknown>;
+  /** Offer "Save draft": the form goes to the outbox, unsigned (`saveDraft`) */
+  @property({ type: Boolean }) drafts = false;
+  /** The draft being edited (`openDraft`): saving replaces it, publishing removes it */
+  @property({ type: String, attribute: 'draft-id' }) draftId?: string;
+  /** Offer "Publish at": a timed post waits in the outbox (`publishOrQueue`) */
+  @property({ type: Boolean }) schedule = false;
+  /** Offer "Upload later, on wifi" in media fields: the post waits in the outbox */
+  @property({ type: Boolean, attribute: 'upload-later' }) uploadLater = false;
+  @state() private _sendAt?: number;
+
+  @state() private _formData: Record<string, unknown> = {};
 
   /** Current form data (read-only accessor for external consumers) */
   get formData(): Record<string, unknown> {
     return this._formData;
   }
 
-  @state()
-  private errors!: Record<string, string>;
-
-  @state()
-  private isSubmitting!: boolean;
-
-  @state()
-  private successMessage!: string;
+  @state() private errors: Record<string, string> = {};
+  @state() private isSubmitting = false;
+  @state() private successMessage = '';
 
   /** What the running submit is doing, shown next to the button */
-  @state()
-  private _submitStep?: string;
+  @state() private _submitStep?: string;
 
   /** The signer is working on a signature (e.g. waiting for the user to approve) */
-  @state()
-  private _signing = false;
+  @state() private _signing = false;
 
   private readonly _onSigning = (e: CustomEvent<SigningDetail>) => {
     this._signing = e.detail.pending > 0;
   };
 
   /** Why the last submit failed, shown below the button */
-  @state()
-  private _submitError?: string;
+  @state() private _submitError?: string;
 
   private get _m(): ComposerMessages {
     return { ...DEFAULT_COMPOSER_MESSAGES, ...this.messages };
   }
 
-  @state()
-  private _expandedFields: Set<string> = new Set();
-
-  @state()
-  private isResolvingManifestRef = false;
-
-  @state()
-  private selectedPublishFormatId = '';
-
-  constructor() {
-    super();
-    this._formData = {};
-    this.errors = {};
-    this.isSubmitting = false;
-    this.successMessage = '';
-  }
+  @state() private _expandedFields: Set<string> = new Set();
+  @state() private isResolvingManifestRef = false;
+  @state() private selectedPublishFormatId = '';
 
   private getInitialSelectedPublishFormatId(manifest: NostrPostManifest): string {
     return initialPublishFormatId(manifest, this.defaultFormatId, this.hidePublishFormatSelector);
@@ -184,26 +174,14 @@ export class NostrPostComposer extends NostrPostElement {
   updated(changed: Map<string, unknown>) {
     super.updated(changed);
     const manifestChanged = changed.has('manifest');
-    const prefillChanged = changed.has('prefill');
-    const manifestRefChanged = changed.has('manifestRef');
-
-    if (manifestChanged || prefillChanged) {
+    // Opening a draft (`openDraft`: its id and values): they replace the form's
+    if (changed.has('prefill') && this.draftId) this._formData = {};
+    if (manifestChanged || changed.has('prefill')) {
       this.initDefaults({ resetUnknownFields: manifestChanged });
-      if (manifestChanged) {
-        this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(
-          this.manifest || STANDARD_KIND1_POST_MANIFEST
-        );
-        this.errors = {};
-        this.successMessage = '';
-        this._expandedFields = new Set();
-        this.dispatchFormChange();
-      }
+      if (manifestChanged) this._resetForManifest(this.manifest || STANDARD_KIND1_POST_MANIFEST);
       void this.ensureManifestPlugins();
     }
-
-    if (manifestRefChanged) {
-      void this._resolveManifestRef();
-    }
+    if (changed.has('manifestRef')) void this._resolveManifestRef();
   }
 
   connectedCallback(): void {
@@ -217,6 +195,15 @@ export class NostrPostComposer extends NostrPostElement {
     super.disconnectedCallback();
   }
 
+  /** A new manifest: its default format, no errors or message, fields collapsed */
+  private _resetForManifest(manifest: NostrPostManifest): void {
+    this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(manifest);
+    this.errors = {};
+    this.successMessage = '';
+    this._expandedFields = new Set();
+    this.dispatchFormChange();
+  }
+
   private async _resolveManifestRef(): Promise<boolean> {
     if (this.manifest) return true;
     if (!this.manifestRef) return false;
@@ -228,11 +215,7 @@ export class NostrPostComposer extends NostrPostElement {
       if (stored) {
         this.manifest = stored.manifest;
         this.initDefaults({ resetUnknownFields: true });
-        this.selectedPublishFormatId = this.getInitialSelectedPublishFormatId(stored.manifest);
-        this.errors = {};
-        this.successMessage = '';
-        this._expandedFields = new Set();
-        this.dispatchFormChange();
+        this._resetForManifest(stored.manifest);
         void this.ensureManifestPlugins();
         return true;
       }
@@ -346,10 +329,19 @@ export class NostrPostComposer extends NostrPostElement {
       const { bundle, addressableDTag } = outcome;
 
       if (this.autoPublish) {
-        const published = await this._publish(manifest, pubkey);
-        this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
+        const { published, queued } = await publishOrQueue(
+          this._formData,
+          pubkey,
+          () => this._publish(manifest, pubkey),
+          {
+            sendAt: this._sendAt,
+            signLater: { manifest, options: this._coordinateOptions, relays: this.relays },
+          }
+        );
+        if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
+        else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
         const notice = publishedNotice(published, this._m);
-        this.successMessage = notice.success;
+        this.successMessage = queued ? queuedMessage(queued, this._m) : notice.success;
         if (notice.error) this.showError(notice.error);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)
@@ -363,6 +355,8 @@ export class NostrPostComposer extends NostrPostElement {
       }
 
       this._formData = {};
+      if (this.draftId) void removeDraft(this.draftId);
+      this.draftId = this._sendAt = undefined;
     } catch (error) {
       this.showError(error instanceof Error ? error.message : this._m.unknownError);
     } finally {
@@ -371,23 +365,32 @@ export class NostrPostComposer extends NostrPostElement {
     }
   }
 
+  private async _saveDraft(): Promise<void> {
+    const pubkey = await signedInPubkey(this.pubkey, this.autoPublish);
+    if (!pubkey) return this.showError(this._m.signInToPublish);
+    const manifest = this.manifest ?? this.manifestRef ?? STANDARD_KIND1_POST_MANIFEST;
+    const { draftId, dTag, _formData: formData } = this;
+    const item = await saveDraft({ pubkey, manifest, formData, dTag, draftId });
+    this.draftId = item.id;
+    this.successMessage = this._m.draftSaved;
+    this.dispatchCustomEvent('nostr-post-draft-saved', item);
+  }
+
+  /** How to build the post besides the pubkey; kept with a post signed later */
+  private get _coordinateOptions(): CoordinateOptions {
+    const { selectedPublishFormatId: selectedFormatId, manifestRef, dTag, extraTags } = this;
+    return { selectedFormatId, manifestRef, dTag, extraTags, ...this._replyTarget };
+  }
+
   private _coordinate(
     manifest: NostrPostManifest,
     formData: Record<string, unknown>,
     pubkey: string
   ) {
-    return validateAndCoordinate(
-      manifest,
-      formData as Parameters<typeof validateAndCoordinate>[1],
-      {
-        pubkey,
-        selectedFormatId: this.selectedPublishFormatId,
-        manifestRef: this.manifestRef,
-        dTag: this.dTag,
-        extraTags: this.extraTags,
-        ...this._replyTarget,
-      }
-    );
+    return validateAndCoordinate(manifest, formData as never, {
+      pubkey,
+      ...this._coordinateOptions,
+    });
   }
 
   /** Plugins' related events first (e.g. a venue's wiki page), then the post */
@@ -428,6 +431,7 @@ export class NostrPostComposer extends NostrPostElement {
         selectedFormatId: this.selectedPublishFormatId || undefined,
       }),
       pubkey: this.pubkey,
+      uploadLater: this.uploadLater,
       getFormData: () => this._formData,
       isReadonly: (f) => isFieldReadonly(f, this.readonlyFields),
       onFieldChange: (id, val) => this.handleFieldChange(id, val),
@@ -482,6 +486,10 @@ export class NostrPostComposer extends NostrPostElement {
             error: this._submitError,
             invalidFields: invalidFieldLabels(manifest, this.errors),
             messages: this._m,
+            onSaveDraft: this.drafts ? () => void this._saveDraft() : undefined,
+            sendAt: this.schedule
+              ? { value: this._sendAt, onChange: (v) => (this._sendAt = v) }
+              : undefined,
           })}
         </form>
       </div>

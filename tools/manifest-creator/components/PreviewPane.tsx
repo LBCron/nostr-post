@@ -5,7 +5,14 @@ import { prepareFormData } from '@nostr-post/core/enrichment';
 import { getManifestAvailableKinds } from '@nostr-post/core/manifestMappings';
 import type { NostrPostManifest } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { NostrPostFeed, type NostrPostFeedRef, type SignedEvent } from '@nostr-post/react';
+import {
+  NostrPostFeed,
+  type NostrPostFeedRef,
+  NostrPostOutbox,
+  type OutboxItem,
+  openDraft,
+  type SignedEvent,
+} from '@nostr-post/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { registerEntityManifests } from '../lib/entityManifests';
@@ -16,6 +23,9 @@ interface NostrPostComposerElement extends HTMLElement {
   manifest: NostrPostManifest;
   manifestRef?: string;
   pubkey?: string;
+  prefill?: Record<string, unknown>;
+  dTag?: string;
+  draftId?: string;
 }
 
 interface PreviewPaneProps {
@@ -62,6 +72,15 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
   useEffect(() => {
     void registerEntityManifests(manifest);
   }, [manifest]);
+
+  // Edit a draft from the outbox in the composer (its own manifest, if another)
+  const editDraft = useCallback(async (item: OutboxItem) => {
+    const composer = composerRef.current;
+    if (!composer) return;
+    Object.assign(composer, await openDraft(item));
+    setActiveTab('preview');
+    composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const reloadCurrentPubkey = useCallback(async () => {
     try {
@@ -263,9 +282,16 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
             key={manifest.id}
             ref={composerRef}
             auto-publish
+            drafts
+            schedule
+            upload-later
             show-reply-target
             editable-reply-target
           />
+        </div>
+
+        <div style={styles.divider}>
+          <NostrPostOutbox pubkey={currentPubkey || undefined} onEdit={(i) => void editDraft(i)} />
         </div>
 
         {!liveEventJson && previewValidationErrors.length > 0 && (

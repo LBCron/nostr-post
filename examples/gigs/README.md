@@ -31,6 +31,11 @@ players, RSVP, `.ics` import and export.
 - **My gigs** (`#/mine`, signed in): the gigs you added (`<nostr-calendar-agenda authors>`) and the
   ones you're going to, from your RSVPs (`fetchRsvpsBy`, `answersByAddress`, the agenda's
   `addresses`): Going and maybe, Going only, or Maybe only.
+- **Outbox** (`#/outbox`): gigs not published yet, kept in this browser (`<nostr-post-outbox>`,
+  `@nostr-post/outbox`): drafts ("Save draft" in the composer), gigs to publish at a set time
+  ("Publish at"), and gigs whose poster uploads later ("Upload later, on wifi"). Edit opens a
+  draft in Add a gig (`#/add?draft=<id>`, `openDraft`). The app runs the outbox on every page
+  (`ensureOutboxRunner`).
 - **Musician** (`#/artist/<d-tag>`, `#/artist-new[/<name>]`, `#/artist-edit/<d-tag>[?add=<JSON>]`):
   a musician's wiki page, its links as players (type
   `(musician)`); links play (`@nostr-post/plugin-embed`), and its upcoming gigs are listed: those

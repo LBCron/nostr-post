@@ -5,6 +5,9 @@
  */
 
 import { findJsonObject } from '@nostr-post/core/formJson';
+import { browserOutbox } from '@nostr-post/outbox/web';
+import type { OpenedDraft } from '@nostr-post/posts';
+import { openDraft } from '@nostr-post/web';
 import { useEffect, useRef, useState } from 'react';
 import { type GigDraft, gigPrompt, loadGigPlugins, readAnswer } from '../lib/ai';
 import { AI_PROVIDERS, aiProvider } from '../lib/aiProviders';
@@ -59,7 +62,22 @@ type Next =
   | { step: 'links'; answer: string; suggestions: SuggestedLink[] }
   | { step: 'review'; draft?: GigDraft; id: number };
 
-export function AddGig() {
+/** A draft from the outbox, opened for the composer */
+const useSavedDraft = (draftId: string | undefined) => {
+  const [saved, setSaved] = useState<OpenedDraft>();
+  useEffect(() => {
+    if (!draftId) return;
+    void browserOutbox()
+      .list()
+      .then((items) => items.find((i) => i.id === draftId))
+      .then((item) => (item ? openDraft(item) : undefined))
+      .then(setSaved);
+  }, [draftId]);
+  return saved;
+};
+
+export function AddGig({ draftId }: { draftId?: string }) {
+  const saved = useSavedDraft(draftId);
   const [text, setText] = useState('');
   const [poster, setPoster] = useState<File>();
   const [provider, setProvider] = useState(() => aiProvider(store.get('gigs:ai-provider')));
@@ -228,6 +246,7 @@ export function AddGig() {
         />
       )}
       {next?.step === 'review' && <DraftReview key={next.id} draft={next.draft} />}
+      {saved && !next && <DraftReview key={saved.draftId} saved={saved} />}
     </>
   );
 }

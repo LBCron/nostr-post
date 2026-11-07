@@ -56,7 +56,7 @@ export async function imageDim(file: Blob): Promise<string | undefined> {
 }
 
 /** The user's Blossom servers, unless the field leaves them out or the list doesn't come in time */
-const userServers = async (config: MediaPluginConfig): Promise<string[]> => {
+export const userServers = async (config: MediaPluginConfig): Promise<string[]> => {
   if (config.userServers === false) return [];
   const pubkey = await signerPubkey(SERVER_LIST_WAIT_MS);
   if (!pubkey) return [];

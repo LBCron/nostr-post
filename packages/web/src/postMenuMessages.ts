@@ -11,6 +11,8 @@ export interface PostMenuMessages {
   copyPointer: (prefix: string) => string;
   copyJson: string;
   rawData: string;
+  /** Shown when the post is in the test-mode log: opens <nostr-dry-run-publish> */
+  publishForReal: string;
   copied: string;
   /** The clipboard refused (e.g. an insecure page) */
   copyFailed: string;
@@ -33,6 +35,7 @@ export const DEFAULT_POST_MENU_MESSAGES: PostMenuMessages = {
   copyPointer: (prefix) => `Copy ${prefix}`,
   copyJson: 'Copy event JSON',
   rawData: 'Raw data',
+  publishForReal: 'Publish for real…',
   copied: 'Copied',
   copyFailed: "Couldn't copy",
   close: 'Close',

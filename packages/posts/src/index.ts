@@ -116,7 +116,7 @@ export {
   extractPrefillFromEvent,
   formatPrefillAsUpdateComment,
 } from './updates';
-export { type RawEventData, rawEventData } from './rawEvent';
+export { eventTitle, type RawEventData, rawEventData } from './rawEvent';
 export {
   fetchReferences,
   isAddress,
@@ -136,3 +136,20 @@ export {
   sectionStats,
   sectionTarget,
 } from './sections';
+
+// Posts that wait in an outbox (@nostr-post/outbox): queued, signed later, drafts
+export {
+  type CoordinateOptions,
+  type QueuePostResult,
+  queuePost,
+  type SignLaterContext,
+  type SignQueuedPostOptions,
+  signQueuedPost,
+} from './queue';
+export {
+  draftForComposer,
+  draftTitle,
+  type OpenedDraft,
+  type SaveDraftOptions,
+  saveDraftItem,
+} from './drafts';

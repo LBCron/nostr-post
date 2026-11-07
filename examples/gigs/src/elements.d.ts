@@ -5,6 +5,7 @@
  * (`HTMLElementTagNameMap`).
  */
 
+import type {} from '@nostr-post/outbox/web';
 import type { HTMLAttributes, Ref } from 'react';
 
 type ElementProps<E extends HTMLElement> = Partial<Omit<E, keyof HTMLElement>> &
@@ -18,6 +19,7 @@ type Tags =
   | 'nostr-calendar-event'
   | 'nostr-post-composer'
   | 'nostr-post-feed'
+  | 'nostr-post-outbox'
   | 'nostr-post-view'
   | 'nostr-wiki-composer'
   | 'nostr-wiki-view'

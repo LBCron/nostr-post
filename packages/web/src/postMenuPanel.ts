@@ -20,6 +20,8 @@ export interface MenuItemsOptions {
   copied?: { target: CopyTarget; ok: boolean };
   onCopy: (target: CopyTarget) => void;
   onRaw: () => void;
+  /** Set when the post is in the test-mode log: publishes it for real */
+  onPublish?: () => void;
 }
 
 export const renderMenuItems = ({
@@ -28,6 +30,7 @@ export const renderMenuItems = ({
   copied,
   onCopy,
   onRaw,
+  onPublish,
 }: MenuItemsOptions): TemplateResult => {
   const item = (target: CopyTarget, label: string) => html`<button
     type="button"
@@ -44,6 +47,13 @@ export const renderMenuItems = ({
     ${item('npub', m.copyNpub)} ${item('pointer', m.copyPointer(pointerPrefix(raw)))}
     ${item('json', m.copyJson)}
     <button type="button" role="menuitem" @click=${onRaw}>${m.rawData}</button>
+    ${
+      onPublish
+        ? html`<button type="button" role="menuitem" @click=${onPublish}>
+            ${m.publishForReal}
+          </button>`
+        : nothing
+    }
   </div>`;
 };
 

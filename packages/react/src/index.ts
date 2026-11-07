@@ -24,9 +24,11 @@ export {
 // Components (React wrappers around web components)
 export {
   NostrPostComposer,
+  NostrPostOutbox,
   NostrPostView,
   NostrPostFeed,
   type NostrPostComposerProps,
+  type NostrPostOutboxProps,
   type NostrPostViewProps,
   type NostrPostFeedProps,
   type NostrPostFeedRef,
@@ -70,9 +72,20 @@ export {
   isDryRun,
   getDryRunEntries,
   clearDryRunEntries,
+  dryRunBundle,
+  dryRunEvents,
+  newerOnRelays,
+  publishDryRunEntries,
+  removeDryRunEntries,
+  type DryRunPublishResult,
   DRY_RUN_CHANGE_EVENT,
   type DryRunEntry,
   type NostrProfile,
   type ProfileOptions,
   type DryRunChangeDetail,
 } from './signer';
+
+// Drafts in the outbox: what a composer needs to edit one (`onEdit` of NostrPostOutbox)
+export { openDraft } from '@nostr-post/web';
+export type { OpenedDraft } from '@nostr-post/posts';
+export type { OutboxItem } from '@nostr-post/outbox';

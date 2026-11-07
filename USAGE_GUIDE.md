@@ -278,6 +278,10 @@ Create and publish Nostr posts.
 - `extra-tags` - Extra tags added to the post
 - `default-format-id`, `hide-publish-format-selector` - Publish format choice
 - `reply-to-event-id`, `reply-to-pubkey`, `root-event-id`, `root-pubkey`, `root-address` (an addressable root: the reply is a NIP-22 comment, kind 1111), `show-reply-target`, `editable-reply-target` - Replies
+- `drafts` - Offer "Save draft": the form goes to the outbox (`@nostr-post/outbox`), unsigned, with its photos to upload later
+- `upload-later` - Offer "Upload later, on wifi" in media fields: the post waits in the outbox until its photos are up
+- `schedule` - Offer "Publish at": the post is signed now and waits in the outbox until then (sent while the app is open, else when it opens; `ensureOutboxRunner()` at app start)
+- `draft-id` - The draft being edited (`openDraft(item)` gives it with `manifest`/`manifestRef`, `prefill` and `dTag`): saving replaces it, publishing removes it
 
 **Properties:**
 
@@ -291,6 +295,8 @@ Create and publish Nostr posts.
   ```typescript
   event.detail = SignedEvent[]
   ```
+- `nostr-post-queued` - With `auto-publish`, when photos upload later ("Upload later, on wifi" in the media field): the signed post waits in the outbox, `event.detail` is the outbox item
+- `nostr-post-draft-saved` - "Save draft": `event.detail` is the outbox item
 - `nostr-post-submit` - Without `auto-publish`: the post is ready for the app to sign and publish
   ```typescript
   event.detail = { bundle: EventBundle; dTag?: string; formData: Record<string, unknown>; manifest: NostrPostManifest }
@@ -936,6 +942,13 @@ function UserFeed({ pubkey }: { pubkey: string }) {
 
 ### Components
 
+#### `<NostrPostOutbox>`
+
+React wrapper for `<nostr-post-outbox>` (`@nostr-post/outbox/web`): posts not published yet
+(drafts, timed posts, photos to upload later), kept in this browser. Props: `outbox?`, `pubkey?`
+(default the signer's), `messages?`, `onEdit?(item)` (a draft to edit: `openDraft(item)` gives
+the composer's `manifest`/`manifestRef`, `prefill`, `dTag` and `draftId`), `dark?`.
+
 #### `<NostrPostComposer>`
 
 React wrapper for the composer component.
@@ -960,6 +973,12 @@ React wrapper for the composer component.
     borderColor?: string;
   };
   dark?: boolean;                    // Enable dark mode
+  drafts?: boolean;                  // "Save draft" (the outbox)
+  draftId?: string;                  // The draft being edited (openDraft)
+  schedule?: boolean;                // "Publish at" (a timed post in the outbox)
+  uploadLater?: boolean;             // "Upload later, on wifi" in media fields
+  onQueued?: (item: OutboxItem) => void;     // Waits in the outbox (upload later, timed)
+  onDraftSaved?: (item: OutboxItem) => void; // "Save draft" saved it
   onPublish?: (events: NostrEvent[]) => void;
   onError?: (error: string) => void;
   onChange?: (data: Record<string, unknown>) => void;
@@ -1364,6 +1383,9 @@ Upload and manage image and video files with array support.
 - Upload to the user's Blossom servers (kind 10063), then nostr.build (NIP-98)
 - `imeta` tags (NIP-92) with `imeta: true`, or mapped to the `imeta` tag (NIP-68 pictures)
 - Location and other metadata removed from JPEG photos (`keepMetadata: true` keeps them)
+- "Upload later, on wifi" (only in a composer with `upload-later`; a field's `uploadLater: false` refuses it): photos wait in the outbox (`@nostr-post/outbox`) with the post, and
+  upload on wifi or when the user asks; the post is published after. With a Blossom server the
+  post is signed now; otherwise it's signed when the photos upload (the signer is asked then)
 - Image gallery with lightbox
 - Video player with controls
 - Auto-detection of image/video types

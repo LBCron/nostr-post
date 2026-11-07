@@ -61,3 +61,13 @@ export const rawEventData = (
     json: JSON.stringify({ id, pubkey, created_at, kind, tags, content, sig }, null, 2),
   };
 };
+
+/**
+ * A short name of an event for lists (e.g. the events a test post would publish): its `title`
+ * or `name` tag, else its d tag, else the start of its text
+ */
+export function eventTitle(event: Pick<SignedEvent, 'tags' | 'content'>, maxLength = 60): string {
+  const tag = (name: string) => event.tags.find((t) => t[0] === name)?.[1]?.trim();
+  const text = tag('title') || tag('name') || tag('d') || event.content.replace(/\s+/g, ' ').trim();
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}

@@ -29,6 +29,7 @@ import '@nostr-post/plugin-hashtag/web';
 import '@nostr-post/list/web';
 import '@nostr-post/wiki/web';
 import '@nostr-post/plugin-wiki-entity/web';
+import '@nostr-post/outbox/web';
 
 // ── Re-exports for programmatic / advanced usage ────────────────────────────
 
@@ -180,6 +181,16 @@ export {
   isDryRun,
   getDryRunEntries,
   clearDryRunEntries,
+  dryRunBundle,
+  dryRunEvents,
+  newerOnRelays,
+  publishDryRunEntries,
+  publishSignedEvents,
+  setPublishCapture,
+  type SignedEntry,
+  type SignedPublishResult,
+  removeDryRunEntries,
+  type DryRunPublishResult,
   DRY_RUN_CHANGE_EVENT,
   type DryRunEntry,
   type NostrProfile,
@@ -196,6 +207,12 @@ export {
   signAndPublishBundle,
   withTags,
   rawEventData,
+  eventTitle,
+  queuePost,
+  signQueuedPost,
+  saveDraftItem,
+  draftForComposer,
+  draftTitle,
   type RawEventData,
   type NostrPostSubmitDetail,
   DEFAULT_PUBLISH_MESSAGES,
@@ -223,6 +240,11 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from '@nostr-post/we
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from '@nostr-post/web';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from '@nostr-post/web';
 export { DEFAULT_FEED_MESSAGES, type FeedMessages } from '@nostr-post/web';
+// Drafts and queued posts in the browser outbox (the composer's `drafts`, `schedule`,
+// `upload-later`)
+export { openDraft, removeDraft, saveDraft, publishOrQueue } from '@nostr-post/web';
+// Publishing a test-mode post for real (<nostr-dry-run-publish>, the "⋯" menu's item)
+export { DEFAULT_DRY_RUN_PUBLISH_MESSAGES, type DryRunPublishMessages } from '@nostr-post/web';
 
 // Background work (uploads, relay sends) shown by <np-activity> in a corner of the page
 export {
@@ -251,6 +273,8 @@ export {
   setMediaMessages,
   type UploadMediaOptions,
   uploadMedia,
+  prepareUploadLater,
+  uploadPrepared,
   DEFAULT_MEDIA_GALLERY_MESSAGES,
   type MediaGalleryMessages,
 } from '@nostr-post/plugin-media/web';
@@ -354,3 +378,43 @@ export {
   itemsToSave,
   listField,
 } from '@nostr-post/list';
+
+// Posts published later: drafts, timed posts, upload later (@nostr-post/outbox)
+export {
+  captureEvents,
+  createOutbox,
+  draftItem,
+  isLate,
+  itemActions,
+  memoryStorage,
+  combineStorage,
+  type OutboxItemStore,
+  type OutboxFileStore,
+  nextStep,
+  type Outbox,
+  type OutboxAction,
+  type OutboxChange,
+  type OutboxDraft,
+  type OutboxItem,
+  type OutboxJobs,
+  type OutboxState,
+  type OutboxStorage,
+  type OutboxUpload,
+  pendingBytes,
+  type RunConditions,
+  signedItem,
+  waitingFor,
+  withState,
+} from '@nostr-post/outbox';
+export {
+  browserOutbox,
+  connectionConditions,
+  DEFAULT_OUTBOX_MESSAGES,
+  ensureOutboxRunner,
+  indexedDbStorage,
+  type OutboxMessages,
+  registerOutboxJobs,
+  setBrowserOutboxItems,
+  requestPersistentStorage,
+  startOutboxRunner,
+} from '@nostr-post/outbox/web';

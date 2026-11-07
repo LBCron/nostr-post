@@ -12,5 +12,6 @@ export {
   ensureOutboxRunner,
   type OutboxRunnerOptions,
   registerOutboxJobs,
+  setBrowserOutboxItems,
   startOutboxRunner,
 } from './web/runner';

@@ -59,8 +59,13 @@ await outbox.runAll(pubkey);
 
 ## Storage
 
-`OutboxStorage`: `items(pubkey?)`, `putItem`, `removeItem`, `putFile(key, blob)`, `file(key)`,
-`removeFile`. `memoryStorage()` keeps everything in memory (tests, servers).
+Items and files are kept apart: items are small records that could sync between devices,
+files are photos that stay on the device.
+
+- `OutboxItemStore`: `items(pubkey?)`, `putItem`, `removeItem`
+- `OutboxFileStore`: `putFile(key, blob)`, `file(key)`, `removeFile`
+- `OutboxStorage` is both; `combineStorage(items, files)` makes one from the two, e.g. synced
+  items with local files. `memoryStorage()` keeps everything in memory (tests, servers).
 
 ## Actions
 
@@ -73,7 +78,8 @@ waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (faile
 - `indexedDbStorage(name?)`: items and their files in IndexedDB (photos are far too big for
   localStorage). `requestPersistentStorage()` asks the browser to keep the site's data.
 - `browserOutbox()`: the page's one outbox, in IndexedDB, with the jobs packages register
-  (`registerOutboxJobs({ upload })`, e.g. plugin-media's upload).
+  (`registerOutboxJobs({ upload })`, e.g. plugin-media's upload). `setBrowserOutboxItems(store)`,
+  before it's first used, keeps its items in another store (e.g. synced); files stay in IndexedDB.
 - `startOutboxRunner(outbox?, { pubkey?, intervalMs? })`: runs due items now, every 30 s (timed
   posts), when the browser comes online and when the connection changes; returns `stop()`.
   `ensureOutboxRunner()` starts it once for the browser outbox: the queue element and the composer

@@ -287,3 +287,18 @@ describe('sign-later items', () => {
     expect(nextStep(failed as never, { force: true })).toBe('publish');
   });
 });
+
+describe('combineStorage', () => {
+  it('keeps items in one store and files in another', async () => {
+    const { combineStorage } = await import('./storage');
+    const items = memoryStorage();
+    const files = memoryStorage();
+    const outbox = createOutbox(combineStorage(items, files));
+    const item = signedItem({ pubkey: 'pk', events: [entry('post')], uploads: [photo] });
+    await outbox.add(item, { f1: new Blob(['jpg']) });
+    expect((await items.items()).map((i) => i.id)).toEqual([item.id]);
+    expect(await items.file('f1')).toBeUndefined();
+    expect(await files.file('f1')).toBeDefined();
+    expect(await files.items()).toEqual([]);
+  });
+});

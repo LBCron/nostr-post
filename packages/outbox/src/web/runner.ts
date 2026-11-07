@@ -10,6 +10,7 @@
 import { getPublicKey } from '@nostr-post/signer';
 import type { RunConditions } from '../item';
 import { createOutbox, type Outbox, type OutboxJobs } from '../outbox';
+import { combineStorage, type OutboxItemStore } from '../storage';
 import { indexedDbStorage, requestPersistentStorage } from './indexedDb';
 
 /** The Network Information API: Chrome on Android only; Safari and Firefox have none */
@@ -44,10 +45,22 @@ export function registerOutboxJobs(more: OutboxJobs): void {
 
 let outbox: Outbox | undefined;
 
-/** The page's outbox, in IndexedDB; asks the browser to keep its data */
+let itemStore: OutboxItemStore | undefined;
+
+/**
+ * Keeps the browser outbox's items elsewhere (e.g. synced between devices); its files stay in
+ * IndexedDB. Call before the outbox is first used
+ */
+export function setBrowserOutboxItems(store: OutboxItemStore): void {
+  if (outbox) throw new Error('The browser outbox is in use already');
+  itemStore = store;
+}
+
+/** The page's outbox, in IndexedDB (items elsewhere with `setBrowserOutboxItems`) */
 export function browserOutbox(): Outbox {
   if (!outbox) {
-    outbox = createOutbox(indexedDbStorage(), () => jobs);
+    const local = indexedDbStorage();
+    outbox = createOutbox(itemStore ? combineStorage(itemStore, local) : local, () => jobs);
     void requestPersistentStorage();
   }
   return outbox;

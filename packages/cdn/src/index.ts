@@ -387,6 +387,9 @@ export {
   isLate,
   itemActions,
   memoryStorage,
+  combineStorage,
+  type OutboxItemStore,
+  type OutboxFileStore,
   nextStep,
   type Outbox,
   type OutboxAction,
@@ -411,6 +414,7 @@ export {
   indexedDbStorage,
   type OutboxMessages,
   registerOutboxJobs,
+  setBrowserOutboxItems,
   requestPersistentStorage,
   startOutboxRunner,
 } from '@nostr-post/outbox/web';

@@ -43,4 +43,10 @@ export {
   type OutboxChange,
   type OutboxJobs,
 } from './outbox';
-export { memoryStorage, type OutboxStorage } from './storage';
+export {
+  combineStorage,
+  memoryStorage,
+  type OutboxFileStore,
+  type OutboxItemStore,
+  type OutboxStorage,
+} from './storage';

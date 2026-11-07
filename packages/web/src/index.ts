@@ -17,6 +17,11 @@ export { NostrPostView } from './view';
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from './viewEdit';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from './viewSuggestions';
 // The composer's outbox in the browser (drafts, queued posts); the logic is @nostr-post/posts'
+export {
+  type ComposerOutboxDefaults,
+  composerDefaults,
+  setComposerDefaults,
+} from './composerDefaults';
 export { openDraft, publishOrQueue, removeDraft, saveDraft } from './composerOutbox';
 export { NostrDryRunPublish } from './dryRunPublish';
 export {

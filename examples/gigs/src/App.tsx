@@ -5,6 +5,7 @@
 
 import { ensureOutboxRunner } from '@nostr-post/outbox/web';
 import { setDryRun } from '@nostr-post/signer';
+import { setComposerDefaults } from '@nostr-post/web';
 import { useEffect, useState } from 'react';
 import { routeOf } from './lib/routes';
 import { store } from './lib/store';
@@ -19,6 +20,9 @@ import { Outbox } from './pages/Outbox';
 
 // Timed posts and photos waiting for wifi go while the app is open, whatever page it shows
 ensureOutboxRunner();
+// Every composer, also an event's "Add: Photos and videos", offers Upload later and Publish at;
+// Save draft only the gig's (the outbox opens drafts in Add a gig)
+setComposerDefaults({ schedule: true, uploadLater: true });
 
 /** The link's hash, following its changes */
 const useHash = (): string => {

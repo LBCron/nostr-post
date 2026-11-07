@@ -238,7 +238,7 @@ The bundle re-exports utilities for advanced usage:
 - Images from a Blossom server that fail to load are tried on the author's other servers by their
   hash
 - Upload later: the media field's "Upload later, on wifi" (offered in a composer with
-  `upload-later`, unless the field sets `uploadLater: false`; remembered in the browser) prepares a
+  `upload-later`, or in every composer after `setComposerDefaults({ uploadLater: true })`, unless the field sets `uploadLater: false`; remembered in the browser) prepares a
   photo instead of uploading it: shrunk, hashed, its Blossom authorization signed for 7 days, its
   final URL known (a Blossom server's: the user's first, else the field's). Without a Blossom
   server (nostr.build chooses the URL) the photo gets a placeholder URL (`pending:<sha256>.<ext>`)

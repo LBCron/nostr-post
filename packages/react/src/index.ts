@@ -86,6 +86,6 @@ export {
 } from './signer';
 
 // Drafts in the outbox: what a composer needs to edit one (`onEdit` of NostrPostOutbox)
-export { openDraft } from '@nostr-post/web';
+export { openDraft, setComposerDefaults } from '@nostr-post/web';
 export type { OpenedDraft } from '@nostr-post/posts';
 export type { OutboxItem } from '@nostr-post/outbox';

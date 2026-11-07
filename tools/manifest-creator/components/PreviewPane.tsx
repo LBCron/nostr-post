@@ -54,7 +54,10 @@ export const PreviewPane = ({ manifest, manifestRef, isResolvingParents }: Previ
 
   // Dynamically import web components and plugins (client-only, avoids SSR issues)
   useEffect(() => {
-    import('@nostr-post/web');
+    // Every composer, also the "Add" dialogs of page sections, offers the outbox
+    void import('@nostr-post/web').then(({ setComposerDefaults }) =>
+      setComposerDefaults({ drafts: true, schedule: true, uploadLater: true })
+    );
     import('@nostr-post/plugin-identifier/web');
     import('@nostr-post/plugin-stars/web');
     import('@nostr-post/plugin-geo/web');

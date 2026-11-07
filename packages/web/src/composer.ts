@@ -8,6 +8,7 @@ import { getActiveKinds, getSelectablePublishFormats } from '@nostr-post/core/ma
 import { type NostrPostManifest, STANDARD_KIND1_POST_MANIFEST } from '@nostr-post/core/types';
 import {
   buildInitialFormData,
+  type CoordinateOptions,
   hasReplyTarget,
   invalidFieldLabels,
   isFieldReadonly,
@@ -23,14 +24,13 @@ import {
 import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { baseStyles, NostrPostElement } from './baseComponent';
-import { removeDraft, saveDraft } from './composerDrafts';
 import type { FieldRenderContext } from './composerField';
 import { renderFieldList } from './composerFieldList';
 import { renderHiddenFieldErrors } from './composerForm';
 import { initialPublishFormatId, renderPublishFormatPicker } from './composerFormatPicker';
 import { renderComposerHeader } from './composerHeader';
 import { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMessages';
-import { type CoordinateOptions, publishOrQueue, queuedMessage } from './composerOutbox';
+import { publishOrQueue, queuedMessage, removeDraft, saveDraft } from './composerOutbox';
 import { renderReplyTargetPanel } from './composerReply';
 import { composerStyle } from './composerStyle';
 import { publishedNotice, renderPublishSummaries, renderSubmitArea } from './composerSubmit';

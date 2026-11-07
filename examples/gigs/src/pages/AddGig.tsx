@@ -6,7 +6,8 @@
 
 import { findJsonObject } from '@nostr-post/core/formJson';
 import { browserOutbox } from '@nostr-post/outbox/web';
-import { type OpenedDraft, openDraft } from '@nostr-post/web';
+import type { OpenedDraft } from '@nostr-post/posts';
+import { openDraft } from '@nostr-post/web';
 import { useEffect, useRef, useState } from 'react';
 import { type GigDraft, gigPrompt, loadGigPlugins, readAnswer } from '../lib/ai';
 import { AI_PROVIDERS, aiProvider } from '../lib/aiProviders';

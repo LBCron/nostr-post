@@ -16,21 +16,8 @@ export { type ComposerMessages, DEFAULT_COMPOSER_MESSAGES } from './composerMess
 export { NostrPostView } from './view';
 export { DEFAULT_EDIT_MESSAGES, type EditMessages } from './viewEdit';
 export { DEFAULT_SUGGESTION_MESSAGES, type SuggestionMessages } from './viewSuggestions';
-export {
-  draftTitle,
-  type OpenedDraft,
-  openDraft,
-  removeDraft,
-  type SaveDraftOptions,
-  saveDraft,
-} from './composerDrafts';
-export {
-  type CoordinateOptions,
-  type PublishOrQueueResult,
-  publishOrQueue,
-  type SignLaterContext,
-  signQueuedPost,
-} from './composerOutbox';
+// The composer's outbox in the browser (drafts, queued posts); the logic is @nostr-post/posts'
+export { openDraft, publishOrQueue, removeDraft, saveDraft } from './composerOutbox';
 export { NostrDryRunPublish } from './dryRunPublish';
 export {
   DEFAULT_DRY_RUN_PUBLISH_MESSAGES,

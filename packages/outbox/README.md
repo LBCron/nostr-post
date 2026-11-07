@@ -105,10 +105,11 @@ e.g. for a preview.
 
 ## Drafts
 
-The composer's `drafts` attribute adds "Save draft": `saveDraft({ pubkey, manifest, formData,
-dTag?, draftId? })` (`@nostr-post/web`) stores a `draft` item with the form data, unsigned, and
+The composer's `drafts` attribute adds "Save draft": `saveDraftItem(outbox, { pubkey, manifest,
+formData, dTag?, draftId? })` (`@nostr-post/posts`; `@nostr-post/web`'s `saveDraft` with the
+browser outbox) stores a `draft` item with the form data, unsigned, and
 the manifest (or a published manifest's address), with its photos to upload later (their files
-kept with it). `<nostr-post-outbox>` fires `outbox-edit` for a draft; `openDraft(item)` gives what
+kept with it). `<nostr-post-outbox>` fires `outbox-edit` for a draft; `openDraft(item)` (`@nostr-post/web`; `draftForComposer(outbox, item)` in posts) gives what
 a composer needs (`manifest` or `manifestRef`, `prefill`, `dTag`, `draftId`) and defers its photos
 again, so publishing it queues them:
 
@@ -124,7 +125,7 @@ their photos: removing an item keeps the files another item uses.
 ## Timed posts
 
 The composer's `schedule` attribute adds "Publish at" (a date and time; empty for now). The post
-is signed now and queued with `sendAt` (`publishOrQueue(formData, pubkey, publish, { sendAt })`):
+is signed now and queued with `sendAt` (`queuePost(outbox, formData, pubkey, publish, { sendAt })` in `@nostr-post/posts`):
 many relays refuse events dated in the future, so it keeps the signing date. The runner sends it
 at its time while the app is open; when the app was closed then, it's sent when it opens and the
 queue marks it late (`isLate`). "Send now" sends it before its time. Signing at the time itself
@@ -137,8 +138,8 @@ signed before the upload. plugin-media then gives the photo a placeholder URL
 (`pending:<sha256>.<ext>`) and signs nothing; the composer queues the form unsigned: a
 `signLater` item whose `draft` holds the form, the manifest, the composer's options
 (`publish`) and relays. When it runs, the outbox uploads the files (the upload job returns each
-URL, kept as `uploadedUrl`), then the `sign` job (`signQueuedPost`, registered by
-`@nostr-post/web`) puts the URLs in the form (`withUploadedUrls`), builds the post as the
+URL, kept as `uploadedUrl`), then the `sign` job (`signQueuedPost` of `@nostr-post/posts`, registered by
+`@nostr-post/web` with its plugin autoload) puts the URLs in the form (`withUploadedUrls`), builds the post as the
 composer would, plugins' publish hooks included, and signs it: the signer is asked then, and
 must be the item's author. Then the events are sent. If signing fails, the uploaded files stay
 uploaded and a retry signs again.

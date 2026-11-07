@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { draftTitle } from './composerDrafts';
+import { draftTitle } from './drafts';
 
 describe('draftTitle', () => {
   it("is the form's first text", () => {

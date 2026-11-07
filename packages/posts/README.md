@@ -76,6 +76,19 @@ const { events } = await publishWithHooks({
 | `eventTitle(event, maxLength?)` | A short name of an event for lists: its `title` or `name` tag, else its d tag, else the start of its text |
 | `rawEventData(event, relays?)`, `RawEventData` | What a post's "⋯" menu copies and shows: the author's npub, kind, d tag, tags, an naddr (addressable) or nevent with relay hints, the relays it was found on (default: `relaysSeenOn`, `@nostr-post/signer`), the JSON and the signature |
 
+## Posts that wait in an outbox
+
+With `@nostr-post/outbox`; the outbox is passed in (in a browser `browserOutbox()` of
+`@nostr-post/outbox/web`, which `@nostr-post/web`'s composer uses).
+
+| Function | What it does |
+| --- | --- |
+| `queuePost(outbox, formData, pubkey, publish, { sendAt?, signLater? })` | Publishes, or queues the post: when the form uses files that upload later (`deferredUploadsIn`) or `sendAt` is later. Files with a final URL (Blossom): the publish is captured, hooks included, and queued signed. Files without one: the form is queued unsigned with `signLater` (`{ manifest, options, relays }`). Returns `{ published, queued? }`; the caller runs the item |
+| `signQueuedPost(item, { ensurePlugins?, messages? })` | The outbox's `sign` job: builds a sign-later post with its uploaded URLs as a composer would, publish hooks included, and signs it (the signer must be the item's author) |
+| `saveDraftItem(outbox, { pubkey, manifest, formData, dTag?, draftId? })` | Saves a form as a draft, unsigned, with its photos to upload later |
+| `draftForComposer(outbox, item)` | A draft's `manifest` or `manifestRef`, `prefill`, `dTag` and `draftId` for a composer; its photos deferred again |
+| `draftTitle(formData)` | A draft's name: the form's first text |
+
 ## Editing with update comments
 
 | Export | Does |

@@ -1,7 +1,9 @@
 /**
- * <nostr-post-composer>'s drafts (#283), kept in the outbox (@nostr-post/outbox): the form data,
- * unsigned, with its manifest. A draft's photos prepared to upload later are kept with it, so
- * reopening it restores them. Publishing a draft removes it.
+ * @nostr-post/posts - Drafts in an outbox (@nostr-post/outbox)
+ *
+ * A draft is a form, unsigned, with its manifest: saved, reopened in a composer, removed once
+ * published. Its photos prepared to upload later are kept with it, so reopening it restores
+ * them. The outbox is passed in (in a browser `browserOutbox()` of @nostr-post/outbox/web).
  */
 
 import type { NostrPostManifest } from '@nostr-post/core/types';
@@ -10,9 +12,9 @@ import {
   deferUpload,
   draftItem,
   nowSeconds,
+  type Outbox,
   type OutboxItem,
 } from '@nostr-post/outbox';
-import { browserOutbox } from '@nostr-post/outbox/web';
 
 /** A draft's name: the form's first text */
 export const draftTitle = (formData: Record<string, unknown>, maxLength = 60): string => {
@@ -34,17 +36,13 @@ export interface SaveDraftOptions {
   draftId?: string;
 }
 
-/** Saves the form as a draft in the browser outbox, with its photos to upload later */
-export async function saveDraft({
-  pubkey,
-  manifest,
-  formData,
-  dTag,
-  draftId,
-}: SaveDraftOptions): Promise<OutboxItem> {
-  const box = browserOutbox();
+/** Saves a form as a draft in `outbox`, with its photos to upload later */
+export async function saveDraftItem(
+  outbox: Outbox,
+  { pubkey, manifest, formData, dTag, draftId }: SaveDraftOptions
+): Promise<OutboxItem> {
   const deferred = deferredUploadsIn(formData);
-  const previous = draftId ? (await box.list(pubkey)).find((i) => i.id === draftId) : undefined;
+  const previous = draftId ? (await outbox.list(pubkey)).find((i) => i.id === draftId) : undefined;
   const fresh = draftItem({
     pubkey,
     draft: { manifest, formData: { ...formData }, ...(dTag ? { dTag } : {}) },
@@ -56,7 +54,7 @@ export async function saveDraft({
     updatedAt: nowSeconds(),
     uploads: deferred.map((d) => d.upload),
   };
-  return box.add(item, Object.fromEntries(deferred.map((d) => [d.upload.fileKey, d.file])));
+  return outbox.add(item, Object.fromEntries(deferred.map((d) => [d.upload.fileKey, d.file])));
 }
 
 /** What a composer needs to edit a draft */
@@ -72,10 +70,9 @@ export interface OpenedDraft {
  * A draft for a composer (`manifest` or `manifestRef`, `prefill`, `dTag`, `draftId`); its photos
  * to upload later are deferred again, so publishing queues them
  */
-export async function openDraft(item: OutboxItem): Promise<OpenedDraft> {
-  const box = browserOutbox();
+export async function draftForComposer(outbox: Outbox, item: OutboxItem): Promise<OpenedDraft> {
   for (const upload of item.uploads) {
-    const file = await box.file(upload.fileKey);
+    const file = await outbox.file(upload.fileKey);
     if (file) deferUpload(upload, file);
   }
   const manifest = item.draft?.manifest;
@@ -88,6 +85,3 @@ export async function openDraft(item: OutboxItem): Promise<OpenedDraft> {
     draftId: item.id,
   };
 }
-
-/** Removes a draft, once published */
-export const removeDraft = (id: string): Promise<void> => browserOutbox().remove(id);

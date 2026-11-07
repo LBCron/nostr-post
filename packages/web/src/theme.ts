@@ -1,244 +1,146 @@
 /**
  * @nostr-post/web - Shared theme
  *
- * Single source of truth for colors matching nostr-login design system
+ * The visual language comes from @nostr-post/ui (tokens and primitives); these are the
+ * rules @nostr-post/web's components share on top of it.
  */
 
-import { css, unsafeCSS } from 'lit';
+import { npStyles } from '@nostr-post/ui/web';
+import { type CSSResultGroup, css } from 'lit';
 
-/**
- * Color values - single source of truth
- */
-export const colors = {
-  light: {
-    bg: '#ffffff',
-    inputBg: '#f9fafb',
-    text: '#1f2937',
-    textSecondary: '#6b7280',
-    border: '#d1d5db',
-    primary: '#6366f1',
-    primaryHover: '#4f46e5',
-    error: '#dc2626',
-    errorBorder: '#fca5a5',
-    errorBg: '#fef2f2',
-    successBg: '#d1fae5',
-    successBorder: '#6ee7b7',
-    successText: '#065f46',
-  },
-  dark: {
-    bg: '#1f2937',
-    inputBg: '#374151',
-    text: '#f3f4f6',
-    textSecondary: '#9ca3af',
-    border: '#4b5563',
-    primary: '#4f46e5',
-    primaryHover: '#4338ca',
-    error: '#fca5a5',
-    errorBorder: '#dc2626',
-    errorBg: '#450a0a',
-    successBg: '#064e3b',
-    successBorder: '#059669',
-    successText: '#6ee7b7',
-  },
-} as const;
-
-// Helper to use colors in css template
-const u = (color: string) => unsafeCSS(color);
-const c = colors;
-
-/**
- * Base styles using theme colors
- */
-export const baseStyles = css`
+const webBase = css`
   :host {
     display: block;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-      Roboto, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
   }
 
-  * {
-    box-sizing: border-box;
-  }
-
-  /* Error message */
-  .error {
-    color: ${u(c.light.error)};
-    padding: 0.75rem;
-    border: 1px solid ${u(c.light.errorBorder)};
-    background: ${u(c.light.errorBg)};
-    border-radius: 8px;
-    margin: 0.5rem 0;
-    font-size: 14px;
-  }
-
-  :host-context(.dark) .error {
-    background: ${u(c.dark.errorBg)};
-    border-color: ${u(c.dark.errorBorder)};
-    color: ${u(c.dark.error)};
-  }
-
-  /* Success message */
+  /* Messages: the same look as np-message */
+  .error,
   .success {
-    padding: 0.75rem;
-    background: ${u(c.light.successBg)};
-    border: 1px solid ${u(c.light.successBorder)};
-    border-radius: 8px;
-    color: ${u(c.light.successText)};
-    margin: 0.5rem 0;
-    font-size: 14px;
+    margin: var(--np-space-2) 0;
+    padding: var(--np-space-3) var(--np-space-4);
+    border: 1px solid;
+    border-radius: var(--np-radius-sm);
+    font-size: var(--np-text-md);
   }
 
-  :host-context(.dark) .success {
-    background: ${u(c.dark.successBg)};
-    border-color: ${u(c.dark.successBorder)};
-    color: ${u(c.dark.successText)};
+  .error {
+    background: var(--np-color-error-container);
+    border-color: color-mix(in srgb, var(--np-color-error) 35%, transparent);
+    color: var(--np-color-on-error-container);
+  }
+
+  .success {
+    background: var(--np-color-success-container);
+    border-color: color-mix(in srgb, var(--np-color-success) 35%, transparent);
+    color: var(--np-color-on-success-container);
   }
 
   .loading {
+    padding: var(--np-space-8) var(--np-space-4);
+    color: var(--np-color-on-surface-variant);
     text-align: center;
-    padding: 2rem;
-    color: ${u(c.light.textSecondary)};
   }
 
-  :host-context(.dark) .loading {
-    color: ${u(c.dark.textSecondary)};
-  }
-
-  /* Form fields */
+  /* Form fields: the same look as np-field / np-input */
   .field {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--np-space-1);
+    margin-bottom: var(--np-space-4);
   }
 
   .field label {
-    display: block;
+    color: var(--np-color-on-surface);
+    font-size: var(--np-text-sm);
     font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: ${u(c.light.text)};
-    font-size: 14px;
-  }
-
-  :host-context(.dark) .field label {
-    color: ${u(c.dark.text)};
   }
 
   .field input,
   .field textarea,
   .field select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid ${u(c.light.border)};
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    background: ${u(c.light.inputBg)};
-    color: ${u(c.light.text)};
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  :host-context(.dark) .field input,
-  :host-context(.dark) .field textarea,
-  :host-context(.dark) .field select {
-    background: ${u(c.dark.inputBg)};
-    border-color: ${u(c.dark.border)};
-    color: ${u(c.dark.text)};
+    min-height: 2.75em;
+    padding: var(--np-space-2) var(--np-space-3);
+    border: 1px solid var(--np-color-outline);
+    border-radius: var(--np-radius-xs);
+    background: var(--np-color-surface-container-lowest);
+    color: var(--np-color-on-surface);
+    font: inherit;
+    font-size: var(--np-text-md);
+    transition:
+      border-color var(--np-motion-duration) var(--np-motion-easing),
+      box-shadow var(--np-motion-duration) var(--np-motion-easing);
   }
 
   .field input:focus,
   .field textarea:focus,
   .field select:focus {
     outline: none;
-    border-color: ${u(c.light.primary)};
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-
-  :host-context(.dark) .field input:focus,
-  :host-context(.dark) .field textarea:focus,
-  :host-context(.dark) .field select:focus {
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    border-color: var(--np-color-primary);
+    box-shadow: inset 0 0 0 1px var(--np-color-primary);
   }
 
   .field textarea {
-    min-height: 100px;
+    min-height: 6em;
     resize: vertical;
   }
 
   .field-error {
-    color: ${u(c.light.error)};
-    font-size: 12px;
-    margin-top: 0.25rem;
+    color: var(--np-color-error);
+    font-size: var(--np-text-sm);
   }
 
-  :host-context(.dark) .field-error {
-    color: ${u(c.dark.error)};
-  }
-
-  /* Buttons */
-  button {
+  /* Buttons without a primitive class: the look of np-button (outlined), .primary filled */
+  button:not([class*='np-']) {
     display: inline-flex;
-    justify-content: center;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: ${u(c.light.bg)};
-    color: ${u(c.light.text)};
-    border: 1px solid ${u(c.light.border)};
-    border-radius: 8px;
-    font-size: 14px;
+    justify-content: center;
+    gap: var(--np-space-2);
+    min-height: 2.5em;
+    padding: 0 var(--np-space-4);
+    border: 1px solid var(--np-color-outline-variant);
+    border-radius: var(--np-radius-full);
+    background: transparent;
+    color: var(--np-color-primary);
+    font: inherit;
+    font-size: var(--np-text-md);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition:
+      background-color var(--np-motion-duration) var(--np-motion-easing),
+      box-shadow var(--np-motion-duration) var(--np-motion-easing);
   }
 
-  button:hover {
-    background: ${u(c.light.inputBg)};
+  button:not([class*='np-']):hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 8%, transparent);
   }
 
-  :host-context(.dark) button {
-    background: ${u(c.dark.inputBg)};
-    border-color: ${u(c.dark.border)};
-    color: ${u(c.dark.text)};
+  button:not([class*='np-']):focus-visible {
+    outline: none;
+    box-shadow: var(--np-focus-ring);
   }
 
-  :host-context(.dark) button:hover {
-    background: ${u(c.dark.border)};
-  }
-
-  button:disabled {
-    opacity: 0.5;
+  button:not([class*='np-']):disabled {
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
-  /* Primary button */
-  button.primary {
-    background: ${u(c.light.primary)};
-    color: white;
-    border-color: ${u(c.light.primary)};
+  button:not([class*='np-']).primary {
+    background: var(--np-color-primary);
+    border-color: var(--np-color-primary);
+    color: var(--np-color-on-primary);
   }
 
-  button.primary:hover {
-    background: ${u(c.light.primaryHover)};
-    border-color: ${u(c.light.primaryHover)};
-  }
-
-  :host-context(.dark) button.primary {
-    background: ${u(c.dark.primary)};
-    border-color: ${u(c.dark.primary)};
-  }
-
-  :host-context(.dark) button.primary:hover {
-    background: ${u(c.dark.primaryHover)};
-    border-color: ${u(c.dark.primaryHover)};
+  button:not([class*='np-']).primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--np-color-on-primary) 10%, var(--np-color-primary));
+    box-shadow: var(--np-elevation-1);
   }
 
   .required::after {
-    content: " *";
-    color: ${u(c.light.error)};
-  }
-
-  :host-context(.dark) .required::after {
-    color: ${u(c.dark.error)};
+    content: ' *';
+    color: var(--np-color-error);
   }
 `;
+
+/** Shared styles of @nostr-post/web's components: the ui primitives, then the web rules */
+export const baseStyles: CSSResultGroup = [...npStyles, webBase];

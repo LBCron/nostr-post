@@ -15,12 +15,14 @@ export const renderReplyTargetPanel = ({
   const label = readonly ? 'Reply Context' : 'Reply Context (editable)';
 
   return html`
-    <div class="reply-target-panel">
-      <div class="reply-target-title">${label}</div>
+    <div class="reply-target-panel np-card">
+      <div class="reply-target-title np-label">${label}</div>
       <div class="reply-target-grid">
         <label class="reply-target-field">
           <span>Reply to event id</span>
           <input
+            class="np-input"
+            part="input"
             type="text"
             .value=${target.replyToEventId ?? ''}
             ?readonly=${readonly}
@@ -31,6 +33,8 @@ export const renderReplyTargetPanel = ({
         <label class="reply-target-field">
           <span>Reply to pubkey</span>
           <input
+            class="np-input"
+            part="input"
             type="text"
             .value=${target.replyToPubkey ?? ''}
             ?readonly=${readonly}
@@ -41,6 +45,8 @@ export const renderReplyTargetPanel = ({
         <label class="reply-target-field">
           <span>Root event id</span>
           <input
+            class="np-input"
+            part="input"
             type="text"
             .value=${target.rootEventId ?? ''}
             ?readonly=${readonly}
@@ -51,6 +57,8 @@ export const renderReplyTargetPanel = ({
         <label class="reply-target-field">
           <span>Root pubkey</span>
           <input
+            class="np-input"
+            part="input"
             type="text"
             .value=${target.rootPubkey ?? ''}
             ?readonly=${readonly}

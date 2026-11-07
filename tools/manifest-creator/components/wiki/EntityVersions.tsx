@@ -51,7 +51,13 @@ export function EntityVersions({ manifest, dTag, onEditFrom }: EntityVersionsPro
                 <div style={styles.itemTitle}>
                   {title}
                   {version.id === shownId && (
-                    <span style={{ ...styles.mono, marginLeft: '0.5rem', color: '#7c3aed' }}>
+                    <span
+                      style={{
+                        ...styles.mono,
+                        marginLeft: '0.5rem',
+                        color: 'var(--np-color-primary)',
+                      }}
+                    >
                       shown
                     </span>
                   )}
@@ -62,10 +68,18 @@ export function EntityVersions({ manifest, dTag, onEditFrom }: EntityVersionsPro
                   {snippet && ` · ${snippet}`}
                 </div>
               </div>
-              <button type="button" style={styles.smallButton} onClick={() => setOpened(version)}>
+              <button
+                type="button"
+                className="np-button np-small"
+                onClick={() => setOpened(version)}
+              >
                 Open
               </button>
-              <button type="button" style={styles.smallButton} onClick={() => onEditFrom(version)}>
+              <button
+                type="button"
+                className="np-button np-small"
+                onClick={() => onEditFrom(version)}
+              >
                 Edit from this
               </button>
             </div>

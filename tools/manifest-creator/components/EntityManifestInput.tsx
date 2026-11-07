@@ -2,12 +2,12 @@ import { EXAMPLE_MANIFESTS } from '../lib/examples';
 
 const styles = {
   formGroup: { display: 'flex', flexDirection: 'column' as const, gap: '0.25rem' },
-  label: { fontSize: '0.875rem', fontWeight: 500, color: '#374151' },
+  label: { fontSize: 'var(--np-text-md)', fontWeight: 500, color: 'var(--np-color-on-surface)' },
   input: {
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    border: '1px solid var(--np-color-outline-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    fontSize: 'var(--np-text-md)',
   },
 };
 

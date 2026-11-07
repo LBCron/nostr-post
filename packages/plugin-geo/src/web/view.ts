@@ -6,13 +6,16 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { decodeGeohash } from '../core';
 
 @customElement('np-geo-view')
-export class NpGeoView extends LitElement {
-  static styles = css`
+export class NpGeoView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -26,22 +29,22 @@ export class NpGeoView extends LitElement {
     }
 
     .pin {
-      font-size: 1.125rem;
+      font-size: var(--np-text-xl);
     }
 
     .geohash {
-      font-family: monospace;
-      font-size: 0.875rem;
-      color: #374151;
-      background: #f3f4f6;
+      font-family: var(--np-font-family-mono);
+      font-size: var(--np-text-md);
+      color: var(--np-color-on-surface);
+      background: var(--np-color-surface-container);
       padding: 0.125rem 0.375rem;
-      border-radius: 4px;
+      border-radius: var(--np-radius-xs);
     }
 
     .coords {
-      font-family: monospace;
-      font-size: 0.8125rem;
-      color: #6b7280;
+      font-family: var(--np-font-family-mono);
+      font-size: var(--np-text-sm);
+      color: var(--np-color-on-surface-variant);
     }
 
     .links {
@@ -51,15 +54,16 @@ export class NpGeoView extends LitElement {
     }
 
     .map-link {
-      font-size: 0.8125rem;
-      color: #6366f1;
+      font-size: var(--np-text-sm);
+      color: var(--np-color-primary);
       text-decoration: none;
     }
 
     .map-link:hover {
       text-decoration: underline;
     }
-  `;
+  `,
+  ];
 
   @property({ type: String })
   value: string | null = null;

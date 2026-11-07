@@ -6,15 +6,16 @@
 
 import type { PostField } from '@nostr-post/plugins/types';
 import { fetchProfiles, type NostrProfile } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { type Person, peopleOf } from '../core';
 import { renderPersonName } from './profileParts';
 import { profileStyles } from './profileStyles';
 
 @customElement('np-profile-view')
-export class NpProfileView extends LitElement {
-  static override styles = profileStyles;
+export class NpProfileView extends NpElement {
+  static override styles = [...npStyles, profileStyles];
 
   @property({ type: Array }) value?: Person[];
   @property({ type: Object }) field?: PostField;

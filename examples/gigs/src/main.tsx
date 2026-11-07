@@ -4,6 +4,8 @@
  * import are loaded on demand (`@nostr-post/web`'s plugin autoload).
  */
 
+import '@nostr-post/ui/ui.css';
+import './gigs.css';
 import '@nostr-post/web';
 import '@nostr-post/calendar/web';
 import '@nostr-post/wiki/web';
@@ -13,12 +15,6 @@ import { onSignInNeeded } from '@nostr-post/plugins/signIn';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
-
-// The components turn dark with a `dark` class on an ancestor; follow the system setting
-const darkQuery = matchMedia('(prefers-color-scheme: dark)');
-const syncDark = () => document.body.classList.toggle('dark', darkQuery.matches);
-syncDark();
-darkQuery.addEventListener('change', syncDark);
 
 // Sign-in: start the bridge here instead of relying on its script tag (init() is safe to call
 // again). It installs window.nostr and its sign-in widget in the bottom-right corner

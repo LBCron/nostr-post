@@ -56,9 +56,9 @@ const rowStyle = {
   gap: '0.375rem',
   alignItems: 'center',
   padding: '0.375rem',
-  border: '1px solid #e5e7eb',
-  borderRadius: '0.375rem',
-  background: 'white',
+  border: '1px solid var(--np-color-outline-variant)',
+  borderRadius: 'var(--np-radius-sm)',
+  background: 'var(--np-color-surface-container-lowest)',
 } as const;
 
 /** Where each input sits in an option card; the extra data input takes row 2, column 2 */
@@ -90,7 +90,15 @@ export function OptionsEditor({ field, onChange }: OptionsEditorProps) {
 
   return (
     <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap' as const,
+          gap: '0.5rem',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <div style={styles.label}>Options</div>
           <div style={styles.helperText}>
@@ -100,7 +108,7 @@ export function OptionsEditor({ field, onChange }: OptionsEditorProps) {
         </div>
         <button
           type="button"
-          style={styles.smallButton}
+          className="np-button np-small"
           onClick={() => setOptions([...options, { value: '' }])}
         >
           + Add Option
@@ -139,13 +147,25 @@ export function OptionsEditor({ field, onChange }: OptionsEditorProps) {
             placeholder="Extra data, e.g. code=21A"
           />
           <div style={{ display: 'flex', gap: '0.25rem', gridColumn: 3, gridRow: '1 / span 3' }}>
-            <button type="button" style={styles.smallButton} onClick={() => moveOption(index, -1)}>
+            <button
+              type="button"
+              className="np-button np-small"
+              onClick={() => moveOption(index, -1)}
+            >
               ↑
             </button>
-            <button type="button" style={styles.smallButton} onClick={() => moveOption(index, 1)}>
+            <button
+              type="button"
+              className="np-button np-small"
+              onClick={() => moveOption(index, 1)}
+            >
               ↓
             </button>
-            <button type="button" style={styles.deleteButton} onClick={() => removeOption(index)}>
+            <button
+              type="button"
+              className="np-button np-text np-small np-danger"
+              onClick={() => removeOption(index)}
+            >
               ×
             </button>
           </div>

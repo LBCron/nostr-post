@@ -17,7 +17,8 @@ import {
   fetchProfiles,
   type SignedEvent,
 } from '@nostr-post/signer';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import './composer';
 import { DEFAULT_SECTIONS_MESSAGES, type SectionsMessages } from './sectionsMessages';
@@ -37,8 +38,8 @@ const resolveManifest = async (
 };
 
 @customElement('nostr-post-sections')
-export class NostrPostSections extends LitElement {
-  static override styles = sectionsStyles;
+export class NostrPostSections extends NpElement {
+  static override styles = [...npStyles, sectionsStyles];
 
   @property({ attribute: false }) sections: PostSection[] = [];
   /** What the sections reference: the page's or event's addresses (every version), ids, links */
@@ -148,18 +149,18 @@ export class NostrPostSections extends LitElement {
       ${renderList((items ?? []).slice(0, shown), this._names, m)}
       ${
         items && items.length > shown
-          ? html`<button type="button" class="more" @click=${() => {
+          ? html`<button type="button" class="more np-button np-text np-small" part="button" @click=${() => {
               this._shown = this._shown.map((n, i) => (i === index ? n * 2 : n));
             }}>${m.showMore}</button>`
           : nothing
       }
     `;
     return html`<section>
-      <div class="head">
-        <h3>${section.label}</h3>
+      <div class="head" part="header">
+        <h3 class="np-title" part="title">${section.label}</h3>
         ${
           section.add
-            ? html`<button type="button" class="add" @click=${() => void this._openAdd(index)}>
+            ? html`<button type="button" class="np-button np-tonal np-small" part="button" @click=${() => void this._openAdd(index)}>
                 ${m.add(section.label)}
               </button>`
             : nothing
@@ -177,14 +178,21 @@ export class NostrPostSections extends LitElement {
     const adding = this._adding ? this.sections[this._adding.index] : undefined;
     return html`
       ${this.sections.map((section, i) => this._renderSection(section, i))}
-      <dialog @close=${() => {
+      <dialog class="np-dialog" part="dialog" @close=${() => {
         this._adding = undefined;
       }}>
-        <div class="head">
-          <h3>${adding ? `${m.add(adding.label)}: ${adding.label}` : ''}</h3>
-          <button type="button" class="close" @click=${() => this._dialog?.close()}>${m.close}</button>
+        <div class="np-dialog-header">
+          <h2 class="np-dialog-title">${adding ? `${m.add(adding.label)}: ${adding.label}` : ''}</h2>
+          <button
+            type="button"
+            class="np-button np-text"
+            part="button"
+            @click=${() => this._dialog?.close()}
+          >
+            ${m.close}
+          </button>
         </div>
-        ${this._renderComposer()}
+        <div class="np-dialog-body">${this._renderComposer()}</div>
       </dialog>
     `;
   }

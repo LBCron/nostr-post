@@ -28,19 +28,19 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.5rem',
-    fontSize: '0.875rem',
+    fontSize: 'var(--np-text-md)',
     fontWeight: 500,
-    color: '#374151',
+    color: 'var(--np-color-on-surface)',
     cursor: 'pointer',
   },
   banner: {
     marginTop: '1rem',
     padding: '0.75rem 1rem',
-    borderRadius: '0.5rem',
-    background: '#fffbeb',
-    border: '1px solid #fcd34d',
-    color: '#92400e',
-    fontSize: '0.875rem',
+    borderRadius: 'var(--np-radius-sm)',
+    background: 'var(--np-color-warning-container)',
+    border: '1px solid color-mix(in srgb, var(--np-color-warning) 40%, transparent)',
+    color: 'var(--np-color-warning)',
+    fontSize: 'var(--np-text-md)',
   },
   bannerRow: {
     display: 'flex',
@@ -50,15 +50,6 @@ const styles = {
     flexWrap: 'wrap',
   },
   buttons: { display: 'flex', gap: '0.5rem' },
-  button: {
-    padding: '0.25rem 0.75rem',
-    background: 'white',
-    border: '1px solid #fcd34d',
-    borderRadius: '0.375rem',
-    color: '#92400e',
-    fontSize: '0.8125rem',
-    cursor: 'pointer',
-  },
   entry: { marginTop: '0.75rem' },
   entryLabel: {
     display: 'flex',
@@ -70,17 +61,17 @@ const styles = {
   publish: {
     margin: '0.5rem 0',
     padding: '0.75rem',
-    background: 'white',
-    border: '1px solid #fcd34d',
-    borderRadius: '0.375rem',
+    background: 'var(--np-color-surface-container-lowest)',
+    border: '1px solid color-mix(in srgb, var(--np-color-warning) 40%, transparent)',
+    borderRadius: 'var(--np-radius-sm)',
   },
   code: {
     margin: 0,
     padding: '0.75rem',
-    background: '#1f2937',
-    color: '#f9fafb',
-    borderRadius: '0.375rem',
-    fontSize: '0.75rem',
+    background: 'var(--np-color-inverse-surface)',
+    color: 'var(--np-color-on-surface-variant)',
+    borderRadius: 'var(--np-radius-sm)',
+    fontSize: 'var(--np-text-sm)',
     overflowX: 'auto',
     maxHeight: '20rem',
   },
@@ -139,7 +130,7 @@ const LoggedEvent = ({ entry }: { entry: DryRunEntry }) => {
       <div style={styles.entryLabel}>
         {entryLabel(entry)}
         {!publishing && (
-          <button type="button" style={styles.button} onClick={open}>
+          <button type="button" className="np-button np-filled" onClick={open}>
             Publish for real…
           </button>
         )}
@@ -195,7 +186,7 @@ export const TestModeLog = () => {
         <div style={styles.buttons}>
           <button
             type="button"
-            style={styles.button}
+            className="np-button np-filled"
             onClick={() => setOpen(!open)}
             disabled={entries.length === 0}
           >
@@ -203,7 +194,7 @@ export const TestModeLog = () => {
           </button>
           <button
             type="button"
-            style={styles.button}
+            className="np-button np-filled"
             onClick={copyAll}
             disabled={entries.length === 0}
           >
@@ -211,7 +202,7 @@ export const TestModeLog = () => {
           </button>
           <button
             type="button"
-            style={styles.button}
+            className="np-button np-filled"
             onClick={clearDryRunEntries}
             disabled={entries.length === 0}
           >

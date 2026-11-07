@@ -408,14 +408,15 @@ export class NostrPostView extends NostrPostElement {
     const tokens = tokenizeNoteContent(content, tags);
 
     return html`
-      <div class="view">
-        <div class="view-header">
-          ${this.showKind ? html`<span class="view-kind">Kind ${kind}</span>` : ''}
+      <div class="view np-card np-outlined" part="card">
+        <div class="view-header" part="header">
+          ${this.showKind ? html`<span class="np-badge np-primary" part="badge">Kind ${kind}</span>` : ''}
           ${
             this._authorProfile?.picture
               ? html`
                 <img
-                  class="view-avatar"
+                  class="view-avatar np-avatar"
+                  part="avatar"
                   src=${this._authorProfile.picture}
                   alt="Author avatar"
                   loading="lazy"
@@ -437,7 +438,7 @@ export class NostrPostView extends NostrPostElement {
           ${this.hideMenu ? '' : renderPostMenu(event, this.menuMessages)}
         </div>
 
-        <div class="view-content">
+        <div class="view-content" part="content">
           ${
             shouldUseManifestRendering
               ? manifestRenderedData

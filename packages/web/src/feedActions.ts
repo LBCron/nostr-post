@@ -12,7 +12,7 @@ export const renderReactionSummary = (
       <div class="reaction-summary">
         ${summary.map(
           ({ reaction, count, authors }) => html`
-            <span class="reaction-chip" title=${authors.join(', ')}>
+            <span class="reaction-chip np-badge" part="badge" title=${authors.join(', ')}>
               ${reaction} ${count}
               ${
                 authors.length > 0
@@ -47,11 +47,11 @@ export const renderEventActions = ({
   onComment,
   onReact,
 }: EventActionsOptions): TemplateResult => html`
-  <div class="event-actions">
+  <div class="event-actions np-toolbar" part="actions">
     ${
       commentsEnabled
         ? html`
-          <button class="action-button" type="button" @click=${onComment}>
+          <button class="np-button np-tonal np-small" part="button" type="button" @click=${onComment}>
             Comment
           </button>
         `
@@ -62,7 +62,8 @@ export const renderEventActions = ({
         ? reactionOptions?.map(
             (reaction) => html`
             <button
-              class="reaction-button"
+              class="np-chip"
+              part="chip"
               type="button"
               ?disabled=${pendingKey === `${eventId}:${reaction}`}
               @click=${() => onReact(reaction)}

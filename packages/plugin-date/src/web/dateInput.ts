@@ -8,7 +8,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { css, html, LitElement } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { datePrecision } from '../core';
 import {
@@ -22,8 +23,10 @@ import { renderDateProblems, renderTimeZoneInput } from './dateInputParts';
 import { type DateMessages, DEFAULT_DATE_MESSAGES } from './dateMessages';
 
 @customElement('np-date-input')
-export class NpDateInput extends LitElement {
-  static styles = css`
+export class NpDateInput extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -38,58 +41,26 @@ export class NpDateInput extends LitElement {
     label {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.8125rem;
-      color: #6b7280;
+      gap: var(--np-space-1);
+      font-size: var(--np-text-sm);
+      font-weight: 500;
     }
 
-    input {
-      font: inherit;
-      font-size: 0.875rem;
-      padding: 0.375rem 0.5rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
+    label .np-input {
+      width: auto;
+      font-weight: 400;
     }
 
     .tz {
       width: 12rem;
     }
 
-    :host-context(.dark) label {
-      color: #9ca3af;
-    }
-
-    :host-context(.dark) input {
-      background: #374151;
-      border-color: #4b5563;
-      color: #f3f4f6;
-      color-scheme: dark;
-    }
-
-    :host-context(.dark) button {
-      color: #a5b4fc;
-    }
-
-    :host-context(.dark) .error {
-      color: #fca5a5;
-    }
-
     .error {
-      margin: 0.375rem 0 0;
-      font-size: 0.8125rem;
-      color: #dc2626;
+      margin: var(--np-space-1) 0 0;
     }
 
-    button {
-      font: inherit;
-      font-size: 0.8125rem;
-      background: none;
-      border: none;
-      color: #6366f1;
-      cursor: pointer;
-      padding: 0.375rem 0;
-    }
-  `;
+  `,
+  ];
 
   @property({ type: Object }) value?: DateValue;
   @property({ type: Object }) field?: PostField;
@@ -142,7 +113,13 @@ export class NpDateInput extends LitElement {
       <div class="row">
         <label>
           ${m.start}
-          <input type=${type} .value=${shown(this.value?.start)} @change=${onDate('start')} />
+          <input
+            class="np-input"
+            part="input"
+            type=${type}
+            .value=${shown(this.value?.start)}
+            @change=${onDate('start')}
+          />
         </label>
         ${
           endShown
@@ -150,6 +127,8 @@ export class NpDateInput extends LitElement {
               <label>
                 ${m.end}
                 <input
+                  class="np-input"
+                  part="input"
                   type=${type}
                   min=${shown(this.value?.start)}
                   aria-invalid=${endTooEarly || this.error ? 'true' : 'false'}
@@ -157,9 +136,9 @@ export class NpDateInput extends LitElement {
                   @change=${onDate('end')}
                 />
               </label>
-              <button type="button" @click=${this._removeEnd}>${m.removeEnd}</button>
+              <button type="button" class="np-button np-text np-small" part="button" @click=${this._removeEnd}>${m.removeEnd}</button>
             `
-            : html`<button type="button" @click=${() => {
+            : html`<button type="button" class="np-button np-text np-small" part="button" @click=${() => {
                 this._endShown = true;
               }}>${m.addEnd}</button>`
         }

@@ -43,6 +43,7 @@
     "@nostr-post/plugin-profile": "workspace:*",
     "@nostr-post/plugins": "workspace:*",
     "@nostr-post/signer": "workspace:*",
+    "@nostr-post/ui": "workspace:*",
     "@nostr-post/web": "workspace:*",
     "lit": "^3.3.3"
   },

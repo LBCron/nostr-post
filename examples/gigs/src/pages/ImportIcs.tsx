@@ -30,7 +30,7 @@ export function ImportIcs() {
   return (
     <>
       <h2>Import from a calendar (.ics)</h2>
-      <p className="hint">
+      <p className="np-hint">
         E.g. Facebook's export of your events. Each event is checked by you before it's published;
         importing the same file again updates the events instead of adding copies.
       </p>
@@ -49,7 +49,7 @@ export function ImportIcs() {
               {d.private ? (
                 <em>(private: not offered)</em>
               ) : (
-                <button type="button" onClick={() => setReviewing(d)}>
+                <button type="button" className="np-button" onClick={() => setReviewing(d)}>
                   Review
                 </button>
               )}

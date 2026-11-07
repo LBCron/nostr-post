@@ -70,6 +70,8 @@ const renderSendAt = (sendAt: NonNullable<SubmitAreaState['sendAt']>, m: Compose
   html`<label class="send-at">
     ${m.sendAt}
     <input
+      class="np-input"
+      part="input"
       type="datetime-local"
       .value=${sendAt.value === undefined ? '' : localInput(sendAt.value)}
       @change=${(e: Event) => {
@@ -77,7 +79,7 @@ const renderSendAt = (sendAt: NonNullable<SubmitAreaState['sendAt']>, m: Compose
         sendAt.onChange(value ? Math.floor(new Date(value).getTime() / 1000) : undefined);
       }}
     />
-    <span class="submit-step">${m.sendAtHint}</span>
+    <span class="np-hint">${m.sendAtHint}</span>
   </label>`;
 
 /** The submit button with the running step, the last error and invalid fields next to it */
@@ -88,10 +90,11 @@ export const renderSubmitArea = (state: SubmitAreaState) => {
   else if (state.isResolvingManifestRef) label = m.loadingManifest;
   return html`
     ${state.sendAt ? renderSendAt(state.sendAt, m) : ''}
-    <div class="composer-actions">
+    <div class="composer-actions np-toolbar" part="actions">
       <button
         type="submit"
-        class="primary"
+        class="np-button np-filled"
+        part="button primary"
         ?disabled=${state.isSubmitting || state.isResolvingManifestRef}
       >
         ${label}
@@ -100,7 +103,8 @@ export const renderSubmitArea = (state: SubmitAreaState) => {
         state.onSaveDraft
           ? html`<button
               type="button"
-              class="secondary"
+              class="np-button"
+              part="button"
               ?disabled=${state.isSubmitting}
               @click=${state.onSaveDraft}
             >
@@ -108,15 +112,15 @@ export const renderSubmitArea = (state: SubmitAreaState) => {
             </button>`
           : ''
       }
-      ${state.isSubmitting && state.step ? html`<span class="submit-step">${state.step}</span>` : ''}
+      ${state.isSubmitting && state.step ? html`<span class="np-hint">${state.step}</span>` : ''}
     </div>
     ${
       state.invalidFields.length > 0
-        ? html`<div class="submit-error" role="alert">
+        ? html`<div class="np-message np-error" part="error" role="alert">
             ${m.invalidFields} ${state.invalidFields.join(', ')}
           </div>`
         : ''
     }
-    ${state.error ? html`<div class="submit-error" role="alert">${state.error}</div>` : ''}
+    ${state.error ? html`<div class="np-message np-error" part="error" role="alert">${state.error}</div>` : ''}
   `;
 };

@@ -1,4 +1,5 @@
-import { css, html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { ReferenceValue } from '../core';
 
@@ -20,8 +21,10 @@ const decodeValue = (value: unknown): ReferenceValue => {
 };
 
 @customElement('np-reference-view')
-export class NpReferenceView extends LitElement {
-  static styles = css`
+export class NpReferenceView extends NpElement {
+  static override styles = [
+    ...npStyles,
+    css`
     :host {
       display: block;
     }
@@ -33,7 +36,7 @@ export class NpReferenceView extends LitElement {
     }
 
     a {
-      color: #2563eb;
+      color: var(--np-color-info);
       text-decoration: none;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -43,7 +46,8 @@ export class NpReferenceView extends LitElement {
     a:hover {
       text-decoration: underline;
     }
-  `;
+  `,
+  ];
 
   @property({ type: String })
   value = '';

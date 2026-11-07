@@ -100,6 +100,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../../packages/signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@nostr-post/web':
         specifier: workspace:*
         version: link:../../packages/web
@@ -217,6 +220,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@nostr-post/web':
         specifier: workspace:*
         version: link:../web
@@ -284,6 +290,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@nostr-post/web':
         specifier: workspace:*
         version: link:../web
@@ -312,6 +321,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -331,6 +343,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -353,6 +368,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -369,6 +387,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -382,6 +403,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -401,6 +425,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -414,6 +441,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
     devDependencies:
       typescript:
         specifier: ^6.0.3
@@ -424,6 +454,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -449,6 +482,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -471,6 +507,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -487,6 +526,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -503,6 +545,9 @@ importers:
       '@nostr-post/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -525,6 +570,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@nostr-post/wiki':
         specifier: workspace:*
         version: link:../wiki
@@ -547,6 +595,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@nostr-post/wiki':
         specifier: workspace:*
         version: link:../wiki
@@ -610,6 +661,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@nostr-post/web':
         specifier: workspace:*
         version: link:../web
@@ -636,6 +690,19 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/ui:
+    dependencies:
+      lit:
+        specifier: ^3.3.3
+        version: 3.3.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -693,6 +760,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -721,6 +791,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../ui
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -785,6 +858,9 @@ importers:
       '@nostr-post/signer':
         specifier: workspace:*
         version: link:../../packages/signer
+      '@nostr-post/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@nostr-post/web':
         specifier: workspace:*
         version: link:../../packages/web

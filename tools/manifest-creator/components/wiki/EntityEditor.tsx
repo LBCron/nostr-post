@@ -51,7 +51,7 @@ export function EntityEditor({
         <div style={styles.infoBox}>
           Editing from the version by <code>{baseEvent.pubkey.slice(0, 8)}…</code> of{' '}
           {new Date(baseEvent.created_at * 1000).toLocaleString()}.{' '}
-          <button type="button" style={styles.smallButton} onClick={onUseNewest}>
+          <button type="button" className="np-button np-small" onClick={onUseNewest}>
             Use the newest version
           </button>
         </div>

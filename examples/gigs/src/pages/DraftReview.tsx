@@ -13,7 +13,7 @@ function PerformerLinks({ draft }: { draft: GigDraft }) {
   if (!withLinks.length) return null;
   return (
     <>
-      <p className="hint">Performers' links:</p>
+      <p className="np-hint">Performers' links:</p>
       {withLinks.map((p) => (
         <div className="performer" key={p.name}>
           <strong>{p.name}</strong>
@@ -21,7 +21,9 @@ function PerformerLinks({ draft }: { draft: GigDraft }) {
             <div key={link}>
               <np-embed url={link} />
               {draft.fromPoster.includes(link) && (
-                <span className="warning">Read from the poster, not in the text: check it</span>
+                <span className="np-message np-warning">
+                  Read from the poster, not in the text: check it
+                </span>
               )}
             </div>
           ))}
@@ -39,7 +41,7 @@ function PerformerHints({ draft }: { draft: GigDraft }) {
   const updates = (draft.suggestions.performers ?? []).filter((s) => s.action === 'update');
   const withoutPage = unlinkedNames(draft.formData);
   return (
-    <p className="hint">
+    <p className="np-hint">
       {updates.length > 0 && 'New links for '}
       {updates.map((s, i) => {
         const dTag = s.address?.split(':').slice(2).join(':') ?? '';
@@ -80,7 +82,7 @@ function Duplicates({ draft }: { draft: GigDraft }) {
   }, [draft]);
   if (!duplicates.length) return null;
   return (
-    <div className="warning">
+    <div className="np-message np-warning">
       Maybe already on Nostr:{' '}
       {duplicates.map(({ event }, i) => {
         const address = addressOf(event) ?? '';
@@ -108,11 +110,11 @@ function Preview({ draft }: { draft: GigDraft }) {
   }, [draft]);
   return (
     <>
-      <p className="hint">How it will look:</p>
+      <p className="np-hint">How it will look:</p>
       {preview.event ? (
         <nostr-post-view manifest={GIG_MANIFEST} event={preview.event} />
       ) : (
-        <p className="hint">Preview: {preview.error}</p>
+        <p className="np-hint">Preview: {preview.error}</p>
       )}
     </>
   );
@@ -144,7 +146,7 @@ export function DraftReview({
     setPublished(event && addressOf(event));
   };
   return (
-    <section className="step" ref={section}>
+    <section className="step np-card np-outlined" ref={section}>
       {draft && (
         <>
           <h3>3. Check it</h3>
@@ -167,7 +169,7 @@ export function DraftReview({
         onnostr-post-published={onPublished}
       />
       {published && (
-        <p className="hint">
+        <p className="np-hint">
           Published{isDryRun() ? ' (test mode: not sent to relays)' : ''}:{' '}
           <a href={eventLink(published)}>open the gig</a>
         </p>

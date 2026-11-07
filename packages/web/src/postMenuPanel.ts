@@ -34,22 +34,23 @@ export const renderMenuItems = ({
 }: MenuItemsOptions): TemplateResult => {
   const item = (target: CopyTarget, label: string) => html`<button
     type="button"
+    class="np-menu-item"
     role="menuitem"
     @click=${() => onCopy(target)}
   >
     ${label}${
       copied?.target === target
-        ? html`<span class="copied">${copied.ok ? m.copied : m.copyFailed}</span>`
+        ? html`<span class="copied np-hint">${copied.ok ? m.copied : m.copyFailed}</span>`
         : nothing
     }
   </button>`;
-  return html`<div class="menu" role="menu">
+  return html`<div class="menu np-menu" part="menu" role="menu">
     ${item('npub', m.copyNpub)} ${item('pointer', m.copyPointer(pointerPrefix(raw)))}
     ${item('json', m.copyJson)}
-    <button type="button" role="menuitem" @click=${onRaw}>${m.rawData}</button>
+    <button type="button" class="np-menu-item" role="menuitem" @click=${onRaw}>${m.rawData}</button>
     ${
       onPublish
-        ? html`<button type="button" role="menuitem" @click=${onPublish}>
+        ? html`<button type="button" class="np-menu-item" role="menuitem" @click=${onPublish}>
             ${m.publishForReal}
           </button>`
         : nothing
@@ -73,7 +74,7 @@ export const renderRawPanel = (
     ${row(
       m.pointer,
       html`<code class="pointer">${raw.pointer}</code>
-        <button type="button" class="copy" @click=${() => onCopy('pointer')}>
+        <button type="button" class="copy np-button np-text np-small" part="button" @click=${() => onCopy('pointer')}>
           ${m.copyPointer(pointerPrefix(raw))}
         </button>`
     )}
@@ -92,7 +93,7 @@ export const renderRawPanel = (
   </table>
   <h4>
     ${m.json}
-    <button type="button" class="copy" @click=${() => onCopy('json')}>${m.copyJson}</button>
+    <button type="button" class="copy np-button np-text np-small" part="button" @click=${() => onCopy('json')}>${m.copyJson}</button>
   </h4>
   <pre>${raw.json}</pre>
   <h4>${m.signature}</h4>

@@ -8,8 +8,8 @@ import { profileName } from '../search';
 
 export const renderAvatar = (profile: NostrProfile | undefined): TemplateResult =>
   profile?.picture
-    ? html`<img class="avatar" src=${profile.picture} alt="" loading="lazy" />`
-    : html`<span class="avatar" aria-hidden="true"></span>`;
+    ? html`<img class="avatar np-avatar" part="avatar" src=${profile.picture} alt="" loading="lazy" />`
+    : html`<span class="avatar np-avatar" part="avatar" aria-hidden="true"></span>`;
 
 export const renderPersonName = (
   pubkey: string,

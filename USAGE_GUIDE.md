@@ -762,19 +762,41 @@ try {
 
 ### Theming
 
-All components support CSS custom properties for theming:
+The components share one visual language from `@nostr-post/ui` (Material 3 style tokens and
+primitives). A page restyles them on three levels; see `packages/ui/README.md` for every token.
+
+1. **Tokens**: CSS custom properties, inherited into every component:
 
 ```css
-nostr-post-composer {
-  --primary-color: #8b5cf6;
-  --background-color: #ffffff;
-  --text-color: #1f2937;
-  --border-color: #e5e7eb;
-  --border-radius: 8px;
+:root {
+  --np-color-primary: #0b57d0;
+  --np-font-size: 15px;
+  --np-radius: 12px;
+}
+.dark {
+  --np-color-primary: #a8c7fa; /* the dark theme's value */
 }
 ```
 
-Dark mode is automatically applied when the parent element has class `dark`:
+2. **Parts**: `::part()` with the shared part names (`card`, `header`, `button`, `primary`,
+   `input`, `chip`, …):
+
+```css
+nostr-post-view::part(card) {
+  border-left: 4px solid var(--np-color-primary);
+}
+```
+
+3. **Full override**: add CSS to a component, or replace all its styles:
+
+```js
+import { registerStyles, unstyled } from '@nostr-post/ui';
+registerStyles('nostr-post-composer', '.np-button { text-transform: uppercase; }');
+registerStyles('*', myStyles, { mode: 'replace' }); // every component
+```
+
+Dark mode is applied when an ancestor has the class `dark` (`followColorScheme` of
+`@nostr-post/ui/web` sets it from a light / dark / system choice):
 
 ```html
 <div class="dark">
@@ -965,14 +987,7 @@ React wrapper for the composer component.
   prefill?: Record<string, unknown>; // Pre-fill field values
   manifestRef?: { kind: number, dTag: string }; // NIP-78 manifest linking
   relays?: string[];                 // Relay URLs for signing
-  theme?: {
-    primaryColor?: string;
-    backgroundColor?: string;
-    textColor?: string;
-    borderRadius?: string;
-    borderColor?: string;
-  };
-  dark?: boolean;                    // Enable dark mode
+  dark?: boolean;                    // Enable dark mode (colors: the --np-* tokens, see Theming)
   drafts?: boolean;                  // "Save draft" (the outbox)
   draftId?: string;                  // The draft being edited (openDraft)
   schedule?: boolean;                // "Publish at" (a timed post in the outbox)
@@ -1002,10 +1017,6 @@ function App({ pubkey }: { pubkey: string }) {
       }}
       onError={(error) => {
         console.error("Error:", error);
-      }}
-      theme={{
-        primaryColor: "#8b5cf6",
-        borderRadius: "12px",
       }}
     />
   );

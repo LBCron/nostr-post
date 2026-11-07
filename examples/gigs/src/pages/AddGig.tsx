@@ -34,11 +34,12 @@ function PromptCopy({ prompt }: { prompt: string }) {
   return (
     <details>
       <summary>No key? Use any AI</summary>
-      <p className="hint">
+      <p className="np-hint">
         Copy this prompt to any AI (with the poster, if you have one), then paste its answer below.
       </p>
       {/* Clicking the prompt selects it all, for copying by hand where the clipboard is blocked */}
       <textarea
+        className="np-input"
         ref={textarea}
         rows={6}
         readOnly
@@ -46,10 +47,10 @@ function PromptCopy({ prompt }: { prompt: string }) {
         onFocus={(e) => e.target.select()}
       />
       <div className="row">
-        <button type="button" onClick={copy}>
+        <button type="button" className="np-button" onClick={copy}>
           Copy prompt
         </button>
-        <span className="hint" role="status">
+        <span className="np-hint" role="status">
           {copied}
         </span>
       </div>
@@ -151,18 +152,19 @@ export function AddGig({ draftId }: { draftId?: string }) {
   return (
     <>
       <h2>Add a gig</h2>
-      <p className="hint">
+      <p className="np-hint">
         Have AI read a post about it, or{' '}
-        <button type="button" onClick={() => review()}>
+        <button type="button" className="np-button np-text" onClick={() => review()}>
           fill in the form yourself
         </button>
       </p>
-      <section className="step">
+      <section className="step np-card np-outlined">
         <h3>1. The post</h3>
-        <p className="hint">
+        <p className="np-hint">
           Copy the text of the post (Facebook, Instagram, a website) and save its poster.
         </p>
         <textarea
+          className="np-input"
           rows={6}
           placeholder="Paste the post's text"
           value={text}
@@ -173,12 +175,16 @@ export function AddGig({ draftId }: { draftId?: string }) {
           <input type="file" accept="image/*" onChange={(e) => setPoster(e.target.files?.[0])} />
         </label>
       </section>
-      <section className="step">
+      <section className="step np-card np-outlined">
         <h3>2. Read it with AI</h3>
         <div className="row">
           <label>
             AI{' '}
-            <select value={provider.id} onChange={(e) => chooseProvider(e.target.value)}>
+            <select
+              className="np-input"
+              value={provider.id}
+              onChange={(e) => chooseProvider(e.target.value)}
+            >
               {AI_PROVIDERS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -191,6 +197,7 @@ export function AddGig({ draftId }: { draftId?: string }) {
               {provider.keyLabel}
             </a>{' '}
             <input
+              className="np-input"
               type="password"
               autoComplete="off"
               value={apiKey}
@@ -205,12 +212,12 @@ export function AddGig({ draftId }: { draftId?: string }) {
             />{' '}
             Remember in this browser
           </label>
-          <button type="button" onClick={ask}>
+          <button type="button" className="np-button np-filled" onClick={ask}>
             Ask {provider.name}
           </button>
         </div>
-        {provider.note && <p className="hint">{provider.note}</p>}
-        <p className="hint">
+        {provider.note && <p className="np-hint">{provider.note}</p>}
+        <p className="np-hint">
           Using ChatGPT or another AI? Copy the prompt below into it and paste its answer back: the
           answer is checked the same way.
         </p>
@@ -227,15 +234,16 @@ export function AddGig({ draftId }: { draftId?: string }) {
           Let the AI suggest performers' links the post doesn't have (you confirm them)
         </label>
         <textarea
+          className="np-input"
           rows={6}
           placeholder="The AI's answer (JSON)"
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
         />
-        <button type="button" onClick={() => preview(answer)}>
+        <button type="button" className="np-button np-filled" onClick={() => preview(answer)}>
           Preview
         </button>
-        <p className="hint" role="status">
+        <p className="np-hint" role="status">
           {status}
         </p>
       </section>

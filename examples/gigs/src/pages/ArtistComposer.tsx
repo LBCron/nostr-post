@@ -24,7 +24,7 @@ export function ArtistComposer({
     <>
       <h2>{dTag ? 'Edit a musician' : 'Add an artist'}</h2>
       {additions && (
-        <p className="hint">Links from the gig are added below: check them and publish.</p>
+        <p className="np-hint">Links from the gig are added below: check them and publish.</p>
       )}
       <nostr-wiki-composer
         manifest={ARTIST_MANIFEST}

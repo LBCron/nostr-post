@@ -105,6 +105,7 @@ export function Browse({ query }: { query: string }) {
         <label>
           City
           <input
+            className="np-input"
             list="cities"
             value={input}
             placeholder="Anywhere"
@@ -115,6 +116,7 @@ export function Browse({ query }: { query: string }) {
         <label>
           Genre
           <input
+            className="np-input"
             list="genres"
             value={genreInput}
             placeholder="any"
@@ -129,7 +131,11 @@ export function Browse({ query }: { query: string }) {
         </label>
         <label>
           View
-          <select value={view} onChange={(e) => setView(e.target.value as ViewId)}>
+          <select
+            className="np-input"
+            value={view}
+            onChange={(e) => setView(e.target.value as ViewId)}
+          >
             {Object.entries(VIEWS).map(([id, v]) => (
               <option key={id} value={id}>
                 {v.label}
@@ -138,15 +144,23 @@ export function Browse({ query }: { query: string }) {
           </select>
         </label>
         <span className="share-buttons">
-          <button type="button" onClick={() => shareText(shareOptions(), setStatus)}>
+          <button
+            type="button"
+            className="np-button"
+            onClick={() => shareText(shareOptions(), setStatus)}
+          >
             Share
           </button>
-          <button type="button" onClick={() => shareImage(shareOptions(), setStatus)}>
+          <button
+            type="button"
+            className="np-button"
+            onClick={() => shareImage(shareOptions(), setStatus)}
+          >
             Image
           </button>
         </span>
       </form>
-      <p className="hint" role="status">
+      <p className="np-hint" role="status">
         {status}
       </p>
       <datalist id="cities">

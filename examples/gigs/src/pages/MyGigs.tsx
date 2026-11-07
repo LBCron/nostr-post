@@ -63,8 +63,12 @@ export function MyGigs() {
     return (
       <>
         <h2>My gigs</h2>
-        <p className="hint">Sign in to see the gigs you added and the ones you're going to.</p>
-        <button type="button" onClick={() => window.NostrBridge?.login().catch(console.error)}>
+        <p className="np-hint">Sign in to see the gigs you added and the ones you're going to.</p>
+        <button
+          type="button"
+          className="np-button np-filled"
+          onClick={() => window.NostrBridge?.login().catch(console.error)}
+        >
           Sign in
         </button>
       </>
@@ -85,6 +89,7 @@ export function MyGigs() {
       <label>
         Show{' '}
         <select
+          className="np-input"
           value={going}
           onChange={(e) => {
             const id = e.target.value;
@@ -100,9 +105,9 @@ export function MyGigs() {
           ))}
         </select>
       </label>
-      {answers === undefined && <p className="hint">Loading your answers…</p>}
+      {answers === undefined && <p className="np-hint">Loading your answers…</p>}
       {answers && addresses.length === 0 && (
-        <p className="hint">
+        <p className="np-hint">
           No gigs yet: answer Going or Maybe on a gig's page (in test mode, answers aren't sent to
           relays, so they don't show here).
         </p>

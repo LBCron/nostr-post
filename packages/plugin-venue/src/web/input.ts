@@ -13,7 +13,8 @@
  */
 
 import type { PostField } from '@nostr-post/plugins/types';
-import { html, LitElement, nothing } from 'lit';
+import { NpElement, npStyles } from '@nostr-post/ui/web';
+import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   lookupNominatimByOsmId,
@@ -35,8 +36,8 @@ import { venueInputStyles } from './inputStyles';
 import { DEFAULT_VENUE_INPUT_MESSAGES, type VenueInputMessages } from './venueMessages';
 
 @customElement('np-venue-input')
-export class NpVenueInput extends LitElement {
-  static styles = venueInputStyles;
+export class NpVenueInput extends NpElement {
+  static override styles = [...npStyles, venueInputStyles];
 
   @property({ type: Object })
   value: VenueData | null = null;
@@ -341,13 +342,13 @@ export class NpVenueInput extends LitElement {
         
         ${
           this.isResolving
-            ? html`<div class="resolving">🔄 Resolving OSM venue data…</div>`
+            ? html`<div class="np-message np-info">🔄 Resolving OSM venue data…</div>`
             : nothing
         }
         
         ${
           this.resolutionError
-            ? html`<div class="error-message">❌ ${this.resolutionError}</div>`
+            ? html`<div class="np-message np-error" part="error">❌ ${this.resolutionError}</div>`
             : nothing
         }
         
@@ -373,7 +374,7 @@ export class NpVenueInput extends LitElement {
     return html`
       <div class="search-row">
         <input
-          class="search-input"
+          class="search-input np-input" part="input"
           type="text"
           placeholder=${this.m.searchPlaceholder(this.levels)}
           .value=${this.searchQuery}
@@ -384,7 +385,7 @@ export class NpVenueInput extends LitElement {
           }}
         />
         <button
-          class="btn"
+          class="np-button" part="button"
           @click=${() => this.doSearch()}
           ?disabled=${this.isSearching}
         >
@@ -436,7 +437,7 @@ export class NpVenueInput extends LitElement {
               : nothing
           }
         </div>
-        <button class="clear-btn" @click=${this.clearVenue}>
+        <button class="np-button np-text np-small np-danger" part="button" @click=${this.clearVenue}>
           Clear venue info
         </button>
       </div>

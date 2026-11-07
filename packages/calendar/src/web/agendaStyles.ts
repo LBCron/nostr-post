@@ -7,47 +7,19 @@ export const agendaStyles = css`
   }
 
   .agenda-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--np-space-3);
   }
 
-  .agenda-nav button {
-    font: inherit;
-    font-size: 0.875rem;
-    cursor: pointer;
-    padding: 0.25rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    background: #ffffff;
-    color: #1f2937;
-  }
 
   .agenda-range {
     margin-left: 0.25rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  :host-context(.dark) .agenda-nav button {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f3f4f6;
-  }
-
-  :host-context(.dark) .agenda-range {
-    color: #9ca3af;
+    font-size: var(--np-text-md);
+    color: var(--np-color-on-surface-variant);
   }
 
   .agenda-loading {
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  :host-context(.dark) .agenda-loading {
-    color: #9ca3af;
+    font-size: var(--np-text-md);
+    color: var(--np-color-on-surface-variant);
   }
 
   /* The previous window's days, while the next window loads */
@@ -61,25 +33,25 @@ export const agendaStyles = css`
     table-layout: fixed;
     border-collapse: collapse;
     margin-bottom: 1rem;
-    font-size: 0.75rem;
+    font-size: var(--np-text-sm);
   }
 
   .month-grid th {
     padding: 0.25rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--np-color-on-surface-variant);
   }
 
   .month-grid td {
     height: 4.5rem;
     vertical-align: top;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--np-color-outline-variant);
     padding: 0.125rem;
   }
 
   .month-grid td.outside {
-    color: #9ca3af;
-    background: #f9fafb;
+    color: var(--np-color-on-surface-variant);
+    background: var(--np-color-surface-container-low);
   }
 
   .month-grid .day-number {
@@ -87,9 +59,9 @@ export const agendaStyles = css`
   }
 
   .month-grid td.today .day-number {
-    color: #ffffff;
-    background: #6366f1;
-    border-radius: 999px;
+    color: var(--np-color-on-primary);
+    background: var(--np-color-primary);
+    border-radius: var(--np-radius-full);
     padding: 0 0.375rem;
   }
 
@@ -114,33 +86,14 @@ export const agendaStyles = css`
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    background: #eef2ff;
-    color: #3730a3;
-    border-radius: 3px;
+    background: var(--np-color-primary-container);
+    color: var(--np-color-on-primary-container);
+    border-radius: var(--np-radius-xs);
     padding: 0 0.25rem;
   }
 
   .month-grid .day-more {
-    color: #6b7280;
-  }
-
-  :host-context(.dark) .month-grid td {
-    border-color: #374151;
-  }
-
-  :host-context(.dark) .month-grid td.outside {
-    background: #111827;
-    color: #6b7280;
-  }
-
-  :host-context(.dark) .month-grid th,
-  :host-context(.dark) .month-grid .day-more {
-    color: #9ca3af;
-  }
-
-  :host-context(.dark) .month-grid .day-event {
-    background: #312e81;
-    color: #e0e7ff;
+    color: var(--np-color-on-surface-variant);
   }
 
   .agenda-row {
@@ -149,19 +102,19 @@ export const agendaStyles = css`
     align-items: baseline;
     gap: 0.25rem 0.75rem;
     padding: 0.375rem 0.25rem;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--np-color-outline-variant);
   }
 
   .agenda-row.open {
-    background: #eef2ff;
+    background: var(--np-color-primary-container);
   }
 
   .agenda-time {
     flex: none;
     width: 4.5rem;
     font-variant-numeric: tabular-nums;
-    color: #6b7280;
-    font-size: 0.875rem;
+    color: var(--np-color-on-surface-variant);
+    font-size: var(--np-text-md);
   }
 
   .agenda-main {
@@ -174,7 +127,7 @@ export const agendaStyles = css`
   .agenda-title {
     font: inherit;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--np-color-on-surface);
     text-align: left;
     background: none;
     border: none;
@@ -195,8 +148,8 @@ export const agendaStyles = css`
 
   .agenda-place,
   .agenda-topics {
-    font-size: 0.8125rem;
-    color: #6b7280;
+    font-size: var(--np-text-sm);
+    color: var(--np-color-on-surface-variant);
   }
 
   .agenda-topics {
@@ -206,10 +159,10 @@ export const agendaStyles = css`
 
   .agenda-more {
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--np-text-sm);
     background: none;
     border: none;
-    color: #6366f1;
+    color: var(--np-color-primary);
     cursor: pointer;
   }
 
@@ -217,39 +170,13 @@ export const agendaStyles = css`
     padding: 0.5rem 0 1rem;
   }
 
-  :host-context(.dark) .agenda-row {
-    border-bottom-color: #1f2937;
-  }
-
-  :host-context(.dark) .agenda-row.open {
-    background: #1e1b4b;
-  }
-
-  :host-context(.dark) .agenda-title {
-    color: #f3f4f6;
-  }
-
-  :host-context(.dark) .agenda-time,
-  :host-context(.dark) .agenda-place,
-  :host-context(.dark) .agenda-topics {
-    color: #9ca3af;
-  }
-
-  :host-context(.dark) .agenda-more {
-    color: #a5b4fc;
-  }
-
   .agenda-date {
-    font-size: 0.9375rem;
+    font-size: var(--np-text-md);
     font-weight: 600;
     margin: 1.25rem 0 0.5rem;
     padding-bottom: 0.25rem;
-    border-bottom: 1px solid var(--nl-border, #e5e7eb);
-    color: var(--nl-text, #111827);
+    border-bottom: 1px solid var(--np-color-outline-variant);
+    color: var(--np-color-on-surface);
   }
 
-  :host-context(.dark) .agenda-date {
-    color: #f3f4f6;
-    border-bottom-color: #374151;
-  }
 `;

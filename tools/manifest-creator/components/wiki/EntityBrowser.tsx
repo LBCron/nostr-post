@@ -63,7 +63,7 @@ export function EntityBrowser({ manifest, selectedDTag, onSelect, onNew }: Entit
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <button type="button" style={styles.button} onClick={() => onNew(query.trim())}>
+        <button type="button" className="np-button np-filled" onClick={() => onNew(query.trim())}>
           + New
         </button>
       </div>

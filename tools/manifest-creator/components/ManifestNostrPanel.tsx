@@ -50,36 +50,53 @@ const PublishTab = ({
   status,
 }: PublishTabProps) => (
   <div>
-    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 1rem 0' }}>
+    <p
+      style={{
+        fontSize: 'var(--np-text-md)',
+        color: 'var(--np-color-on-surface-variant)',
+        margin: '0 0 1rem 0',
+      }}
+    >
       Publish the current manifest to Nostr relays as a kind {NIP78_KIND} event. Anyone can discover
       and use it.
     </p>
     <div style={styles.buttonGroup}>
       <button
         type="button"
-        style={styles.publishButton}
+        className="np-button np-filled"
         onClick={onPublish}
         disabled={isPublishing}
       >
         {isPublishing ? 'Publishing...' : '🚀 Publish Manifest'}
       </button>
-      <button type="button" style={styles.deleteButton} onClick={onDelete} disabled={isPublishing}>
+      <button
+        type="button"
+        className="np-button np-text np-small np-danger"
+        onClick={onDelete}
+        disabled={isPublishing}
+      >
         🗑️ Delete from Relays
       </button>
     </div>
     <StatusBanner status={status} />
     <details style={{ marginTop: '1rem' }}>
-      <summary style={{ cursor: 'pointer', fontSize: '0.875rem', color: '#6b7280' }}>
+      <summary
+        style={{
+          cursor: 'pointer',
+          fontSize: 'var(--np-text-md)',
+          color: 'var(--np-color-on-surface-variant)',
+        }}
+      >
         Preview NIP-78 Event
       </summary>
       <pre
         style={{
-          background: '#1f2937',
-          color: '#e5e7eb',
+          background: 'var(--np-color-inverse-surface)',
+          color: 'var(--np-color-on-surface-variant)',
           padding: '0.75rem',
-          borderRadius: '0.375rem',
-          fontFamily: 'monospace',
-          fontSize: '0.75rem',
+          borderRadius: 'var(--np-radius-sm)',
+          fontFamily: 'var(--np-font-family-mono)',
+          fontSize: 'var(--np-text-sm)',
           marginTop: '0.5rem',
           overflowX: 'auto',
           maxHeight: '300px',
@@ -119,7 +136,15 @@ const ManifestFeedTab = ({
   onEditRequest,
 }: ManifestFeedTabProps) => (
   <div>
-    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.75rem 0' }}>{description}</p>
+    <p
+      style={{
+        fontSize: 'var(--np-text-md)',
+        color: 'var(--np-color-on-surface-variant)',
+        margin: '0 0 0.75rem 0',
+      }}
+    >
+      {description}
+    </p>
     <NostrPostFeed
       authors={authors}
       kinds={[NIP78_KIND]}

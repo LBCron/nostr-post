@@ -244,6 +244,7 @@ textarea.${c.input} {
   font-weight: 500;
   line-height: 1.2;
   text-decoration: none;
+  white-space: nowrap;
 }
 button.${c.chip},
 a.${c.chip} {

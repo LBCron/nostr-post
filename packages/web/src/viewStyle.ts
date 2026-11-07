@@ -6,16 +6,18 @@ import { css } from 'lit';
 
 export const viewStyle = css`
 
+  /* Wraps on narrow screens: the event actions (RSVP, Add to calendar, …) go to the next row */
   .view-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: var(--np-space-2) var(--np-space-3);
+    margin-bottom: var(--np-space-2);
     font-size: var(--np-text-sm);
   }
 
   .view-action {
-    margin-left: auto;
+    max-width: 100%;
   }
 
   .view-avatar {
@@ -42,6 +44,7 @@ export const viewStyle = css`
   .view-timestamp {
     color: var(--np-color-on-surface-variant);
     margin-left: auto;
+    white-space: nowrap;
   }
 
   .view-content {

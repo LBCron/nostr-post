@@ -12,7 +12,8 @@ players, RSVP, `.ics` import and export.
   copy or download.
 - **Gig** (`#/event/<naddr>`): one event, shareable, with its comments and reactions, and the photos
   and videos of the gig and its comments. All of it is the packages'
-  `<nostr-calendar-event thread editable>`, the app only passes the gig manifest (its `sections`: photos and videos):
+  `<nostr-calendar-event thread editable>`, the app only passes the gig manifest (its `sections`: photos and videos, with "Add" posting
+  photos or a video that link the gig, `EVENT_MEDIA_MANIFEST`):
   editing (who posted it republishes it, anyone else's changes are update comments, see
   [USAGE_GUIDE.md](../../USAGE_GUIDE.md) and [NOSTR_CONVENTIONS.md](../../NOSTR_CONVENTIONS.md#update-comments)),
   comments (NIP-22) and reactions. The venue shows with its wiki page, and each performer with a

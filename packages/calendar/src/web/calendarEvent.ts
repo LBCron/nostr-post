@@ -99,6 +99,7 @@ export class NostrCalendarEvent extends LitElement {
     return html`<nostr-post-sections
       .sections=${sections}
       .target=${{ addresses: [this.address], ids: [], links: [] }}
+      .linkValue=${this.address}
       .relays=${this.relays ?? DEFAULT_RELAYS}
     ></nostr-post-sections>`;
   }

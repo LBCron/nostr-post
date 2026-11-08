@@ -141,6 +141,8 @@ export const CALENDAR_EVENT_MANIFEST: NostrPostManifest = {
       metadata: { label: 'Tags', description: 'Topics, so people find the event' },
     },
   ],
+  // The event's image (its poster) right under the title, then the rest in field order
+  viewOrder: ['image'],
   metadata: {
     name: 'Calendar event',
     description:

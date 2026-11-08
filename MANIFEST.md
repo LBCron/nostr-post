@@ -328,6 +328,7 @@ wikiConfig: {
   titleTemplate: "{name} (Beer)",   // => "Bitcoin (Beer)"
   dTagTemplate: "{name}-(beer)",    // => "bitcoin-beer"
   links: [{ label: "Untappd", url: "https://untappd.com/b/{i:untappd}" }],
+  lead: ["styles", "links"],        // => "Styles: #ipa" before the infobox
 }
 ```
 
@@ -380,6 +381,16 @@ shown. They aren't stored on the event, so a site changing its URLs needs only a
 
 A link is left out when a placeholder has no value. The wiki view shows these next to the links
 from `i` tags (OpenStreetMap, Google Maps) and `r` URL tags.
+
+### Lead
+
+Fields kept in tags only (genres as `t` tags, links as `r` tags) aren't in the page's text, so a
+client that shows only the text, e.g. a Nostr app showing wiki pages in its feed, would show just
+the infobox. `wikiConfig.lead` lists such fields: the page starts with a paragraph per field,
+`Label: value` (the plugin's text for the value, e.g. `Genres: #punk #hardcore`), before the infobox.
+The lead is written from the values each time the page is published, and reading the page builds it
+again from the tags and strips it, so it never becomes a field's text. Fields mapped to the infobox,
+the content, the `title` or `d` tag, and references are left out (the infobox shows them).
 
 ### References with a role
 

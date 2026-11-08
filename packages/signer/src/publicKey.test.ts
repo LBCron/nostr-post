@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { clearPublicKeyCache, getPublicKey } from './index';
+import { clearPublicKeyCache, getPublicKey, PUBKEY_TIMEOUT_MS } from './index';
 
 describe('getPublicKey', () => {
   it('asks the signer once, also for callers at the same time, until cleared', async () => {
@@ -41,5 +41,21 @@ describe('getPublicKey', () => {
     expect(await getPublicKey()).toBe('first');
     document.dispatchEvent(new CustomEvent('nlAuth', { detail: { type: 'login' } }));
     expect(await getPublicKey()).toBe('second');
+  });
+
+  it("gives up on a signer that doesn't answer, and asks again next time", async () => {
+    vi.useFakeTimers();
+    clearPublicKeyCache();
+    const ask = vi
+      .fn()
+      .mockReturnValueOnce(new Promise(() => {}))
+      .mockResolvedValue('pk');
+    window.nostr = { getPublicKey: ask, signEvent: vi.fn() as never };
+    const first = getPublicKey();
+    const failed = expect(first).rejects.toThrow("didn't answer");
+    await vi.advanceTimersByTimeAsync(PUBKEY_TIMEOUT_MS);
+    await failed;
+    expect(await getPublicKey()).toBe('pk');
+    vi.useRealTimers();
   });
 });

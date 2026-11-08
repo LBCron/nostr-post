@@ -11,7 +11,12 @@ import type { WikiManifest } from '@nostr-post/wiki';
 export const ARTIST_MANIFEST: WikiManifest = {
   id: 'gigs-musician-v1',
   version: '1.0.0',
-  wikiConfig: { titleTemplate: '{title} (musician)', dTagTemplate: '{title}-(musician)' },
+  wikiConfig: {
+    titleTemplate: '{title} (musician)',
+    dTagTemplate: '{title}-(musician)',
+    // Genres and links as text too: clients showing the page in a feed show its text only
+    lead: ['genres', 'media'],
+  },
   fields: [
     {
       id: 'title',

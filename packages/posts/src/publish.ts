@@ -17,7 +17,12 @@ import { publishBlockers, waitForPublishBlockers } from '@nostr-post/plugins/act
 import { runAfterPublish, runPublishHooks } from '@nostr-post/plugins/publish';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
 import { requestSignIn } from '@nostr-post/plugins/signIn';
-import { getPublicKey, type SignedEvent, signAndPublish } from '@nostr-post/signer';
+import {
+  getPublicKey,
+  isSignerTimeout,
+  type SignedEvent,
+  signAndPublish,
+} from '@nostr-post/signer';
 import { parseExtraTags } from './formData';
 import type { PublishMessages } from './publishMessages';
 import { getUserRelays } from './relays';
@@ -201,13 +206,20 @@ export const withTags = (bundle: EventBundle, tags: [string, ...string[]][]): Ev
 
 /**
  * Who publishes: the composer's `pubkey`, else (auto-publish) the signer's. Undefined when no one
- * is signed in; the app is then asked to sign the user in (`requestSignIn`)
+ * is signed in; the app is then asked to sign the user in (`requestSignIn`). Throws when the
+ * signer didn't answer in time (`isSignerTimeout`), with what to do
  */
 export const signedInPubkey = async (
   pubkey: string | undefined,
   autoPublish: boolean
 ): Promise<string | undefined> => {
-  const signer = !pubkey && autoPublish ? await getPublicKey().catch(() => undefined) : undefined;
+  const signer =
+    !pubkey && autoPublish
+      ? await getPublicKey().catch((error: unknown) => {
+          if (isSignerTimeout(error)) throw error;
+          return undefined;
+        })
+      : undefined;
   const result = pubkey ?? signer;
   if (!result) requestSignIn('publish');
   return result;

@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   capturedEntries,
   draftItem,
+  INTERRUPTED_AFTER_SECONDS,
   isLate,
+  itemActions,
   nextStep,
   type OutboxUpload,
   signedItem,
@@ -12,6 +14,8 @@ import {
 } from './item';
 import { createOutbox } from './outbox';
 import { memoryStorage } from './storage';
+
+const nowSecondsPlus = (s: number) => Math.floor(Date.now() / 1000) + s;
 
 const event = (id: string, tags: NostrTag[] = [], content = ''): SignedEvent => ({
   id,
@@ -69,6 +73,70 @@ describe('items', () => {
     expect(nextStep(draftItem({ pubkey: 'pk', draft: { manifest: {}, formData: {} } }))).toBe(
       'none'
     );
+  });
+});
+
+describe('interrupted items', () => {
+  it('run again once stuck uploading or publishing for a while, and offer a retry', () => {
+    const item = signedItem({ pubkey: 'pk', events: [entry('post')], now: 100 });
+    const stuck = { ...withState(item, 'uploading', { now: 100 }), uploads: [photo] };
+    expect(nextStep(stuck, { now: 200, wifi: true })).toBe('none');
+    expect(itemActions(stuck, 200)).toEqual([]);
+    const later = 101 + INTERRUPTED_AFTER_SECONDS;
+    expect(nextStep(stuck, { now: later, wifi: true })).toBe('upload');
+    expect(itemActions(stuck, later)).toEqual(['retry', 'remove']);
+    const publishing = withState(item, 'publishing', { now: 100 });
+    expect(nextStep(publishing, { now: later })).toBe('publish');
+  });
+
+  it('resume where they stopped: files uploaded before stay uploaded', async () => {
+    const storage = memoryStorage();
+    const upload = vi.fn(async () => 'https://blossom.example/b.jpg');
+    const box = createOutbox(storage, {
+      upload,
+      publish: async (e) => e.map((x) => ({ id: x.event.id, ok: true, relays: [] })) as never,
+    });
+    const item = signedItem({ pubkey: 'pk', events: [entry('post')], now: 100 });
+    const second = { ...photo, fileKey: 'f2', sha256: 'def' };
+    await box.add(
+      {
+        ...withState(item, 'uploading', { now: 100 }),
+        uploads: [{ ...photo, uploaded: true }, second],
+      },
+      { f1: new Blob(['a']), f2: new Blob(['b']) }
+    );
+    const done = await box.run(item.id, { now: 101 + INTERRUPTED_AFTER_SECONDS, wifi: true });
+    expect(done?.state).toBe('published');
+    expect(upload).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('a run hanging in the same page', () => {
+  it('is taken over once interrupted, and the old run stops when it wakes up', async () => {
+    const storage = memoryStorage();
+    let wake: (url: string) => void = () => undefined;
+    const upload = vi
+      .fn()
+      .mockImplementationOnce(() => new Promise<string>((resolve) => (wake = resolve)))
+      .mockResolvedValue('https://blossom.example/abc.jpg');
+    const publish = vi.fn(async (entries: SignedEntry[]) =>
+      entries.map((e) => ({ id: e.event.id, ok: true, relays: [] }))
+    );
+    const box = createOutbox(storage, { upload, publish: publish as never });
+    const item = {
+      ...signedItem({ pubkey: 'pk', events: [entry('post')], now: 100 }),
+      uploads: [photo],
+    };
+    await box.add(item, { f1: new Blob(['a']) });
+    const hanging = box.run(item.id, { wifi: true });
+    await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+    // Still running and not stuck long: nothing happens
+    expect((await box.run(item.id, { wifi: true }))?.state).toBe('uploading');
+    const later = nowSecondsPlus(INTERRUPTED_AFTER_SECONDS + 1);
+    expect((await box.run(item.id, { wifi: true, now: later }))?.state).toBe('published');
+    wake('https://blossom.example/abc.jpg');
+    await hanging;
+    expect(publish).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -16,7 +16,11 @@ the pages it created), the files to upload first (`uploads`), or, for a draft, u
 data (`draft`). Its `state`:
 
 `draft` → `waiting` → `uploading` → `publishing` → `published` (it leaves the outbox), or `failed`
-with the reason in `error` (`attempts` counts them).
+with the reason in `error` (`attempts` counts them). An item still `uploading` or `publishing`
+after `INTERRUPTED_AFTER_SECONDS` (10 minutes) was interrupted (the page closed or was suspended
+while it ran, or the signer never answered): `isInterrupted(item)`; it runs again from where it
+stopped, files already uploaded stay uploaded. Also in the same page: a run hanging that long is
+taken over by the next one, and stops without saving or sending if it ever goes on.
 
 - `signedItem({ pubkey, events, uploads?, title?, sendAt?, wifiOnly? })`, `draftItem({ pubkey, draft, title? })`
 - `nextStep(item, { now?, wifi?, force? })`: `'upload'`, `'publish'`, `'wait'` (a timed post's
@@ -70,7 +74,7 @@ files are photos that stay on the device.
 ## Actions
 
 `itemActions(item)`: what the user can do with it: `'edit'` (a draft), `'upload-now'` (files
-waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (failed), `'remove'`.
+waiting for wifi), `'send-now'` (a timed post before its time), `'retry'` (failed or interrupted), `'remove'` (not while running).
 `pendingBytes(item)`: bytes still to upload.
 
 ## `/web`

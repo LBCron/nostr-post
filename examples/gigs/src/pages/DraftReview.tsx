@@ -136,9 +136,10 @@ export function DraftReview({
 }) {
   const [published, setPublished] = useState<string>();
   const section = useRef<HTMLElement>(null);
+  // Shown below the steps before it: brought into view (the key remounts it for each draft)
   useEffect(() => {
-    if (!draft) section.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [draft]);
+    section.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
   const onPublished = (e: CustomEvent) => {
     const event = (
       e.detail as { kind: number; pubkey: string; tags: string[][] }[] | undefined
@@ -151,6 +152,12 @@ export function DraftReview({
         <>
           <h3>3. Check it</h3>
           <Duplicates draft={draft} />
+          {draft.venueNotFound && (
+            <div className="np-message np-warning">
+              OpenStreetMap doesn't know <strong>{draft.venueNotFound}</strong>, nor its address: in
+              Location, paste its Google Maps link, or search a street nearby.
+            </div>
+          )}
           <Preview draft={draft} />
           <PerformerLinks draft={draft} />
           <PerformerHints draft={draft} />

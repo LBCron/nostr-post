@@ -78,6 +78,22 @@ export async function signEvent(event: UnsignedNostrEvent): Promise<SignedEvent>
 let pubkeyRequest: { provider: Nip07Provider; promise: Promise<string> } | undefined;
 
 const NO_PUBKEY = 'The signer gave no public key. Sign in, then try again.';
+const NO_ANSWER =
+  "Your signer didn't answer. Open it (e.g. Amber) or sign in again, then try again.";
+
+/**
+ * How long getPublicKey waits for the signer (ms). A remote signer whose connection dropped
+ * (e.g. Amber after the phone slept) never answers: the request is then forgotten, so the next
+ * one asks again instead of waiting for it forever.
+ */
+export const PUBKEY_TIMEOUT_MS = 30_000;
+
+/** The `code` of getPublicKey's error when the signer didn't answer in time */
+export const SIGNER_TIMEOUT = 'signer-timeout';
+
+/** Whether an error is the signer not answering in time (not: no one signed in) */
+export const isSignerTimeout = (error: unknown): boolean =>
+  (error as { code?: unknown } | null)?.code === SIGNER_TIMEOUT;
 
 // nostr-login keeps one window.nostr across sign-ins: forget the pubkey when the user changes
 if (typeof document !== 'undefined') {
@@ -87,8 +103,9 @@ if (typeof document !== 'undefined') {
 /**
  * Get the current user's public key. The signer is asked once (also when several
  * components ask at the same time): signers that handle one request at a time, or ask
- * the user, would otherwise queue every caller. A failed request is asked again next
- * time; call clearPublicKeyCache when the user signs in or out.
+ * the user, would otherwise queue every caller. A failed request, or one not answered within
+ * PUBKEY_TIMEOUT_MS, is asked again next time; call clearPublicKeyCache when the user signs in
+ * or out.
  */
 export async function getPublicKey(): Promise<string> {
   const provider = window.nostr;
@@ -97,10 +114,16 @@ export async function getPublicKey(): Promise<string> {
   }
   if (pubkeyRequest?.provider !== provider) {
     // Some signers answer nothing while no one is signed in (e.g. nostr-login): not a pubkey to keep
-    const promise = provider.getPublicKey().then((pubkey) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const noAnswer = new Promise<never>((_, reject) => {
+      const error = Object.assign(new Error(NO_ANSWER), { code: SIGNER_TIMEOUT });
+      timer = setTimeout(() => reject(error), PUBKEY_TIMEOUT_MS);
+    });
+    const answer = provider.getPublicKey().then((pubkey) => {
       if (typeof pubkey !== 'string' || !pubkey) throw new Error(NO_PUBKEY);
       return pubkey;
     });
+    const promise = Promise.race([answer, noAnswer]).finally(() => clearTimeout(timer));
     pubkeyRequest = { provider, promise };
     promise.catch(() => {
       if (pubkeyRequest?.promise === promise) pubkeyRequest = undefined;

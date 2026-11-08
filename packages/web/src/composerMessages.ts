@@ -28,6 +28,10 @@ export interface ComposerMessages extends PublishMessages {
   afterPublishFailed: (errors: string[]) => string;
   /** While the signer works on a signature, e.g. waits for the user to approve it */
   stepSigning: string;
+  /** While the signer is asked who is signed in, before anything else */
+  stepSigner: string;
+  /** While a draft is saved */
+  savingDraft: string;
   /** Publishing without a signed-in user (the app is asked to sign them in) */
   signInToPublish: string;
   /** Shown at the button when fields failed validation; the field labels follow */
@@ -52,6 +56,8 @@ export const DEFAULT_COMPOSER_MESSAGES: ComposerMessages = {
     'Saved to the outbox: the photos upload on wifi or when you choose, then the post is published',
   afterPublishFailed: (errors) => `Published, but: ${errors.join('; ')}`,
   stepSigning: 'Waiting for your signer to approve…',
+  stepSigner: 'Asking your signer who you are…',
+  savingDraft: 'Saving the draft…',
   signInToPublish: 'Sign in to publish: posts are signed with your Nostr key.',
   invalidFields: 'Please fix these fields:',
   unknownError: 'Unknown error occurred',

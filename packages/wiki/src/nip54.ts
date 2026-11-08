@@ -9,15 +9,20 @@ import type {
   UnsignedNostrEvent,
 } from '@nostr-post/core/types';
 import { pluginRegistry } from '@nostr-post/plugins/registry';
-import { type AstNode, escapeInline, nodeText } from './djotText';
+import { escapeInline } from './djotText';
 import { interpolateTemplate } from './identity';
+import {
+  type AstDoc,
+  buildDjotTable,
+  extractTableFromAst,
+  serializeForTable,
+} from './infoboxTable';
 import { normalizeDTag } from './normalizeDTag';
 import type { WikiEvent } from './resolver';
 import {
   claimedDTags,
   entityRefs,
   isRoleField,
-  linkTarget,
   refsFromLinks,
   roleFieldValue,
   roleRowText,
@@ -25,6 +30,7 @@ import {
   withoutClaimed,
 } from './roleRefs';
 import type { WikiManifest } from './types';
+import { leadFields, wikiLead, withoutLead } from './wikiLead';
 
 export const WIKI_KIND = 30818;
 
@@ -53,93 +59,6 @@ export const STANDARD_WIKI_MANIFEST: NostrPostManifest = {
     },
   ],
 };
-
-type AstDoc = {
-  tag: 'doc';
-  children: AstNode[];
-  references: Record<string, unknown>;
-  footnotes: Record<string, unknown>;
-};
-
-/** Wikilinks in a node: Djot reference links (`[text][target]`, `[target][]`) */
-function extractLinks(node: AstNode): WikiLink[] {
-  const reference = (node as AstNode & { reference?: unknown }).reference;
-  if (node.tag === 'link' && typeof reference === 'string') {
-    return [{ target: linkTarget(reference), text: nodeText(node).trim() }];
-  }
-  const children = node.children as AstNode[] | undefined;
-  return Array.isArray(children) ? children.flatMap(extractLinks) : [];
-}
-
-type TableRow = [key: string, value: string, links: WikiLink[]];
-
-/** A table row whose cells only hold dashes (a separator Djot didn't recognize) */
-function isDashRow(row: AstNode): boolean {
-  const cells = (row as AstNode & { children?: AstNode[] }).children ?? [];
-  return (
-    cells.length > 0 &&
-    cells.every((cell) => {
-      const parts = (cell as AstNode & { children?: AstNode[] }).children ?? [];
-      return (
-        parts.length > 0 &&
-        parts.every(
-          (p) =>
-            p.tag === 'smart_punctuation' ||
-            (p.tag === 'str' && /^[-:\s]*$/.test(String((p as { text?: unknown }).text ?? '')))
-        )
-      );
-    })
-  );
-}
-
-function extractTableFromAst(ast: AstDoc): { rows: TableRow[]; tableIndex: number } {
-  const tableIndex = ast.children.findIndex((n) => n.tag === 'table');
-  if (tableIndex === -1) return { rows: [], tableIndex: -1 };
-  const table = ast.children[tableIndex] as AstNode & { children: AstNode[] };
-  const bodyRows = table.children.filter((row) => {
-    const cells = (row as AstNode & { children?: AstNode[] }).children;
-    return !(row as AstNode & { head?: boolean }).head && !!cells && cells.length >= 2;
-  });
-  // Tables written before the separator fix (`| --- |`) have no head row: the
-  // separator parses as a row of dashes; skip it and the header row before it.
-  const separator = bodyRows.findIndex(isDashRow);
-  const dataRows = separator === 1 ? bodyRows.slice(2) : bodyRows.filter((r) => !isDashRow(r));
-  const rows: TableRow[] = [];
-  for (const row of dataRows) {
-    const cells = (row as AstNode & { children: AstNode[] }).children;
-    const key = nodeText(cells[0]).trim();
-    const value = nodeText(cells[1]).trim();
-    if (key) rows.push([key, value, extractLinks(cells[1])]);
-  }
-  return { rows, tableIndex };
-}
-
-// Djot table rows are single-line: collapse line breaks and escape the cell delimiter.
-// Plain values are escapeInline'd before (role rows hold wikilink markup).
-const escapeCell = (v: string): string => v.replace(/\r?\n+/g, ' ').replace(/\|/g, '\\|');
-
-function serializeForTable(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (Array.isArray(value)) return value.map((v) => String(v)).join(', ');
-  return JSON.stringify(value);
-}
-
-function buildDjotTable(rows: Array<[string, string]>): string {
-  if (rows.length === 0) return '';
-  const escaped = rows.map(([k, v]): [string, string] => [
-    escapeCell(escapeInline(k)),
-    escapeCell(v),
-  ]);
-  const col1 = Math.max(5, ...escaped.map(([k]) => k.length));
-  const col2 = Math.max(5, ...escaped.map(([, v]) => v.length));
-  const pad = (s: string, n: number) => s.padEnd(n);
-  // No spaces inside the separator: Djot reads `| --- |` as text, not as a header separator
-  const sep = `|${'-'.repeat(col1 + 2)}|${'-'.repeat(col2 + 2)}|`;
-  const header = `| ${pad('Field', col1)} | ${pad('Value', col2)} |`;
-  const dataRows = escaped.map(([k, v]) => `| ${pad(k, col1)} | ${pad(v, col2)} |`);
-  return [header, sep, ...dataRows].join('\n');
-}
 
 function getTag(tags: string[][], name: string): string | undefined {
   return tags.find((t) => t[0] === name)?.[1];
@@ -318,7 +237,7 @@ export function manifestToWikiEvent(
       ['d', dTag],
       ...uniqueTags([...parts.tags.filter((t) => t[0] !== 'd'), ...manifestTags(manifest, config)]),
     ]),
-    content: [tablePart, prosePart].filter(Boolean).join('\n\n'),
+    content: [wikiLead(manifest, formData), tablePart, prosePart].filter(Boolean).join('\n\n'),
     pubkey: config.pubkey ?? '',
   };
 }
@@ -427,6 +346,13 @@ const manifestTableKeys = (manifest: NostrPostManifest): Set<string> =>
       .flatMap((f) => [f.id, (f.metadata?.label as string | undefined) ?? f.id])
   );
 
+/** The content without its lead (`wikiConfig.lead`), built again from the event's tags */
+function contentWithoutLead(event: WikiEvent, manifest: NostrPostManifest): string {
+  const ctx: WikiReadContext = { event, tableByKey: new Map(), prose: '' };
+  const data = Object.fromEntries(leadFields(manifest).map((f) => [f.id, readField(ctx, f)]));
+  return withoutLead(event.content, wikiLead(manifest, data));
+}
+
 /**
  * Infobox rows no field of `manifest` reads, e.g. fields added in a newer
  * manifest version, so a view can still show all of an entity's data.
@@ -436,7 +362,7 @@ export function unmappedTableRows(
   manifest: NostrPostManifest
 ): Array<[string, string]> {
   const tableKeys = manifestTableKeys(manifest);
-  const { tableByKey } = parseWikiContent(event.content, tableKeys);
+  const { tableByKey } = parseWikiContent(contentWithoutLead(event, manifest), tableKeys);
   return [...tableByKey].flatMap(([key, values]) =>
     tableKeys.has(key) ? [] : values.map((value): [string, string] => [key, value])
   );
@@ -456,7 +382,7 @@ export function wikiEventToManifestData(
   manifest: NostrPostManifest
 ): Record<string, unknown> {
   const { tableByKey, linksByKey, prose } = parseWikiContent(
-    event.content,
+    contentWithoutLead(event, manifest),
     manifestTableKeys(manifest)
   );
   const proseFieldId = prose

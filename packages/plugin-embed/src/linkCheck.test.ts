@@ -52,6 +52,15 @@ describe('namesMatch', () => {
     expect(namesMatch('Naraka', ['Some Channel', 'NARAKA - Live at JAM (2025)'])).toBe(true);
   });
 
+  it('ignores words channels add to a name', () => {
+    expect(namesMatch('Faustus', ['Faustus Band'])).toBe(true);
+    expect(namesMatch('Faustus', ['FAUSTUS Official'])).toBe(true);
+    expect(namesMatch('Faustus', ['Faustus - Topic'])).toBe(true);
+    expect(namesMatch('Faustus', ['FaustusVEVO'])).toBe(true);
+    expect(namesMatch('Band of Horses', ['Band of Horses'])).toBe(true);
+    expect(namesMatch('Faustus', ['Faustus Brothers'])).toBe(false);
+  });
+
   it('rejects other names', () => {
     expect(namesMatch('Naraka', ['Narakan Sound'])).toBe(false);
     expect(namesMatch('Anarch', ['Anarchy - Live'])).toBe(false);

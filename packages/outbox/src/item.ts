@@ -203,9 +203,22 @@ export interface RunConditions {
 /** What to do with an item next: upload its files, publish it, wait, or nothing */
 export type OutboxStep = 'upload' | 'publish' | 'wait' | 'none';
 
+/**
+ * How long an item may stay uploading or publishing (s) before it counts as interrupted: the
+ * page was closed or suspended while it ran (a phone's browser in the background), or the
+ * signer never answered. It then runs again, from where it stopped (uploaded files stay)
+ */
+export const INTERRUPTED_AFTER_SECONDS = 10 * 60;
+
+/** An item stuck uploading or publishing: see INTERRUPTED_AFTER_SECONDS */
+export const isInterrupted = (item: OutboxItem, now = nowSeconds()): boolean =>
+  (item.state === 'uploading' || item.state === 'publishing') &&
+  now - item.updatedAt > INTERRUPTED_AFTER_SECONDS;
+
 export const nextStep = (item: OutboxItem, conditions: RunConditions = {}): OutboxStep => {
   const { now = nowSeconds(), wifi, force = false } = conditions;
-  if (item.state === 'failed' ? !force : item.state !== 'waiting') return 'none';
+  const ready = item.state === 'waiting' || isInterrupted(item, now);
+  if (item.state === 'failed' ? !force : !ready) return 'none';
   if (item.events.length === 0 && !item.signLater) return 'none';
   if (item.sendAt !== undefined && item.sendAt > now && !force) return 'wait';
   if (item.uploads.some((u) => !u.uploaded)) {
@@ -232,13 +245,15 @@ export type OutboxAction = 'upload-now' | 'send-now' | 'retry' | 'edit' | 'remov
 export const itemActions = (item: OutboxItem, now = nowSeconds()): OutboxAction[] => {
   const actions: OutboxAction[] = [];
   if (item.state === 'draft') actions.push('edit');
-  if (item.state === 'failed') actions.push('retry');
+  if (item.state === 'failed' || isInterrupted(item, now)) actions.push('retry');
   if (item.state === 'waiting') {
     const timed = item.sendAt !== undefined && item.sendAt > now;
     if (timed) actions.push('send-now');
     else if (item.uploads.some((u) => !u.uploaded)) actions.push('upload-now');
   }
-  if (item.state !== 'uploading' && item.state !== 'publishing') actions.push('remove');
+  const busy =
+    (item.state === 'uploading' || item.state === 'publishing') && !isInterrupted(item, now);
+  if (!busy) actions.push('remove');
   return actions;
 };
 

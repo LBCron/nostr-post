@@ -13,6 +13,7 @@ import {
   type SignedPublishResult,
 } from '@nostr-post/signer';
 import {
+  isInterrupted,
   nextStep,
   nowSeconds,
   type OutboxItem,
@@ -93,10 +94,16 @@ export function createOutbox(
     );
     notify('removed', item);
   };
-  // Items running now: a second run of the same item waits for nothing and does nothing
-  const running = new Set<string>();
+  // Items running now, by the run's token: a second run of the same item does nothing, unless
+  // the item is interrupted (`isInterrupted`: a run hanging, e.g. on a signer that never
+  // answered); the new run then takes over, and the old one stops if it ever goes on
+  const running = new Map<string, object>();
+  const abandoned = new Error('Run taken over');
+  const checkOwner = (id: string, token: object) => {
+    if (running.get(id) !== token) throw abandoned;
+  };
 
-  const upload = async (item: OutboxItem): Promise<OutboxItem> => {
+  const upload = async (item: OutboxItem, token: object): Promise<OutboxItem> => {
     let current = await save(withState(item, 'uploading'));
     const jobs = jobsNow();
     for (const file of current.uploads.filter((u) => !u.uploaded)) {
@@ -104,6 +111,7 @@ export function createOutbox(
       const blob = await storage.file(file.fileKey);
       if (!blob) throw new Error(`The file of ${file.name ?? file.url} is gone`);
       const url = await jobs.upload(file, blob);
+      checkOwner(item.id, token);
       current = await save({
         ...current,
         uploads: current.uploads.map((u) =>
@@ -115,16 +123,17 @@ export function createOutbox(
   };
 
   /** A sign-later item with its events, signed now from its form */
-  const sign = async (item: OutboxItem): Promise<OutboxItem> => {
+  const sign = async (item: OutboxItem, token: object): Promise<OutboxItem> => {
     const { sign: signJob } = jobsNow();
     if (!signJob) throw new Error('No sign job');
     const events = await signJob(item);
+    checkOwner(item.id, token);
     if (events.length === 0) throw new Error('Nothing was signed');
     return save({ ...item, events, signLater: false });
   };
 
-  const publish = async (item: OutboxItem): Promise<OutboxItem> => {
-    const signed = item.events.length === 0 && item.signLater ? await sign(item) : item;
+  const publish = async (item: OutboxItem, token: object): Promise<OutboxItem> => {
+    const signed = item.events.length === 0 && item.signLater ? await sign(item, token) : item;
     const current = await save(withState(signed, 'publishing'));
     const results = await (jobsNow().publish ?? ((e) => publishSignedEvents(e)))(current.events);
     const failed = results.filter((r) => !r.ok);
@@ -144,21 +153,32 @@ export function createOutbox(
     );
   };
 
-  const run = async (id: string, conditions: RunConditions = {}) => {
-    const item = (await storage.items()).find((i) => i.id === id);
-    if (!item || running.has(id)) return item;
-    const step = nextStep(item, conditions);
-    if (step !== 'upload' && step !== 'publish') return item;
-    running.add(id);
+  const find = async (id: string) => (await storage.items()).find((i) => i.id === id);
+
+  /** Uploads then publishes, as the run `token`; a failure is kept on the item */
+  const runSteps = async (item: OutboxItem, step: 'upload' | 'publish', token: object) => {
     let current = item;
     try {
-      if (step === 'upload') current = await upload(current);
-      return await publish(current);
+      if (step === 'upload') current = await upload(current, token);
+      return await publish(current, token);
     } catch (error) {
-      const latest = (await storage.items()).find((i) => i.id === id) ?? current;
+      if (error === abandoned) return find(item.id);
+      const latest = (await find(item.id)) ?? current;
       return save(withState(latest, 'failed', { error: message(error) }));
+    }
+  };
+
+  const run = async (id: string, conditions: RunConditions = {}) => {
+    const item = await find(id);
+    if (!item || (running.has(id) && !isInterrupted(item, conditions.now))) return item;
+    const step = nextStep(item, conditions);
+    if (step !== 'upload' && step !== 'publish') return item;
+    const token = {};
+    running.set(id, token);
+    try {
+      return await runSteps(item, step, token);
     } finally {
-      running.delete(id);
+      if (running.get(id) === token) running.delete(id);
     }
   };
 

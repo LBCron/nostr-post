@@ -17,6 +17,8 @@ export {
 export {
   capturedEntries,
   draftItem,
+  INTERRUPTED_AFTER_SECONDS,
+  isInterrupted,
   isLate,
   itemActions,
   newItemId,

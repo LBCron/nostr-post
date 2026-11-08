@@ -66,7 +66,29 @@ export interface GigDraft {
   suggestions: Record<string, FormJsonSuggestion[]>;
   performers: ReadPerformer[];
   fromPoster: string[];
+  /** The venue as the AI named it, when OpenStreetMap found no place for it */
+  venueNotFound?: string;
 }
+
+const textOf = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+/** The venue's name in the answer, `{ name }` or text */
+const venueName = (value: unknown): string => {
+  const location = (value as Record<string, unknown> | null)?.location;
+  return textOf((location as { name?: unknown } | null)?.name) || textOf(location);
+};
+
+/**
+ * The venue with the gig's address (`place`) when it has none, so a venue OpenStreetMap doesn't
+ * have is placed at its address (also for answers giving `location` as text)
+ */
+const withVenueAddress = (value: unknown): unknown => {
+  const answer = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  const name = venueName(answer);
+  const own = (answer.location as { address?: unknown } | null)?.address;
+  const address = textOf(own) || textOf(answer.place);
+  return name && address ? { ...answer, location: { name, address } } : value;
+};
 
 /**
  * The gig form's values and publish format from the AI's answer (text with JSON, as any AI
@@ -88,7 +110,7 @@ export const readAnswer = async (
     hasImage: hasPoster,
     confirmed,
   });
-  const parsed = await parseFormJson(GIG_MANIFEST, value);
+  const parsed = await parseFormJson(GIG_MANIFEST, withVenueAddress(value));
   if (!parsed.success) throw parsed.error;
   const { formatId, formData, suggestions } = parsed.data;
   const performers = performersOf(value).flatMap((p) =>
@@ -103,6 +125,7 @@ export const readAnswer = async (
     suggestions,
     performers,
     fromPoster,
+    venueNotFound: formData.location ? undefined : venueName(value) || undefined,
   };
 };
 

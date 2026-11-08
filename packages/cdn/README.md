@@ -176,7 +176,7 @@ The bundle re-exports utilities for advanced usage:
 - `RELAYS_PENDING_EVENT` (`'nostr-post:relays-pending'`): `window` gets it while events are still
   being sent to relays and when the last send ends (detail `{ pending, sent, failed }`);
   `getRelaysPending()` reads it. `<np-activity>` shows it
-- `getPublicKey`, `hasNostrSigner`, `fetchEvents`, `fetchEventsFromRelay`, `relaysSeenOn(id)` (the relays an event was fetched from this session)
+- `getPublicKey` (gives up after `PUBKEY_TIMEOUT_MS`, 30 s, when the signer doesn't answer: `isSignerTimeout(error)`), `hasNostrSigner`, `fetchEvents`, `fetchEventsFromRelay`, `relaysSeenOn(id)` (the relays an event was fetched from this session)
 - `getUserRelays`, `getDefaultRelays`
 - `setDryRun(on)`, `isDryRun()`: test mode. Events are still signed, but publishing only logs them
   (every relay reports success), and reads (`fetchEvents`, feeds, pickers) also return logged
@@ -317,7 +317,9 @@ The bundle re-exports utilities for advanced usage:
 - `eventMedia(event)`, `mediaOfEvents(events)`: the photos and videos of posts, wherever their kind
   keeps them (`imeta`, `image`, `r`, links, JSON), each file once; `fetchReferences(targets)`: the
   posts referencing addresses or event ids (comments included); `<np-media-gallery>` shows their
-  media (a section's `gallery` view)
+  media (a section's `gallery` view); `<np-media-lightbox .slides>` with `open(index)`: photos and
+  videos large, with previous/next (buttons, arrow keys, swiping), full screen and close (the
+  gallery and `<np-media-view>` open theirs in it; parts `dialog`, `button`)
 - `registerEntityCreator({ tagName, matches })`, `entityCreatorFor(manifest)`: a plugin's own "+ Create"
   form in the entity picker for the types it can fill (the venue plugin creates venue pages from OSM)
 - `registerEventAction({ tagName, matches })`, `eventActionsFor(manifest)`: a plugin's control shown with

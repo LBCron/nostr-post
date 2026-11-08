@@ -68,7 +68,11 @@ export function keepKnownLinks(
   return { value: walk(value), fromImage };
 }
 
-/** A link suggested for someone; `names`: what its site calls it, when `checked` */
+/**
+ * A link suggested for someone. `checked`: its site knows it by their name; else `names` are
+ * what its site calls it (someone else, or them by another name), or empty when it couldn't be
+ * asked
+ */
 export interface SuggestedLink {
   name: string;
   link: string;
@@ -79,9 +83,10 @@ export interface SuggestedLink {
 /**
  * Links suggested for people (`{ name, link }`) that the source `text` doesn't have. Links a
  * provider can be asked about are checked: those it knows by the person's name are `checked`,
- * those it doesn't know, or knows by another name, are dropped. The others are kept unchecked,
- * for the user to open and confirm; with `hasImage` they're not offered (`keepKnownLinks` keeps
- * them as read from the image). Contacts the providers.
+ * those it knows by another name are kept unchecked with that name (for the user to decide),
+ * those it doesn't know are dropped. The others are kept unchecked, for the user to open and
+ * confirm; with `hasImage` they're not offered (`keepKnownLinks` keeps them as read from the
+ * image). Contacts the providers.
  */
 export async function checkSuggestedLinks(
   candidates: { name: string; link: string }[],
@@ -97,8 +102,7 @@ export async function checkSuggestedLinks(
   );
   return checked.flatMap(({ name, link, check }): SuggestedLink[] => {
     if (check.status === 'unknown') return [{ name, link, names: [], checked: false }];
-    return check.status === 'found' && namesMatch(name, check.names)
-      ? [{ name, link, names: check.names, checked: true }]
-      : [];
+    if (check.status === 'missing') return [];
+    return [{ name, link, names: check.names, checked: namesMatch(name, check.names) }];
   });
 }

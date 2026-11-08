@@ -9,6 +9,8 @@ export interface OutboxMessages {
   heading: string;
   empty: string;
   states: Record<OutboxState, string>;
+  /** An item stuck uploading or publishing (`isInterrupted`): it runs again by itself */
+  interrupted: string;
   actions: Record<OutboxAction, string>;
   /** Runs every item that can go: uploads included, over mobile data too */
   sendAll: string;
@@ -47,6 +49,7 @@ export const DEFAULT_OUTBOX_MESSAGES: OutboxMessages = {
     published: 'Published',
     failed: 'Failed',
   },
+  interrupted: 'Stopped (the app was closed or the signer did not answer): retries by itself',
   actions: {
     'upload-now': 'Upload now',
     'send-now': 'Send now',

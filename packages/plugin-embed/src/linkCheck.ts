@@ -67,15 +67,23 @@ const normalize = (text: string): string =>
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '');
 
+/** Words channels add to an artist's name: "Faustus Official", "Faustus - Topic", "FaustusVEVO" */
+const FILLER = /\b(official|band|music|topic|vevo|channel)\b|vevo$/giu;
+
+const withoutFiller = (text: string): string =>
+  normalize(text.normalize('NFKD').replace(FILLER, ' '));
+
 /**
  * Whether a check's names are this name's: one of them is the name, or has it as a whole part
- * ("Doomsday - Live at …" for "Doomsday"), ignoring case, accents, spaces and punctuation
+ * ("Doomsday - Live at …" for "Doomsday"), ignoring case, accents, spaces and punctuation, and
+ * words channels add to a name ("Official", "Band", "Topic", "VEVO")
  */
 export const namesMatch = (name: string, names: string[]): boolean => {
   const wanted = normalize(name);
   if (!wanted) return false;
-  return names.some((candidate) => {
-    if (normalize(candidate) === wanted) return true;
-    return candidate.split(/\s+[-–—|·:]\s+|[()[\]]/).some((part) => normalize(part) === wanted);
-  });
+  const bare = withoutFiller(name) || wanted;
+  const same = (text: string) => normalize(text) === wanted || withoutFiller(text) === bare;
+  return names.some(
+    (candidate) => same(candidate) || candidate.split(/\s+[-–—|·:]\s+|[()[\]]/).some(same)
+  );
 };

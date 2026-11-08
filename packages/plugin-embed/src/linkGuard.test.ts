@@ -44,7 +44,7 @@ describe('keepKnownLinks', () => {
 describe('checkSuggestedLinks', () => {
   const spotify = 'https://open.spotify.com/artist/0OdUWJ0sBjDrqHygGUXeCF';
 
-  it('ticks links their provider knows by the name, drops others, leaves uncheckable ones', async () => {
+  it('ticks links their provider knows by the name, leaves others and uncheckable ones', async () => {
     const suggestions = await checkSuggestedLinks(
       [
         { name: 'Band of Horses', link: spotify },
@@ -65,6 +65,12 @@ describe('checkSuggestedLinks', () => {
     const other = await checkSuggestedLinks([{ name: 'Someone Else', link: spotify }], '', {
       fetchFn: answer(200, { title: 'Band of Horses' }),
     });
-    expect(other).toEqual([]);
+    expect(other).toEqual([
+      { name: 'Someone Else', link: spotify, names: ['Band of Horses'], checked: false },
+    ]);
+    const missing = await checkSuggestedLinks([{ name: 'Band of Horses', link: spotify }], '', {
+      fetchFn: answer(404, {}),
+    });
+    expect(missing).toEqual([]);
   });
 });

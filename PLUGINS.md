@@ -539,7 +539,9 @@ with `metadata.multiple`). A plugin without `jsonSchema` is left out: its value'
 known. With several user-selectable publish formats the schema adds `publishFormat`. The plugins
 that have it: `date` (`{ start, end, tzid }`), `hashtag`, `markdown`, `stars`, `identifier`,
 `embed` (profile links also as `i` tags), `media`, `venue` (a place as text, e.g. "JAM, Bangkok",
-read back as the first place OpenStreetMap finds at the field's levels), `profile` (`{ name, role }`
+read back as the first place OpenStreetMap finds at the field's levels; one exact place as
+`{ name, address }`, so a venue OpenStreetMap lacks is placed at its street address under its own
+name, without an OSM id), `profile` (`{ name, role }`
 per person; a name becomes a person only when exactly one profile has it, as tagging notifies
 them), and `wiki-entity-picker`. `reference` (derived from a text field) and `list` (the user's
 own lists, not part of the post) have none on purpose. The picker asks

@@ -24,10 +24,10 @@ embedFor('https://youtu.be/dQw4w9WgXcQ');
 | `linkFromEmbedCode(text)` | The link in a site's embed code (`<iframe src="…">`), e.g. Bandcamp's; other text as it is |
 | `isCheckableLink(link)` | Whether `checkLink` can ask about a link: Spotify, SoundCloud (profiles too), YouTube videos |
 | `checkLink(link, fetch?)` | Asks the provider (oEmbed) whether the link exists: `{ status: 'found', names }` (an artist's or channel's name, a title), `missing`, or `unknown` (can't ask, or it failed). Contacts the provider |
-| `namesMatch(name, names)` | Whether a check's names are this name (ignoring case, accents, punctuation; also a whole part of a title such as "Name - Live") |
+| `namesMatch(name, names)` | Whether a check's names are this name (ignoring case, accents, punctuation and words channels add, such as "Official" or "Topic"; also a whole part of a title such as "Name - Live") |
 | `linksInText(text)`   | The links and `@` mentions in a text, as keys (`linkKey`: a profile's canonical URL, else the link without scheme and `www.`) |
 | `keepKnownLinks(value, text, { hasImage?, confirmed? })` | `value` (e.g. an AI's JSON) with only the links `text` has, however written, or the user confirmed; `{ value, fromImage }`: with `hasImage`, links that can't be checked are kept and listed for the user to check |
-| `checkSuggestedLinks(candidates, text, { hasImage?, fetchFn? })` | Links suggested for people (`{ name, link }`) that `text` doesn't have: checked with `checkLink` (kept, `checked`, when the provider knows them by that name; dropped otherwise), or left unchecked for the user to open. Contacts the providers |
+| `checkSuggestedLinks(candidates, text, { hasImage?, fetchFn? })` | Links suggested for people (`{ name, link }`) that `text` doesn't have: checked with `checkLink` (`checked` when the provider knows them by that name; by another name: kept unchecked with the provider's `names`; dropped when the provider doesn't know them), or left unchecked for the user to open. Contacts the providers |
 
 Players by provider:
 

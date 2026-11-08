@@ -30,7 +30,11 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('venue in form JSON', () => {
   it('asks for a place as text, or several', () => {
-    expect(venuePlugin.jsonSchema?.(field())).toMatchObject({ type: 'string' });
+    expect(venuePlugin.jsonSchema?.(field())).toMatchObject({
+      type: 'object',
+      properties: { name: { type: 'string' }, address: { type: ['string', 'null'] } },
+      required: ['name'],
+    });
     expect(venuePlugin.jsonSchema?.(field({ multiple: true }))).toMatchObject({
       type: 'array',
       items: { type: 'string' },
@@ -55,5 +59,59 @@ describe('venue in form JSON', () => {
       vi.fn(async () => new Response('[]'))
     );
     expect(await venuePlugin.parseJson?.('Nowhere at all', field())).toEqual({ value: undefined });
+  });
+
+  it('places a venue OpenStreetMap lacks at its address, under its own name, without an OSM id', async () => {
+    const street = {
+      ...JAM,
+      osm_type: 'way',
+      osm_id: 7,
+      class: 'highway',
+      type: 'residential',
+      addresstype: 'road',
+      display_name: 'Soi Sukhumvit 26, Khlong Toei, Bangkok, Thailand',
+      address: {
+        road: 'Soi Sukhumvit 26',
+        city: 'Bangkok',
+        country: 'Thailand',
+        country_code: 'th',
+      },
+    };
+    const district = { ...JAM, addresstype: 'suburb', class: 'boundary', type: 'administrative' };
+    const answers = [[], [district], [street]];
+    const fetchMock = vi.fn(
+      async (_url: unknown) => new Response(JSON.stringify(answers.shift() ?? []))
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const { value } =
+      (await venuePlugin.parseJson?.(
+        {
+          name: 'Blueprint Livehouse, Bangkok',
+          address:
+            'Blueprint Livehouse, 120/1 Sukhumvit 26 (Soi Ari), A Square, 2nd Floor, Khlong Toei, Bangkok 10110',
+        },
+        field()
+      )) ?? {};
+    const queries = fetchMock.mock.calls.map(([url]) => new URL(String(url)).searchParams.get('q'));
+    expect(queries).toEqual([
+      'Blueprint Livehouse, Bangkok',
+      '120/1 Sukhumvit 26, A Square, 2nd Floor, Khlong Toei, Bangkok 10110',
+      '120/1 Sukhumvit 26, Bangkok 10110',
+    ]);
+    expect(value).toMatchObject({
+      name: 'Blueprint Livehouse, Soi Sukhumvit 26, Bangkok',
+      level: 'place',
+    });
+    expect((value as { osmId?: string }).osmId).toBeUndefined();
+  });
+
+  it('reads { name } like the text', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify([JAM])))
+    );
+    const { value } =
+      (await venuePlugin.parseJson?.({ name: 'JAM', address: null }, field())) ?? {};
+    expect(value).toMatchObject({ osmId: '42' });
   });
 });

@@ -45,6 +45,13 @@ export interface WikiConfig {
    * links from its `i` tags. Derived when shown, never stored on the event.
    */
   links?: WikiLinkTemplate[];
+
+  /**
+   * Fields shown as readable lines before the infobox ("Genres: #punk", "Listen: https://…"),
+   * for clients that only show the page's text, e.g. in a feed. Ids of fields mapped to tags
+   * only; written each time from their values, and stripped when the page is read.
+   */
+  lead?: string[];
 }
 
 /**

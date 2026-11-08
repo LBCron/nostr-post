@@ -184,7 +184,9 @@ export const BEER_MANIFEST: NostrPostManifest = {
 ### Templates, derived links and other manifest keys
 
 `wikiConfig` scopes slugs with title/d-tag templates (`"{name}-(beer)"` → `bitcoin-beer`, so a beer
-doesn't collide with the article about Bitcoin) and declares links derived from the entity's data.
+doesn't collide with the article about Bitcoin), declares links derived from the entity's data, and
+a lead (`lead`: tag-only fields as `Label: value` lines before the infobox, for clients that show
+only the text).
 All manifest keys, including the picker's and the venue field's, are documented in
 [MANIFEST.md](../../MANIFEST.md#wiki-entity-manifests). Functions for them: `entityDTagFor`, `entityTitleFor`,
 `checkEntityDTag`, `checkEntitySlug` (a taken slug's first free qualifier among candidates),

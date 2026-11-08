@@ -2,15 +2,28 @@ import { useState } from 'react';
 import type { SuggestedLink } from '../lib/links';
 
 /**
- * The links the AI suggested, as players (or links) with "It's them" to confirm each: those their
- * site knows by the performer's name are ticked, the ones no site could be asked about are left
- * for the user to open. `onContinue` gets the confirmed links
+ * The links the AI gave that the post doesn't have, as players (or links) with "It's them" to
+ * confirm each: those their site knows by the performer's name are ticked; those it knows by
+ * another name show it; the ones no site could be asked about are left for the user to open.
+ * "Tick all" confirms every one. `onContinue` gets the confirmed links
  */
+
+/** Why a link is ticked or not */
+const checkNote = (s: SuggestedLink) => {
+  if (s.checked) return `(checked: ${s.names.join(' · ')})`;
+  if (s.names.length) return `(its site calls it: ${s.names.join(' · ')})`;
+  return "(couldn't be checked: open the link)";
+};
 export function SuggestedLinks({
   suggestions,
+  busy = false,
+  status = '',
   onContinue,
 }: {
   suggestions: SuggestedLink[];
+  /** Reading the answer after Continue: the button waits, `status` says what's going on */
+  busy?: boolean;
+  status?: string;
   onContinue: (confirmed: string[]) => void;
 }) {
   const [ticked, setTicked] = useState(
@@ -25,11 +38,12 @@ export function SuggestedLinks({
     });
   return (
     <section className="step np-card np-outlined">
-      <h3>Links the AI suggested</h3>
+      <h3>Links to confirm</h3>
       <p className="np-hint">
         Not in the post: check each one. Ticked ones exist under the performer's name, but may be
-        someone else's with the same name: play them. The others couldn't be checked: open them.
-        Keep ticked only those that are really them.
+        someone else's with the same name: play them. The others couldn't be checked, or their site
+        calls them otherwise: open them. Keep ticked only the right ones; unticked links are left
+        out.
       </p>
       {suggestions.map((s) => (
         <div className="performer" key={`${s.name} ${s.link}`}>
@@ -41,16 +55,30 @@ export function SuggestedLinks({
               checked={ticked.has(s.link)}
               onChange={(e) => toggle(s.link, e.target.checked)}
             />{' '}
-            It's them{' '}
-            {s.checked
-              ? `(checked: ${s.names.join(' · ')})`
-              : "(couldn't be checked: open the link)"}
+            It's them {checkNote(s)}
           </label>
         </div>
       ))}
-      <button type="button" className="np-button np-filled" onClick={() => onContinue([...ticked])}>
-        Continue
-      </button>
+      <div className="row">
+        <button
+          type="button"
+          className="np-button"
+          onClick={() => setTicked(new Set(suggestions.map((s) => s.link)))}
+        >
+          Tick all
+        </button>
+        <button
+          type="button"
+          className="np-button np-filled"
+          disabled={busy}
+          onClick={() => onContinue([...ticked])}
+        >
+          {busy ? 'Reading…' : 'Continue'}
+        </button>
+        <span className="np-hint" role="status">
+          {busy ? status : ''}
+        </span>
+      </div>
     </section>
   );
 }

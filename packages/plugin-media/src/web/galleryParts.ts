@@ -1,9 +1,10 @@
-/** Template parts of <np-media-gallery>: the grid, and a photo or video opened large */
+/** Template parts of <np-media-gallery>: the grid, and a photo or video as a lightbox slide */
 
 import { encodeNaddr, encodeNevent, encodeNpub } from '@nostr-post/core/nip19';
-import { html, nothing, type TemplateResult } from 'lit';
+import { html, type TemplateResult } from 'lit';
 import type { MediaItem } from '../eventMedia';
 import type { MediaGalleryMessages } from './galleryMessages';
+import type { LightboxSlide } from './lightbox';
 
 /** Where an item's post opens (a NIP-19 link: naddr for addressable posts, else nevent) */
 export const postLink = (item: MediaItem, base = 'https://njump.me/'): string => {
@@ -51,26 +52,19 @@ export const renderGrid = (
   })}
 </div>`;
 
-export const renderLarge = (
-  item: MediaItem | undefined,
+/** A photo or video as a lightbox slide: its description, who posted it when, a link to the post */
+export const lightboxSlide = (
+  item: MediaItem,
   names: ReadonlyMap<string, string>,
-  m: MediaGalleryMessages,
-  onClose: () => void
-): TemplateResult | typeof nothing => {
-  if (!item) return nothing;
+  m: MediaGalleryMessages
+): LightboxSlide => {
   const author = authorName(item.event.pubkey, names);
-  const alt = item.alt ?? m.photoAlt(author);
-  return html`<figure class="large">
-    ${
-      item.media === 'video'
-        ? html`<video src=${item.url} poster=${item.image ?? nothing} controls autoplay></video>`
-        : html`<img src=${item.url} alt=${alt} referrerpolicy="no-referrer" />`
-    }
-    <figcaption>
-      ${item.alt ? html`<div class="alt">${item.alt}</div>` : nothing}
-      <div class="byline">${m.byline(author, date(item))}</div>
-      <a href=${postLink(item)} target="_blank" rel="noopener noreferrer">${m.openPost}</a>
-      <button type="button" class="close np-button np-text np-small" part="button" @click=${onClose}>${m.close}</button>
-    </figcaption>
-  </figure>`;
+  return {
+    url: item.url,
+    media: item.media,
+    alt: item.alt ?? (item.media === 'image' ? m.photoAlt(author) : undefined),
+    poster: item.image,
+    caption: html`<span class="byline">${m.byline(author, date(item))}</span>
+      <a href=${postLink(item)} target="_blank" rel="noopener noreferrer">${m.openPost}</a>`,
+  };
 };

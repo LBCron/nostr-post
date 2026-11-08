@@ -288,44 +288,41 @@ export class NostrPostComposer extends NostrPostElement {
     return { manifest: this.manifest || STANDARD_KIND1_POST_MANIFEST, pubkey };
   }
 
-  private async handleSubmit(e: Event): Promise<void> {
-    e.preventDefault();
+  /**
+   * Runs a button's work: busy at once with `step` shown (asking the signer may take a while,
+   * e.g. a remote signer or a sign-in), its error shown; one at a time
+   */
+  private async _busy(step: string, work: () => Promise<void>): Promise<void> {
+    if (this.isSubmitting) return;
     this.successMessage = '';
     this._submitError = undefined;
-    this.errors = {};
-
-    const context = await this._submitContext();
-    if (!context) return;
-    const { manifest, pubkey } = context;
-
     this.isSubmitting = true;
-
+    this._submitStep = step;
     try {
+      await work();
+    } catch (error) {
+      this.showError(error instanceof Error ? error.message : this._m.unknownError);
+    } finally {
+      this.isSubmitting = false;
+      this._submitStep = undefined;
+    }
+  }
+
+  private handleSubmit(e: Event): Promise<void> {
+    e.preventDefault();
+    return this._busy(this._m.stepSigner, async () => {
+      this.errors = {};
+      const context = await this._submitContext();
+      if (!context) return;
+      const { manifest, pubkey } = context;
+      this._submitStep = undefined;
       await waitForUploads(this._m, (step) => (this._submitStep = step));
       const outcome = this._coordinate(manifest, this._formData, pubkey);
-
-      if ('validationError' in outcome) {
-        this.applyValidationError(outcome.validationError);
-        return;
-      }
+      if ('validationError' in outcome) return this.applyValidationError(outcome.validationError);
 
       const { bundle, addressableDTag } = outcome;
-
       if (this.autoPublish) {
-        const { published, queued } = await publishOrQueue(
-          this._formData,
-          pubkey,
-          () => this._publish(manifest, pubkey),
-          {
-            sendAt: this._sendAt,
-            signLater: { manifest, options: this._coordinateOptions, relays: this.relays },
-          }
-        );
-        if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
-        else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
-        const notice = publishedNotice(published, this._m);
-        this.successMessage = queued ? queuedMessage(queued, this._m) : notice.success;
-        if (notice.error) this.showError(notice.error);
+        await this._publishOrQueue(manifest, pubkey);
       } else {
         // formData + manifest let the app run plugin hooks itself (runBeforePublish)
         this.dispatchCustomEvent<NostrPostSubmitDetail>('nostr-post-submit', {
@@ -336,33 +333,47 @@ export class NostrPostComposer extends NostrPostElement {
         });
         this.successMessage = this._m.created;
       }
-
       this._formData = {};
       if (this.draftId) void removeDraft(this.draftId);
       this.draftId = this._sendAt = undefined;
-    } catch (error) {
-      this.showError(error instanceof Error ? error.message : this._m.unknownError);
-    } finally {
-      this.isSubmitting = false;
-      this._submitStep = undefined;
-    }
+    });
   }
 
-  private async _saveDraft(): Promise<void> {
+  /** Publishes now, or queues in the outbox (timed, files uploaded later) */
+  private async _publishOrQueue(manifest: NostrPostManifest, pubkey: string): Promise<void> {
+    const { published, queued } = await publishOrQueue(
+      this._formData,
+      pubkey,
+      () => this._publish(manifest, pubkey),
+      {
+        sendAt: this._sendAt,
+        signLater: { manifest, options: this._coordinateOptions, relays: this.relays },
+      }
+    );
+    if (queued) this.dispatchCustomEvent('nostr-post-queued', queued);
+    else this.dispatchCustomEvent<SignedEvent[]>('nostr-post-published', published.events);
+    const notice = publishedNotice(published, this._m);
+    this.successMessage = queued ? queuedMessage(queued, this._m) : notice.success;
+    if (notice.error) this.showError(notice.error);
+  }
+
+  private _saveDraft(): Promise<void> {
     const manifest = this.manifest ?? this.manifestRef ?? STANDARD_KIND1_POST_MANIFEST;
     const { pubkey, autoPublish, dTag, draftId, _formData: formData } = this;
-    const item = await saveComposerDraft({
-      pubkey,
-      autoPublish,
-      manifest,
-      formData,
-      dTag,
-      draftId,
+    return this._busy(this._m.savingDraft, async () => {
+      const item = await saveComposerDraft({
+        pubkey,
+        autoPublish,
+        manifest,
+        formData,
+        dTag,
+        draftId,
+      });
+      if (!item) return this.showError(this._m.signInToPublish);
+      this.draftId = item.id;
+      this.successMessage = this._m.draftSaved;
+      this.dispatchCustomEvent('nostr-post-draft-saved', item);
     });
-    if (!item) return this.showError(this._m.signInToPublish);
-    this.draftId = item.id;
-    this.successMessage = this._m.draftSaved;
-    this.dispatchCustomEvent('nostr-post-draft-saved', item);
   }
 
   /** How to build the post besides the pubkey; kept with a post signed later */
@@ -442,7 +453,7 @@ export class NostrPostComposer extends NostrPostElement {
         ${renderComposerHeader(manifest.metadata)}
         ${this.successMessage ? html`<div class="np-message np-success" role="status">${this.successMessage}</div>` : ''}
         ${renderHiddenFieldErrors(manifest, this.errors, this.excludeFields, this.prefill)}
-        <form @submit=${this.handleSubmit}>
+        <form novalidate @submit=${this.handleSubmit}>
           ${renderPublishFormatPicker(
             selectableFormats,
             this.selectedPublishFormatId,

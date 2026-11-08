@@ -51,45 +51,11 @@ export const galleryStyles = css`
     background: color-mix(in srgb, var(--np-color-scrim) 55%, transparent);
     border-radius: var(--np-radius-xs);
   }
-  .status,
-  .byline {
+  .status {
     color: var(--np-color-on-surface-variant);
     font-size: var(--np-text-sm);
   }
   button.more {
     margin-top: 0.5rem;
-  }
-  dialog {
-    width: min(48rem, calc(100vw - 2 * var(--np-space-4)));
-    padding: var(--np-space-3);
-  }
-  .large {
-    margin: 0;
-  }
-  .large img,
-  .large video {
-    display: block;
-    max-width: 100%;
-    max-height: 75vh;
-    margin: 0 auto;
-    border-radius: var(--np-radius-sm);
-  }
-  figcaption {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 1rem;
-    margin-top: 0.5rem;
-    font-size: var(--np-text-md);
-  }
-  .alt {
-    flex-basis: 100%;
-  }
-  a {
-    color: var(--np-color-primary);
-  }
-
-  .close {
-    margin-left: auto;
   }
 `;

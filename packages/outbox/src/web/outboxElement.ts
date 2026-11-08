@@ -12,6 +12,7 @@ import { NpElement, npStyles } from '@nostr-post/ui/web';
 import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
+  isInterrupted,
   isLate,
   itemActions,
   nowSeconds,
@@ -120,7 +121,7 @@ export class NostrPostOutbox extends NpElement {
 
   _meta(item: OutboxItem, now: number) {
     const m = this._m;
-    const parts: string[] = [m.states[item.state]];
+    const parts: string[] = [isInterrupted(item, now) ? m.interrupted : m.states[item.state]];
     const bytes = pendingBytes(item);
     if (bytes > 0) parts.push(m.size(bytes));
     if (item.sendAt !== undefined) parts.push(m.sendAt(new Date(item.sendAt * 1000)));

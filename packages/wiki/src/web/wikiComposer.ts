@@ -375,7 +375,7 @@ export class NostrWikiComposer extends NpElement {
     }
 
     return html`
-      <form class="nostr-wiki-composer np-card np-outlined" part="container" @submit=${(
+      <form novalidate class="nostr-wiki-composer np-card np-outlined" part="container" @submit=${(
         e: Event
       ) => {
         e.preventDefault();

@@ -87,6 +87,8 @@ export function AddGig({ draftId }: { draftId?: string }) {
   const [suggestLinks, setSuggestLinks] = useState(() => store.get('gigs:suggest-links') !== '0');
   const [answer, setAnswer] = useState('');
   const [status, setStatus] = useState('');
+  // Reading an answer takes a while (link checks, OpenStreetMap, artist pages): one at a time
+  const [busy, setBusy] = useState(false);
   const [next, setNext] = useState<Next>();
   // The prompt's schema comes from the form's plugins
   const [pluginsLoaded, setPluginsLoaded] = useState(false);
@@ -96,25 +98,37 @@ export function AddGig({ draftId }: { draftId?: string }) {
 
   const review = (draft?: GigDraft) => setNext({ step: 'review', draft, id: Date.now() });
 
-  const showDraft = async (answerText: string, confirmed: string[]) => {
+  const whileBusy = async (work: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
     try {
-      setStatus('Reading the answer…');
+      await work();
+    } catch (error) {
+      setStatus(`Couldn't read the answer: ${messageOf(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const showDraft = (answerText: string, confirmed: string[]) =>
+    whileBusy(async () => {
+      setStatus('Reading the answer: finding the venue and the artists’ pages…');
       const draft = await readAnswer(answerText, { text, hasPoster: Boolean(poster), confirmed });
       setStatus('');
       review(draft);
-    } catch (error) {
-      setStatus(`Couldn't read the answer: ${messageOf(error)}`);
-    }
-  };
+    });
 
   // Links the post doesn't have, suggested by the AI, are offered to confirm before the preview
   const preview = async (answerText: string) => {
     setNext(undefined);
     const json = findJsonObject(answerText);
     if (!json.success) return setStatus(`Couldn't read the answer: ${json.error.message}`);
-    setStatus('Checking the links the AI suggested…');
-    const suggestions = await suggestedLinks(json.data, text, Boolean(poster));
-    setStatus('');
+    let suggestions: SuggestedLink[] = [];
+    await whileBusy(async () => {
+      setStatus('Checking the links…');
+      suggestions = await suggestedLinks(json.data, text, Boolean(poster));
+      setStatus('');
+    });
     if (!suggestions.length) return showDraft(answerText, []);
     setNext({ step: 'links', answer: answerText, suggestions });
   };
@@ -240,8 +254,13 @@ export function AddGig({ draftId }: { draftId?: string }) {
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
         />
-        <button type="button" className="np-button np-filled" onClick={() => preview(answer)}>
-          Preview
+        <button
+          type="button"
+          className="np-button np-filled"
+          disabled={busy}
+          onClick={() => preview(answer)}
+        >
+          {busy ? 'Reading…' : 'Preview'}
         </button>
         <p className="np-hint" role="status">
           {status}
@@ -250,6 +269,8 @@ export function AddGig({ draftId }: { draftId?: string }) {
       {next?.step === 'links' && (
         <SuggestedLinks
           suggestions={next.suggestions}
+          busy={busy}
+          status={status}
           onContinue={(confirmed) => showDraft(next.answer, confirmed)}
         />
       )}

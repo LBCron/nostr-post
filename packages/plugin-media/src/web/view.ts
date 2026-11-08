@@ -2,7 +2,8 @@
  * @nostr-post/plugin-media - <np-media-view>
  *
  * Read-only media gallery. Renders images inline, videos with controls,
- * and falls back to a link for unrecognized URLs.
+ * and falls back to a link for unrecognized URLs. One photo shows large (e.g. an event's
+ * image); a photo opens in <np-media-lightbox>, with the field's other photos and videos.
  *
  * Accepts .value (string | string[]), .field (PostField) and .author (the post's pubkey). An
  * image from a Blossom server that fails to load is tried on the author's other servers (their
@@ -11,71 +12,18 @@
 
 import type { PostField } from '@nostr-post/plugins/types';
 import { NpElement, npStyles } from '@nostr-post/ui/web';
-import { css, html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { html } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { isImageUrl, isVideoUrl, type MediaPluginConfig, toArray } from '../core';
 import { mediaFileOf } from '../mediaFiles';
+import './lightbox';
+import type { LightboxSlide, NpMediaLightbox } from './lightbox';
 import { otherServersOf } from './otherServers';
+import { viewStyles } from './viewStyles';
 
 @customElement('np-media-view')
 export class NpMediaView extends NpElement {
-  static override styles = [
-    ...npStyles,
-    css`
-    :host {
-      display: block;
-      line-height: 1.3;
-    }
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-    .media-view {
-      border-radius: var(--np-radius-sm);
-      overflow: hidden;
-      background: var(--np-color-surface-container-low);
-      border: 1px solid var(--np-color-outline-variant);
-      max-width: min(220px, 100%);
-    }
-    img {
-      display: block;
-      width: 100%;
-      max-height: 180px;
-      object-fit: contain;
-      border-radius: var(--np-radius-sm);
-    }
-    video {
-      display: block;
-      width: 100%;
-      max-height: 180px;
-      border-radius: var(--np-radius-sm);
-    }
-    .media-link {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      color: var(--np-color-primary);
-      text-decoration: none;
-      font-size: var(--np-text-md);
-      word-break: break-all;
-      border: 1px solid var(--np-color-outline-variant);
-      border-radius: var(--np-radius-sm);
-    }
-    .media-link:hover {
-      text-decoration: underline;
-    }
-    .media-icon {
-      font-size: var(--np-text-xl);
-      flex-shrink: 0;
-    }
-    .empty {
-      font-size: var(--np-text-md);
-      color: var(--np-color-on-surface-variant);
-    }
-  `,
-  ];
+  static override styles = [...npStyles, viewStyles];
 
   @property({ type: Array })
   value: string | string[] = [];
@@ -91,6 +39,23 @@ export class NpMediaView extends NpElement {
   @state() _shown = new Map<string, string>();
   /** Other servers' URLs still to try, by original URL */
   _alternatives = new Map<string, string[]>();
+  @query('np-media-lightbox') _lightbox?: NpMediaLightbox;
+
+  /** The photos and videos, for the lightbox */
+  get _slides(): LightboxSlide[] {
+    return toArray(this.value).flatMap((url): LightboxSlide[] => {
+      if (isVideoUrl(url)) return [{ url, media: 'video' }];
+      if (!isImageUrl(url)) return [];
+      return [{ url: this._shown.get(url) ?? url, media: 'image', alt: mediaFileOf(url).alt }];
+    });
+  }
+
+  _openSlide(url: string): void {
+    const index = toArray(this.value)
+      .filter((u) => isVideoUrl(u) || isImageUrl(u))
+      .indexOf(url);
+    void this._lightbox?.open(Math.max(index, 0));
+  }
 
   async _tryElsewhere(url: string): Promise<void> {
     if (!this._alternatives.has(url)) {
@@ -108,7 +73,10 @@ export class NpMediaView extends NpElement {
       return html`<span class="empty">No media</span>`;
     }
 
-    return html`<div class="gallery">${urls.map((url) => this.renderItem(url))}</div>`;
+    return html`<div class="gallery ${urls.length === 1 ? 'single' : ''}">
+        ${urls.map((url) => this.renderItem(url))}
+      </div>
+      <np-media-lightbox exportparts="dialog, button" .slides=${this._slides}></np-media-lightbox>`;
   }
 
   private renderItem(url: string) {
@@ -123,11 +91,13 @@ export class NpMediaView extends NpElement {
     if (isImageUrl(url)) {
       return html`
         <div class="media-view">
-          <img
-            src=${this._shown.get(url) ?? url}
-            alt=${mediaFileOf(url).alt ?? 'Media'}
-            @error=${() => void this._tryElsewhere(url)}
-          />
+          <button type="button" class="open" part="button" @click=${() => this._openSlide(url)}>
+            <img
+              src=${this._shown.get(url) ?? url}
+              alt=${mediaFileOf(url).alt ?? 'Media'}
+              @error=${() => void this._tryElsewhere(url)}
+            />
+          </button>
         </div>
       `;
     }

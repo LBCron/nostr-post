@@ -3,7 +3,8 @@
  * view (`sections` of a manifest, shown by `<nostr-post-sections>`), which gives it `.items`.
  * On its own, `.targets` (addresses or event ids) loads the targets and every post referencing
  * them (`fetchReferences`, `@nostr-post/posts`), or `.events` gives posts. A grid, newest first;
- * a photo or video opens large with its description, author, date and a link to its post.
+ * a photo or video opens large (`<np-media-lightbox>`: previous and next through all of them)
+ * with its description, author, date and a link to its post.
  */
 
 import type { PostSection } from '@nostr-post/core/types';
@@ -14,8 +15,10 @@ import { html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { type MediaItem, type MediaSource, mediaOfEvents } from '../eventMedia';
 import { DEFAULT_MEDIA_GALLERY_MESSAGES, type MediaGalleryMessages } from './galleryMessages';
-import { renderGrid, renderLarge } from './galleryParts';
+import { lightboxSlide, renderGrid } from './galleryParts';
+import './lightbox';
 import { galleryStyles } from './galleryStyles';
+import type { NpMediaLightbox } from './lightbox';
 
 /** What a gallery shows on its own: heading, kinds, how many at first */
 export interface MediaGalleryConfig {
@@ -48,9 +51,8 @@ export class NpMediaGallery extends NpElement {
   /** undefined while loading */
   @state() _items?: MediaItem[];
   @state() _shown = 12;
-  @state() _open?: MediaItem;
   @state() _names: ReadonlyMap<string, string> = new Map();
-  @query('dialog.large-view') _largeView?: HTMLDialogElement;
+  @query('np-media-lightbox') _lightbox?: NpMediaLightbox;
   _loads = 0;
 
   get _m(): MediaGalleryMessages {
@@ -103,13 +105,7 @@ export class NpMediaGallery extends NpElement {
   }
 
   _openItem(item: MediaItem): void {
-    this._open = item;
-    void this.updateComplete.then(() => this._largeView?.showModal());
-  }
-
-  _closeItem(): void {
-    this._largeView?.close();
-    this._open = undefined;
+    void this._lightbox?.open(this._items?.indexOf(item) ?? 0);
   }
 
   override render() {
@@ -127,11 +123,11 @@ export class NpMediaGallery extends NpElement {
             }}>${m.showMore}</button>`
           : nothing
       }
-      <dialog class="large-view np-dialog" part="dialog" @close=${() => {
-        this._open = undefined;
-      }}>
-        ${renderLarge(this._open, this._names, m, () => this._closeItem())}
-      </dialog>
+      <np-media-lightbox
+        exportparts="dialog, button"
+        .slides=${(items ?? []).map((item) => lightboxSlide(item, this._names, m))}
+        .messages=${{ close: m.close }}
+      ></np-media-lightbox>
     `;
   }
 }
